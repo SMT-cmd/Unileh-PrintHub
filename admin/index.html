@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Unilesh Print Hub</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <meta name="robots" content="noindex, nofollow">
+    <!-- iOS Mobile Features -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+</head>
+<body class="admin-login-body watermark-bg">
+
+    <main class="container">
+        <div class="login-card card">
+            <div class="logo">
+                <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo" style="height: 60px; margin-bottom: 20px;">
+                <h2>Admin Panel Access</h2>
+            </div>
+            <div class="admin-auth-switch">
+                <button id="show-login" class="tab-button active" type="button">Sign In</button>
+                <button id="show-signup" class="tab-button" type="button">One-Time Registration</button>
+            </div>
+
+            <div id="registration-status" class="status-message"></div>
+
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label for="admin-email">Admin Email</label>
+                    <input type="email" id="admin-email" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" placeholder="Enter password" required>
+                </div>
+                <div id="login-error" class="error-message" style="display: none;">
+                    Invalid email or password. Please try again.
+                </div>
+                <button type="submit" class="cta-button">Sign In</button>
+            </form>
+
+            <form id="admin-signup-form" style="display: none;">
+                <div class="form-group">
+                    <label for="admin-signup-email">Admin Email</label>
+                    <input type="email" id="admin-signup-email" placeholder="Enter admin email" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-signup-password">Password</label>
+                    <input type="password" id="admin-signup-password" placeholder="Create password" minlength="8" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-signup-confirm-password">Confirm Password</label>
+                    <input type="password" id="admin-signup-confirm-password" placeholder="Repeat password" minlength="8" required>
+                </div>
+                <div id="signup-error" class="error-message" style="display: none;"></div>
+                <button type="submit" class="cta-button">Create Admin Account</button>
+            </form>
+            <p class="login-footer"><a href="../">Back to Site</a></p>
+        </div>
+    </main>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        const authPageDeps = setInterval(() => {
+            if (typeof signInAdmin === 'function' && typeof signUpAdmin === 'function' && typeof isAdminRegistrationOpen === 'function') {
+                clearInterval(authPageDeps);
+                initAdminAuthPage();
+            }
+        }, 100);
+
+        async function initAdminAuthPage() {
+            const loginForm = document.getElementById('admin-login-form');
+            const signupForm = document.getElementById('admin-signup-form');
+            const loginError = document.getElementById('login-error');
+            const signupError = document.getElementById('signup-error');
+            const statusDiv = document.getElementById('registration-status');
+            const showLoginBtn = document.getElementById('show-login');
+            const showSignupBtn = document.getElementById('show-signup');
+
+            const openLogin = () => {
+                showLoginBtn.classList.add('active');
+                showSignupBtn.classList.remove('active');
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+            };
+
+            const openSignup = () => {
+                showSignupBtn.classList.add('active');
+                showLoginBtn.classList.remove('active');
+                signupForm.style.display = 'block';
+                loginForm.style.display = 'none';
+            };
+
+            const registrationOpen = await isAdminRegistrationOpen();
+            if (registrationOpen) {
+                statusDiv.textContent = "Admin registration is open. Complete one-time setup, then use Sign In.";
+                statusDiv.className = "status-message pending";
+            } else {
+                statusDiv.textContent = "Admin account is already configured. Sign In is active.";
+                statusDiv.className = "status-message success";
+                showSignupBtn.disabled = true;
+                openLogin();
+            }
+
+            showLoginBtn.addEventListener('click', openLogin);
+            showSignupBtn.addEventListener('click', () => {
+                if (!showSignupBtn.disabled) {
+                    openSignup();
+                }
+            });
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                loginError.style.display = 'none';
+                const email = document.getElementById('admin-email').value;
+                const password = document.getElementById('admin-password').value;
+                try {
+                    await signInAdmin(email, password);
+                    window.location.href = 'dashboard/';
+                } catch (error) {
+                    loginError.style.display = 'block';
+                }
+            });
+
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                signupError.style.display = 'none';
+                const email = document.getElementById('admin-signup-email').value;
+                const password = document.getElementById('admin-signup-password').value;
+                const confirmPassword = document.getElementById('admin-signup-confirm-password').value;
+                if (password !== confirmPassword) {
+                    signupError.textContent = "Passwords do not match.";
+                    signupError.style.display = 'block';
+                    return;
+                }
+                try {
+                    await signUpAdmin(email, password);
+                    signupForm.reset();
+                    statusDiv.textContent = "Admin registration completed. You can now sign in.";
+                    statusDiv.className = "status-message success";
+                    showSignupBtn.disabled = true;
+                    openLogin();
+                } catch (error) {
+                    signupError.textContent = error.message || "Registration failed.";
+                    signupError.style.display = 'block';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

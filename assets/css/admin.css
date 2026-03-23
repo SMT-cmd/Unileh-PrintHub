@@ -1,0 +1,260 @@
+/* Admin-Specific Styles */
+
+/* Admin Login */
+.admin-login-body {
+  background-color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.admin-login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+.login-box .logo h1 {
+  color: var(--primary);
+  margin-bottom: 5px;
+}
+
+.login-box .logo span {
+  color: var(--accent);
+  font-weight: bold;
+  display: block;
+  margin-bottom: 30px;
+}
+
+/* Admin Dashboard Header */
+.admin-header {
+  background-color: white;
+  color: var(--primary);
+  border-bottom: 2px solid var(--light-grey);
+}
+
+.admin-header .logo h1 {
+  margin-bottom: 0;
+  color: var(--primary);
+}
+
+/* Tabs */
+.tab-container {
+  display: flex;
+  gap: 10px;
+  margin: 40px 0 20px;
+}
+
+.tab-button {
+  padding: 12px 25px;
+  border: none;
+  background: var(--light-grey);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: var(--transition);
+  color: var(--primary);
+  border: 2px solid transparent;
+}
+
+.tab-button:hover {
+  background: #e0e0e0;
+  border-color: var(--accent);
+}
+
+.tab-button.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 10px rgba(10, 31, 68, 0.2);
+}
+
+.tab-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.admin-auth-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.status-message {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  margin-bottom: 18px;
+}
+
+.status-message.pending {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Tables */
+.table-responsive {
+  overflow-x: auto;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+th {
+  background: var(--light-grey);
+  font-weight: bold;
+  color: var(--primary);
+}
+
+tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-printed, .status-handled {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Admin Section Header */
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0 20px;
+}
+
+.admin-section-header h2 {
+  margin-bottom: 0;
+}
+
+/* Forms */
+.form-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--primary);
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--light-grey);
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+/* Actions */
+.action-button {
+  padding: 8px 15px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}
+
+.action-button.delete {
+  background: var(--error);
+}
+
+.download-link {
+  color: var(--accent);
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.cta-button-small {
+  padding: 8px 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Row Hover */
+tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Responsive Table container */
+.table-responsive {
+  margin-bottom: 40px;
+}

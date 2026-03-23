@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Checkout - Unilesh Print Hub</title>
+    <meta name="description" content="Complete your print order payment for Unilesh Print Hub. Safe and secure payment options for Unilesa students.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#0a1f44">
+    <!-- iOS Mobile Features -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+</head>
+<body class="watermark-bg">
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../">
+                    <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo">
+                    Unilesh Print Hub
+                </a>
+                <span>powered by AfriNet Hub</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="../order/">Print Now</a></li>
+                    <li><a href="../portal/">Portal Services</a></li>
+                    <li><a href="../news/">Latest News</a></li>
+                    <li><a href="../partners/">Partners</a></li>
+                    <li><a href="../about/">About Us</a></li>
+                </ul>
+            </nav>
+            <button id="theme-toggle">Toggle Theme</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Complete Your Order</h1>
+            <p>Review your order and make payment.</p>
+        </section>
+
+        <div id="checkout-summary" class="card">
+            <div class="loading">Fetching order details...</div>
+        </div>
+
+        <section id="payment-details" class="card payment-card" style="display: none;">
+            <h3>Bank Transfer Details</h3>
+            <div class="bank-info">
+                <p><strong>Bank:</strong> Moniepoint</p>
+                <p><strong>Account Number:</strong> 5243188147</p>
+                <p><strong>Account Name:</strong> AfriNet NG and Company</p>
+                <p><strong>Payment Reference:</strong> <span id="payment-ref-id" class="highlight">Order ID</span></p>
+            </div>
+            <p class="instruction">"Use your Order ID as the payment reference"</p>
+
+            <div class="confirm-payment">
+                <h4>I've Paid, Confirm Payment</h4>
+                <p>Upload your payment receipt (image/PDF) and we'll get printing immediately.</p>
+                <div id="receipt-upload-container">
+                    <button type="button" id="upload-receipt-btn" class="cta-button">Upload Receipt</button>
+                    <div id="receipt-feedback" class="upload-feedback" style="display: none;"></div>
+                </div>
+                <button id="confirm-payment-btn" class="cta-button-whatsapp" disabled>
+                    Notify Admin via WhatsApp
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <p>&copy; 2024 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
+                </div>
+                <div class="footer-section university-links">
+                    <h4>University Portals</h4>
+                    <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                    <a href="https://admissions.unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Admissions Portal</a>
+                    <a href="https://unilesaservices.com.ng" target="_blank" rel="noopener noreferrer">Student Services Hub</a>
+                </div>
+                <div class="footer-section legal-links">
+                    <h4>Legal</h4>
+                    <a href="../privacy/">Privacy Policy</a>
+                    <a href="../terms/">Terms of Service</a>
+                    <a href="../refund/">Refund Policy</a>
+                    <a href="../about/">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cloudinary Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <script src="../assets/js/cloudinary.js"></script>
+    <!-- Firebase SDKs -->
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/app.js"></script>
+
+    <script type="module">
+        let currentOrder = null;
+        let receiptData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.getOrder && window.openCloudinaryWidget) {
+                    clearInterval(checkDeps);
+                    initCheckout();
+                }
+            }, 100);
+        });
+
+        async function initCheckout() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
+
+            if (!orderId) {
+                document.getElementById('checkout-summary').innerHTML = '<p class="error">No Order ID found. Please go back and try again.</p>';
+                return;
+            }
+
+            try {
+                currentOrder = await window.getOrder(orderId);
+                if (!currentOrder) {
+                    document.getElementById('checkout-summary').innerHTML = '<p class="error">Order not found.</p>';
+                    return;
+                }
+
+                document.getElementById('checkout-summary').innerHTML = `
+                    <div class="summary-details">
+                        <p><strong>Student Name:</strong> ${currentOrder.studentName}</p>
+                        <p><strong>Order ID:</strong> ${orderId}</p>
+                        <p><strong>Print Type:</strong> ${currentOrder.printType}</p>
+                        <p><strong>Pages:</strong> ${currentOrder.pageCount}</p>
+                        <p><strong>Copies:</strong> ${currentOrder.copies}</p>
+                        <hr>
+                        <h3>Total Amount: ₦${currentOrder.totalPrice.toFixed(2)}</h3>
+                    </div>
+                `;
+                document.getElementById('payment-ref-id').textContent = orderId;
+                document.getElementById('payment-details').style.display = 'block';
+
+                setupReceiptUpload(orderId);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('checkout-summary').innerHTML = '<p class="error">Error loading order summary.</p>';
+            }
+        }
+
+        function setupReceiptUpload(orderId) {
+            const uploadBtn = document.getElementById('upload-receipt-btn');
+            const feedback = document.getElementById('receipt-feedback');
+            const confirmBtn = document.getElementById('confirm-payment-btn');
+
+            uploadBtn.addEventListener('click', () => {
+                window.openCloudinaryWidget().then(result => {
+                    receiptData = result;
+                    feedback.innerHTML = `Receipt ready: <strong>${result.original_filename}</strong>`;
+                    feedback.style.display = 'block';
+                    uploadBtn.textContent = 'Change Receipt';
+                    confirmBtn.disabled = false;
+                }).catch(err => {
+                    console.error(err);
+                    alert("Upload failed.");
+                });
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                if (!receiptData || !currentOrder) return;
+
+                const message = `Order Payment Confirmation!\n\n` +
+                                `Order ID: ${orderId}\n` +
+                                `Student: ${currentOrder.studentName}\n` +
+                                `Amount: ₦${currentOrder.totalPrice.toFixed(2)}\n` +
+                                `Receipt: ${receiptData.secure_url}`;
+                
+                const whatsappUrl = `https://wa.me/2348022140329?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+            });
+        }
+    </script>
+</body>
+</html>
+
+

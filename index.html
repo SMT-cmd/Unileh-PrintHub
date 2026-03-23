@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unilesh Print Hub - Fast, Reliable Printing for Unilesa Students</title>
+    <meta name="description" content="Your deadline is safe with us. Get crystal-clear prints and essential student services, all in one place. Powered by AfriNet Hub.">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a1f44">
+    
+    <!-- iOS Mobile Features -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="assets/images/logo.png">
+</head>
+<body>
+
+    <!-- Announcements Ticker -->
+    <div id="announcement-ticker" class="ticker-wrap" style="display: none;">
+        <div class="ticker" id="ticker-content">
+            <!-- Announcements will be injected here -->
+        </div>
+    </div>
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="./" class="brand-link">
+                    <img src="assets/images/logo.png" alt="Unilesh Print Hub Logo">
+                    <span class="brand-block">
+                        <span class="brand-name">Unilesh Print Hub</span>
+                        <span class="powered-by">powered by AfriNet Hub</span>
+                    </span>
+                </a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="./order/">Print Now</a></li>
+                    <li><a href="./portal/">Portal Services</a></li>
+                    <li><a href="./news/">Latest News</a></li>
+                    <li><a href="./partners/">Partners</a></li>
+                    <li><a href="./about/">About Us</a></li>
+                </ul>
+            </nav>
+            <button id="theme-toggle">Toggle Theme</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section with Watermark -->
+        <section class="hero watermark-bg">
+            <div class="container">
+                <h1>Your Deadline is Safe With Us.</h1>
+                <p>Upload. Print. Done—before your next class. We handle the stress so you can focus on the grades.</p>
+                <a href="order/" class="cta-button">Start My Print Order</a>
+                <div class="trust-signals">
+                    <span><img src="assets/images/icons/secure.svg" alt=""> Secure Uploads</span>
+                    <span><img src="assets/images/icons/fast.svg" alt=""> Fast Turnaround</span>
+                    <span><img src="assets/images/icons/pricing.svg" alt=""> Student-First Pricing</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top Advertisement Banner -->
+        <section id="top-ad-banner" class="ad-banner container" style="display: none;">
+            <div id="top-ad-content" class="ad-content"></div>
+        </section>
+
+        <section class="order-guide">
+            <div class="container">
+                <img src="https://www.unilesa.edu.ng/static/frontpage/assets/img/icons/uniilesalogo3.png" alt="University of Ilesha Logo" class="how-it-works-logo">
+                <h2>How It Works: Simple as 1-2-3</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3>Upload Your Document</h3>
+                        <p>Just drag and drop your PDF, Word doc, or image. Our secure system handles the rest.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3>Configure Your Print</h3>
+                        <p>Choose black & white or color, select your copies, and add any special notes. See the price update instantly.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3>Pay & Collect</h3>
+                        <p>Confirm your order, make a quick payment, and we’ll notify you the moment it’s ready for pickup.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="services">
+            <div class="container">
+                <h2>Crystal-Clear Prints, Every Single Time</h2>
+                <div class="service-items">
+                    <div class="service-item">
+                        <h3>Assignment & Project Printing</h3>
+                        <p>From final year projects to term papers, we deliver sharp, professional quality that makes your work shine.</p>
+                    </div>
+                    <div class="service-item">
+                        <h3>Photocopying Services</h3>
+                        <p>Need copies of lecture notes or textbooks? We provide fast, affordable, and high-quality photocopying.</p>
+                    </div>
+                    <div class="service-item">
+                        <h3>Photo & Image Printing</h3>
+                        <p>Get your memories on paper with our vibrant photo printing service. Perfect for presentations or personal use.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-services-cta">
+            <div class="container">
+                <div class="card">
+                    <h2>Need Help With Your Student Portal?</h2>
+                    <p>Exam card, library pass, or portal login issues? We've got you. Let us handle the digital hassle so you can get back to your studies, stress-free.</p>
+                    <a href="portal/" class="cta-button-secondary">Get Portal Assistance</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advertise With Us Toggle & Form -->
+        <section class="advertise-with-us container">
+            <button id="toggle-advert-form" class="cta-button-secondary">Advertise With Us</button>
+            <div id="advert-form-container" class="form-card" style="display: none;">
+                <h3>Get Your Brand in Front of Students</h3>
+                <form id="advert-request-form">
+                    <div class="form-group">
+                        <label for="biz-name">Business Name</label>
+                        <input type="text" id="biz-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="biz-phone">Contact Phone</label>
+                        <input type="tel" id="biz-phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ad-desc">Ad Description</label>
+                        <textarea id="ad-desc" rows="3" required></textarea>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="ad-duration">Duration</label>
+                            <select id="ad-duration" required>
+                                <option value="1">1 Day</option>
+                                <option value="3">3 Days</option>
+                                <option value="7">7 Days</option>
+                                <option value="14">14 Days</option>
+                                <option value="30">30 Days</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ad-placement">Placement</label>
+                            <select id="ad-placement" required>
+                                <option value="Top">Top Banner</option>
+                                <option value="Bottom">Bottom Banner</option>
+                                <option value="Both">Both</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="cta-button">Submit Inquiry</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="feedback-section container">
+            <button id="toggle-feedback-form" class="cta-button-secondary">Share Feedback & Suggestions</button>
+            <div id="feedback-form-container" class="form-card" style="display: none;">
+                <h3>Feedback & Suggestions</h3>
+                <p>Your ideas matter. Tell us what you love, what should improve, and what you want next on Unilesh Print Hub.</p>
+                <form id="feedback-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="feedback-name">Your Name</label>
+                            <input type="text" id="feedback-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="feedback-phone">Phone Number</label>
+                            <input type="tel" id="feedback-phone" placeholder="Optional">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback-type">Category</label>
+                        <select id="feedback-type" required>
+                            <option value="">Select Category</option>
+                            <option value="Feedback">Feedback</option>
+                            <option value="Suggestion">Suggestion</option>
+                            <option value="Complaint">Complaint</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback-message">Message</label>
+                        <textarea id="feedback-message" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="cta-button">Send to Admin</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="gadgets-cta">
+            <div class="container">
+                <div class="card">
+                    <h2>Upgrade Your Gear</h2>
+                    <p>Check out our curated selection of student-essential gadgets. From power banks to flash drives, we have what you need to stay powered up.</p>
+                    <a href="YOUR_GADGETS_STORE_URL" class="cta-button-secondary" target="_blank" rel="noopener noreferrer">Browse Gadgets</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Advertisement Banner -->
+        <section id="bottom-ad-banner" class="ad-banner container" style="display: none;">
+            <div id="bottom-ad-content" class="ad-content"></div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <p>&copy; 2024 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
+                </div>
+                <div class="footer-section university-links">
+                    <h4>University Portals</h4>
+                    <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                    <a href="https://admissions.unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Admissions Portal</a>
+                    <a href="https://unilesaservices.com.ng" target="_blank" rel="noopener noreferrer">Student Services Hub</a>
+                </div>
+                <div class="footer-section legal-links">
+                    <h4>Legal</h4>
+                    <a href="privacy/">Privacy Policy</a>
+                    <a href="terms/">Terms of Service</a>
+                    <a href="refund/">Refund Policy</a>
+                    <a href="about/">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="install-prompt" class="install-prompt" style="display: none;">
+        <p>Add Unilesh Print Hub to your home screen for quick access!</p>
+        <button id="install-button">Install</button>
+        <button id="close-install-prompt">Later</button>
+    </div>
+
+    <script type="module" src="assets/js/database.js"></script>
+    <script src="assets/js/app.js"></script>
+
+    <script type="module">
+        // 1. Immediate UI Logic (No Firebase Dependency)
+        document.addEventListener('DOMContentLoaded', () => {
+            // Advert Form Toggle - Move outside initLandingPage so it works immediately
+            const toggleAdvertBtn = document.getElementById('toggle-advert-form');
+            const advertFormContainer = document.getElementById('advert-form-container');
+            if (toggleAdvertBtn && advertFormContainer) {
+                toggleAdvertBtn.addEventListener('click', () => {
+                    const isHidden = advertFormContainer.style.display === 'none';
+                    advertFormContainer.style.display = isHidden ? 'block' : 'none';
+                    toggleAdvertBtn.textContent = isHidden ? 'Close Advert Form' : 'Advertise With Us';
+                });
+            }
+
+            const toggleFeedbackBtn = document.getElementById('toggle-feedback-form');
+            const feedbackFormContainer = document.getElementById('feedback-form-container');
+            if (toggleFeedbackBtn && feedbackFormContainer) {
+                toggleFeedbackBtn.addEventListener('click', () => {
+                    const isHidden = feedbackFormContainer.style.display === 'none';
+                    feedbackFormContainer.style.display = isHidden ? 'block' : 'none';
+                    toggleFeedbackBtn.textContent = isHidden ? 'Close Feedback Form' : 'Share Feedback & Suggestions';
+                });
+            }
+
+            // 2. Firebase-dependent logic
+            const checkDeps = setInterval(() => {
+                // Ensure all needed database functions are available
+                if (window.listenToAnnouncements && 
+                    window.listenToActiveAdverts && 
+                    window.saveAdvertRequest &&
+                    window.saveFeedbackSuggestion) {
+                    clearInterval(checkDeps);
+                    initLandingPage();
+                }
+            }, 100);
+        });
+
+        function initLandingPage() {
+            console.log("Initializing Firebase-dependent components...");
+            
+            // Announcements Ticker
+            const tickerWrap = document.getElementById('announcement-ticker');
+            const tickerContent = document.getElementById('ticker-content');
+            if (tickerWrap && tickerContent) {
+                window.listenToAnnouncements((list) => {
+                    if (list.length > 0) {
+                        tickerWrap.style.display = 'block';
+                        tickerContent.innerHTML = list.map(item => `
+                            <div class="ticker__item">
+                                ${item.link ? `<a href="${item.link}">${item.message}</a>` : item.message}
+                            </div>
+                        `).join(' • ');
+                    } else {
+                        tickerWrap.style.display = 'none';
+                    }
+                });
+            }
+
+            // Ad Banners
+            const renderAds = (ads, containerId, bannerId) => {
+                const banner = document.getElementById(bannerId);
+                const container = document.getElementById(containerId);
+                if (banner && container) {
+                    if (ads.length > 0) {
+                        banner.style.display = 'block';
+                        container.innerHTML = ads.map(ad => `
+                            <div class="ad-item">
+                                <a href="${ad.linkUrl}" target="_blank">
+                                    <img src="${ad.imageUrl}" alt="${ad.title}">
+                                    <div class="ad-overlay">
+                                        <h4>${ad.title}</h4>
+                                        <p>${ad.description}</p>
+                                    </div>
+                                </a>
+                            </div>
+                        `).join('');
+                    } else {
+                        banner.style.display = 'none';
+                    }
+                }
+            };
+
+            window.listenToActiveAdverts('Top', (ads) => renderAds(ads, 'top-ad-content', 'top-ad-banner'));
+            window.listenToActiveAdverts('Bottom', (ads) => renderAds(ads, 'bottom-ad-content', 'bottom-ad-banner'));
+
+            // Advert Form Submission
+            const advertForm = document.getElementById('advert-request-form');
+            if (advertForm) {
+                advertForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const data = {
+                        businessName: document.getElementById('biz-name').value,
+                        contactPhone: document.getElementById('biz-phone').value,
+                        description: document.getElementById('ad-desc').value,
+                        duration: document.getElementById('ad-duration').value,
+                        placement: document.getElementById('ad-placement').value
+                    };
+
+                    try {
+                        const toggleBtn = document.getElementById('toggle-advert-form');
+                        const formContainer = document.getElementById('advert-form-container');
+                        
+                        await window.saveAdvertRequest(data);
+                        const message = `New Advert Inquiry!\n\nBusiness: ${data.businessName}\nPhone: ${data.contactPhone}\nDescription: ${data.description}\nDuration: ${data.duration} days\nPlacement: ${data.placement}`;
+                        const whatsappUrl = `https://wa.me/2348022140329?text=${encodeURIComponent(message)}`;
+                        
+                        alert("Your inquiry has been submitted! Redirecting to WhatsApp to notify the admin.");
+                        window.open(whatsappUrl, '_blank');
+                        advertForm.reset();
+                        if (formContainer) formContainer.style.display = 'none';
+                        if (toggleBtn) toggleBtn.textContent = 'Advertise With Us';
+                    } catch (error) {
+                        alert("Oops! Something went wrong. Please try again.");
+                    }
+                });
+            }
+
+            const feedbackForm = document.getElementById('feedback-form');
+            if (feedbackForm) {
+                feedbackForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const data = {
+                        name: document.getElementById('feedback-name').value,
+                        phone: document.getElementById('feedback-phone').value,
+                        category: document.getElementById('feedback-type').value,
+                        message: document.getElementById('feedback-message').value
+                    };
+                    try {
+                        const toggleFeedbackBtn = document.getElementById('toggle-feedback-form');
+                        const feedbackFormContainer = document.getElementById('feedback-form-container');
+                        await window.saveFeedbackSuggestion(data);
+                        alert("Thank you! Your message has been sent to the admin team.");
+                        feedbackForm.reset();
+                        if (feedbackFormContainer) feedbackFormContainer.style.display = 'none';
+                        if (toggleFeedbackBtn) toggleFeedbackBtn.textContent = 'Share Feedback & Suggestions';
+                    } catch (error) {
+                        alert("Unable to send feedback right now. Please try again.");
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

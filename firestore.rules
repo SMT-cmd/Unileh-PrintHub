@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Public Submissions ---
+    
+    // Allow anyone to create an order
+    match /orders/{orderId} {
+      allow create: if true;
+      allow get: if true; // Only allow reading specific documents by ID
+      allow list: if request.auth != null; // Only admin can list all orders
+      allow update, delete: if request.auth != null; // Admin only
+    }
+    
+    // Allow anyone to submit portal assistance requests
+    match /portalRequests/{requestId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null; // Admin only
+    }
+    
+    // Allow anyone to submit an advert inquiry
+    match /advertRequests/{requestId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null; // Admin only
+    }
+
+    match /feedbackSuggestions/{feedbackId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+    
+    // --- Public Viewable Collections ---
+    
+    // Adverts
+    match /adverts/{adId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Admin only
+    }
+    
+    // Announcements
+    match /announcements/{annId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Admin only
+    }
+    
+    // Partners
+    match /partners/{partnerId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Admin only
+    }
+
+    match /adminConfig/{configId} {
+      allow read: if true;
+      allow create: if configId == "setup" && !exists(/databases/$(database)/documents/adminConfig/setup);
+      allow update, delete: if request.auth != null;
+    }
+
+    // --- Catch-all (Secure by default) ---
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

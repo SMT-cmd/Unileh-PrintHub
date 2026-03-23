@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latest News - Unilesh Print Hub</title>
+    <meta name="description" content="Stay updated with the latest news, announcements, and school updates from Unilesh Print Hub and the University of Ilesha.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#0a1f44">
+    <!-- iOS Mobile Features -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+</head>
+<body class="watermark-bg">
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../">
+                    <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo">
+                    Unilesh Print Hub
+                </a>
+                <span>powered by AfriNet Hub</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="../order/">Print Now</a></li>
+                    <li><a href="../portal/">Portal Services</a></li>
+                    <li><a href="../news/" class="active">Latest News</a></li>
+                    <li><a href="../partners/">Partners</a></li>
+                    <li><a href="../about/">About Us</a></li>
+                </ul>
+            </nav>
+            <button id="theme-toggle">Toggle Theme</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Latest News & Announcements</h1>
+            <p>Your one-stop source for platform updates and Unilesa news.</p>
+        </section>
+
+        <div id="news-container" class="news-list">
+            <div class="loading">Fetching latest updates...</div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <p>&copy; 2024 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
+                </div>
+                <div class="footer-section university-links">
+                    <h4>University Portals</h4>
+                    <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                    <a href="https://admissions.unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Admissions Portal</a>
+                    <a href="https://unilesaservices.com.ng" target="_blank" rel="noopener noreferrer">Student Services Hub</a>
+                </div>
+                <div class="footer-section legal-links">
+                    <h4>Legal</h4>
+                    <a href="../privacy/">Privacy Policy</a>
+                    <a href="../terms/">Terms of Service</a>
+                    <a href="../refund/">Refund Policy</a>
+                    <a href="../about/">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/app.js"></script>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.listenToAnnouncements) {
+                    clearInterval(checkDeps);
+                    initNewsPage();
+                }
+            }, 100);
+        });
+
+        function initNewsPage() {
+            const container = document.getElementById('news-container');
+            window.listenToAnnouncements((list) => {
+                if (list.length > 0) {
+                    container.innerHTML = list.map(item => `
+                        <article class="news-item card">
+                            <div class="news-date">${new Date(item.timestamp || new Date()).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                            <h3>${item.message}</h3>
+                            
+                            ${item.attachment ? `
+                                <div class="news-attachment">
+                                    ${item.attachment.type === 'image' ? 
+                                        `<img src="${item.attachment.url}" alt="Announcement Image" style="max-width: 100%; border-radius: 10px; margin: 15px 0;">` : 
+                                        `<div class="file-link">
+                                            <a href="${item.attachment.url}" target="_blank" class="cta-button-small">
+                                                Download Attachment (${item.attachment.filename})
+                                            </a>
+                                        </div>`
+                                    }
+                                </div>
+                            ` : ''}
+
+                            <div class="news-actions">
+                                ${item.link ? `<a href="${item.link}" class="cta-button-small" target="_blank">External Link</a>` : ''}
+                            </div>
+                        </article>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <p>No active announcements at the moment. Check back later!</p>
+                        </div>
+                    `;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+

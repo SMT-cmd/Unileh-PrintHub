@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Unilesh Print Hub</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <meta name="robots" content="noindex, nofollow">
+    <!-- iOS Mobile Features -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../../assets/images/logo.png">
+</head>
+<body class="admin-dashboard-body">
+
+    <header class="admin-header">
+        <div class="container">
+            <div class="logo">
+                <img src="../../assets/images/logo.png" alt="Unilesh Print Hub Logo" style="height: 40px; margin-right: 10px;">
+                <h1>Admin Dashboard</h1>
+                <span>Unilesh Print Hub</span>
+            </div>
+            <button id="admin-logout-button" class="cta-button-secondary">Logout</button>
+        </div>
+    </header>
+
+    <main class="admin-main">
+        <div class="container">
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="print-orders">Print Orders</button>
+                <button class="tab-button" data-tab="portal-requests">Portal Requests</button>
+                <button class="tab-button" data-tab="feedback-manager">Feedback</button>
+                <button class="tab-button" data-tab="adverts-manager">Adverts</button>
+                <button class="tab-button" data-tab="announcements-manager">Announcements</button>
+                <button class="tab-button" data-tab="partners-manager">Partners</button>
+            </div>
+
+            <!-- Print Orders Tab -->
+            <section id="print-orders" class="tab-content active">
+                <h2>Recent Print Orders</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Student Name</th>
+                                <th>Phone</th>
+                                <th>Print Type</th>
+                                <th>Copies</th>
+                                <th>Total (₦)</th>
+                                <th>File Link</th>
+                                <th>Timestamp</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-body">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Portal Requests Tab -->
+            <section id="portal-requests" class="tab-content">
+                <h2>Recent Portal Requests</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Matric No.</th>
+                                <th>Phone</th>
+                                <th>Department</th>
+                                <th>Level</th>
+                                <th>Service</th>
+                                <th>Username</th>
+                                <th>Timestamp</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portal-body">
+                            <!-- Portal requests will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="feedback-manager" class="tab-content">
+                <h2>Feedback & Suggestions</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Category</th>
+                                <th>Message</th>
+                                <th>Timestamp</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedback-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Adverts Manager Tab -->
+            <section id="adverts-manager" class="tab-content">
+                <div class="admin-section-header">
+                    <h2>Adverts Manager</h2>
+                    <button id="toggle-new-ad-form" class="cta-button-small">Create New Advert</button>
+                </div>
+
+                <div id="new-ad-form-container" class="form-card" style="display: none;">
+                    <h3>Create New Advert</h3>
+                    <form id="new-ad-form">
+                        <div class="form-group">
+                            <label for="ad-title">Title</label>
+                            <input type="text" id="ad-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ad-desc-admin">Description</label>
+                            <textarea id="ad-desc-admin" required></textarea>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Advert Image</label>
+                                <div id="ad-upload-container">
+                                    <button type="button" id="ad-upload-button" class="cta-button-small">Upload Image</button>
+                                    <div id="ad-upload-feedback" class="upload-feedback" style="display: none; margin-top: 10px;"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="ad-link">Link URL (Optional)</label>
+                                <input type="url" id="ad-link">
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="ad-start">Start Date</label>
+                                <input type="datetime-local" id="ad-start" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ad-end">End Date</label>
+                                <input type="datetime-local" id="ad-end" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ad-place">Placement</label>
+                                <select id="ad-place" required>
+                                    <option value="Top">Top</option>
+                                    <option value="Bottom">Bottom</option>
+                                    <option value="Both">Both</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="cta-button">Save Advert</button>
+                    </form>
+                </div>
+
+                <h3>Active Adverts</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Placement</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adverts-body"></tbody>
+                    </table>
+                </div>
+
+                <h3>Advert Requests</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Business</th>
+                                <th>Phone</th>
+                                <th>Duration</th>
+                                <th>Placement</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="advert-requests-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Announcements Manager Tab -->
+            <section id="announcements-manager" class="tab-content">
+                <div class="admin-section-header">
+                    <h2>Announcements Manager</h2>
+                    <button id="toggle-new-ann-form" class="cta-button-small">New Announcement</button>
+                </div>
+
+                <div id="new-ann-form-container" class="form-card" style="display: none;">
+                    <h3>Create New Announcement</h3>
+                    <form id="new-ann-form">
+                        <div class="form-group">
+                            <label for="ann-msg">Message</label>
+                            <textarea id="ann-msg" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Attachment (Image or File)</label>
+                            <div id="ann-upload-container">
+                                <button type="button" id="ann-upload-button" class="cta-button-small">Upload Image/File</button>
+                                <div id="ann-upload-feedback" class="upload-feedback" style="display: none; margin-top: 10px;"></div>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="ann-link">External Link URL (Optional)</label>
+                                <input type="url" id="ann-link">
+                            </div>
+                            <div class="form-group">
+                                <label for="ann-expiry">Expiry Date</label>
+                                <input type="datetime-local" id="ann-expiry" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="cta-button">Post Announcement</button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Message</th>
+                                <th>Expiry Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="announcements-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Partners Manager Tab -->
+            <section id="partners-manager" class="tab-content">
+                <div class="admin-section-header">
+                    <h2>Partners Manager</h2>
+                    <button id="toggle-new-partner-form" class="cta-button-small">Add Partner</button>
+                </div>
+
+                <div id="new-partner-form-container" class="form-card" style="display: none;">
+                    <h3>Add New Partner</h3>
+                    <form id="new-partner-form">
+                        <div class="form-group">
+                            <label for="partner-name">Partner Name</label>
+                            <input type="text" id="partner-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="partner-logo">Logo URL</label>
+                            <input type="url" id="partner-logo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="partner-link">Contact/Website URL</label>
+                            <input type="url" id="partner-link" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="partner-desc">Description</label>
+                            <textarea id="partner-desc"></textarea>
+                        </div>
+                        <button type="submit" class="cta-button">Save Partner</button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Logo</th>
+                                <th>Name</th>
+                                <th>Link</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="partners-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Cloudinary Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <script src="../../assets/js/cloudinary.js"></script>
+    <!-- Firebase SDKs & Auth -->
+    <script type="module" src="../../assets/js/database.js"></script>
+    <script src="../js/auth.js"></script>
+    
+    <script type="module">
+        import "../js/dashboard.js";
+
+        document.getElementById('admin-logout-button').addEventListener('click', () => {
+            window.signOutAdmin();
+        });
+    </script>
+    
+    <script>
+        // Standard script for immediate Tab Logic execution
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    button.classList.add('active');
+                    const targetElement = document.getElementById(targetTab);
+                    if (targetElement) {
+                        targetElement.classList.add('active');
+                    }
+                });
+            });
+
+            // Toggle Forms logic
+            const setupToggle = (btnId, containerId) => {
+                const btn = document.getElementById(btnId);
+                const container = document.getElementById(containerId);
+                if (btn && container) {
+                    btn.addEventListener('click', () => {
+                        const isHidden = container.style.display === 'none' || container.style.display === '';
+                        container.style.display = isHidden ? 'block' : 'none';
+                        btn.textContent = isHidden ? 'Cancel' : btn.getAttribute('data-original-text') || 'Create New';
+                    });
+                    btn.setAttribute('data-original-text', btn.textContent);
+                }
+            };
+
+            setupToggle('toggle-new-ad-form', 'new-ad-form-container');
+            setupToggle('toggle-new-ann-form', 'new-ann-form-container');
+            setupToggle('toggle-new-partner-form', 'new-partner-form-container');
+        });
+    </script>
+</body>
+</html>
+
+
