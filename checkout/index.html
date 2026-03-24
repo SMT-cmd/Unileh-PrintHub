@@ -219,8 +219,8 @@
                     });
 
                 } catch (err) {
-                    console.error(err);
-                    alert("Upload failed.");
+                    console.error("Receipt Upload Debug:", err);
+                    alert(`Upload failed: ${err.message || "Please check your console for details."}`);
                     uploadBtn.disabled = false;
                     uploadBtn.textContent = 'Upload Receipt';
                 }

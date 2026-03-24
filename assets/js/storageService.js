@@ -12,13 +12,44 @@ if (typeof Appwrite === 'undefined') {
     console.error('Appwrite SDK not found. Please include <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script> in your HTML.');
 }
 
-const { Client, Storage, ID } = Appwrite;
+let client, storage, account;
 
-const client = new Client()
-    .setEndpoint(APPWRITE_ENDPOINT)
-    .setProject(APPWRITE_PROJECT_ID);
+function initAppwrite() {
+    if (typeof Appwrite === 'undefined') return;
+    
+    const { Client, Storage, Account } = Appwrite;
 
-const storage = new Storage(client);
+    client = new Client()
+        .setEndpoint(APPWRITE_ENDPOINT)
+        .setProject(APPWRITE_PROJECT_ID);
+
+    storage = new Storage(client);
+    account = new Account(client);
+}
+
+// Initialize immediately
+initAppwrite();
+
+/**
+ * Ensures a session exists for the user (required for most Appwrite operations).
+ * If no session exists, it creates an anonymous session.
+ */
+async function ensureSession() {
+    if (!account) initAppwrite();
+    try {
+        await account.get();
+        console.log("Appwrite: Active session found.");
+    } catch (error) {
+        console.log("Appwrite: No active session. Creating anonymous session...");
+        try {
+            await account.createAnonymousSession();
+            console.log("Appwrite: Anonymous session created.");
+        } catch (sessionError) {
+            console.error("Appwrite: Failed to create session:", sessionError);
+            throw new Error("Could not connect to storage. Please ensure your internet is stable.");
+        }
+    }
+}
 
 /**
  * Uploads a file to Appwrite Storage.
@@ -27,9 +58,13 @@ const storage = new Storage(client);
  */
 async function uploadFile(file) {
     try {
+        // Step 1: Ensure session is active
+        await ensureSession();
+
+        // Step 2: Upload file
         const response = await storage.createFile(
             BUCKET_ID,
-            ID.unique(),
+            Appwrite.ID.unique(),
             file
         );
         const fileId = response.$id;
@@ -42,7 +77,13 @@ async function uploadFile(file) {
             format: file.name.split('.').pop().toLowerCase()
         };
     } catch (error) {
-        console.error("Appwrite Upload Error:", error);
+        console.error("Appwrite Upload Full Error:", error);
+        
+        // Detailed error mapping
+        if (error.code === 401) throw new Error("Unauthorized: Please enable 'Any' permissions for 'Create' in your Appwrite Bucket Settings.");
+        if (error.code === 403) throw new Error("Forbidden: Add your domain (localhost or unilesh.com) to Appwrite -> Project -> Platforms.");
+        if (error.code === 404) throw new Error("Not Found: Check your Bucket ID (69c2727d00370c585b4b) in the Appwrite Console.");
+        
         throw error;
     }
 }

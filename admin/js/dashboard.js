@@ -326,8 +326,8 @@ function initDashboard() {
                 adUploadButton.disabled = false;
                 adUploadButton.textContent = 'Change Image';
             } catch (err) {
-                console.error(err);
-                alert("Upload failed.");
+                console.error("Admin Ad Upload Debug:", err);
+                alert(`Upload failed: ${err.message || "Please check your console for details."}`);
                 adUploadButton.disabled = false;
                 adUploadButton.textContent = 'Upload Image';
             }
@@ -414,8 +414,8 @@ function initDashboard() {
                 annUploadButton.disabled = false;
                 annUploadButton.textContent = 'Change Attachment';
             } catch (err) {
-                console.error(err);
-                alert("Upload failed.");
+                console.error("Admin Ann Upload Debug:", err);
+                alert(`Upload failed: ${err.message || "Please check your console for details."}`);
                 annUploadButton.disabled = false;
                 annUploadButton.textContent = 'Upload Image/File';
             }
