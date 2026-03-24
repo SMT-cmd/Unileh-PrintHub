@@ -1,4 +1,4 @@
-const CACHE_NAME = 'printHub-v3-clear';
+const CACHE_NAME = 'printHub-v4-bust';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -13,7 +13,7 @@ const ASSETS_TO_CACHE = [
   './about/index.html',
   './assets/css/style.css',
   './assets/js/app.js',
-  './assets/js/cloudinary.js',
+  './assets/js/cloudinary.js?v=20240324',
   './assets/js/database.js',
   './manifest.json'
 ];
