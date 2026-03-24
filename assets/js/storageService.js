@@ -79,9 +79,14 @@ async function uploadFile(file) {
     } catch (error) {
         console.error("Appwrite Upload Full Error:", error);
         
+        // Handle "Failed to fetch" which is usually a CORS/Platform issue
+        if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+            throw new Error("Connection Blocked: Please ensure you have added your domain (e.g., localhost or your website URL) to 'Project -> Platforms' in your Appwrite Console.");
+        }
+
         // Detailed error mapping
         if (error.code === 401) throw new Error("Unauthorized: Please enable 'Any' permissions for 'Create' in your Appwrite Bucket Settings.");
-        if (error.code === 403) throw new Error("Forbidden: Add your domain (localhost or unilesh.com) to Appwrite -> Project -> Platforms.");
+        if (error.code === 403) throw new Error("Forbidden: This domain is not authorized. Add it to Appwrite -> Project Settings -> Platforms.");
         if (error.code === 404) throw new Error("Not Found: Check your Bucket ID (69c2727d00370c585b4b) in the Appwrite Console.");
         
         throw error;
