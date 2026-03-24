@@ -4,7 +4,7 @@
  */
 
 const APPWRITE_ENDPOINT = 'https://nyc.cloud.appwrite.io/v1';
-const APPWRITE_PROJECT_ID = 'nyc-unilesh-printhub';
+const APPWRITE_PROJECT_ID = 'unilesh-printhub';
 const BUCKET_ID = '69c2727d00370c585b4b';
 
 // Check if Appwrite is loaded

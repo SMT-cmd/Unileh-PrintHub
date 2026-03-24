@@ -51,12 +51,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-only for APIs
-  if (url.hostname.includes('firestore.googleapis.com') || url.hostname.includes('cloudinary.com')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
-    return;
+  // Network-only for APIs (Firebase and Appwrite)
+  if (
+    url.hostname.includes('firestore.googleapis.com') || 
+    url.hostname.includes('appwrite.io') ||
+    url.hostname.includes('cloudinary.com')
+  ) {
+    return; // Let the browser handle these requests normally
   }
 
   // Network-First strategy for everything else (Ensures latest files are always fetched if online)
