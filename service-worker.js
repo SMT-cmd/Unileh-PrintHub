@@ -1,4 +1,4 @@
-const CACHE_NAME = 'printHub-v5-cache';
+const CACHE_NAME = 'printHub-v2026-v1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -13,7 +13,7 @@ const ASSETS_TO_CACHE = [
   './about/index.html',
   './assets/css/style.css',
   './assets/js/app.js',
-  './assets/js/storageService.js?v=20240324_v5',
+  './assets/js/storageService.js?v=20260324_v1',
   './assets/js/database.js',
   './manifest.json'
 ];

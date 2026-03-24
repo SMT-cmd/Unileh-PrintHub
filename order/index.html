@@ -94,7 +94,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <p>&copy; 2024 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>&copy; 2026 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
                     <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
                 </div>
                 <div class="footer-section university-links">
@@ -116,7 +116,7 @@
 
     <!-- Appwrite SDK & Storage Service -->
     <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
-    <script src="../assets/js/storageService.js?v=20240324_v5"></script>
+    <script src="../assets/js/storageService.js?v=20260324_v1"></script>
     <!-- Firebase SDKs -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="../assets/js/app.js"></script>
@@ -163,12 +163,19 @@
 
                 try {
                     uploadBtn.disabled = true;
-                    uploadBtn.textContent = 'Uploading...';
+                    uploadBtn.textContent = 'Preparing Upload...';
                     
-                    const result = await window.storageService.uploadFile(file);
+                    // Specific feedback for anonymous session
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = '<p style="color: var(--text-color);">Connecting to secure storage...</p>';
+
+                    const result = await window.storageService.uploadFile(file, (progress) => {
+                        uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
+                    });
+
                     uploadedFileData = {
                         ...result,
-                        pages: 1 // Default to 1, user can update copies/type
+                        pages: 1 
                     };
 
                     const isImage = file.type.startsWith('image/');
@@ -177,22 +184,20 @@
                         : `<span style="font-size: 24px; margin-right: 10px;">📄</span>`;
 
                     feedback.innerHTML = `
-                        <div style="display: flex; align-items: center; background: rgba(42, 157, 143, 0.1); padding: 10px; border-radius: 8px; border: 1px solid #2a9d8f; margin-top: 10px;">
+                        <div style="display: flex; align-items: center; background: rgba(42, 157, 143, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #2a9d8f; margin-top: 10px;">
                             ${previewHtml}
                             <div style="flex: 1;">
-                                <p style="margin: 0; color: #2a9d8f; font-weight: bold;">✅ File Ready!</p>
+                                <p style="margin: 0; color: #2a9d8f; font-weight: bold;">✅ File Uploaded Successfully!</p>
                                 <p style="margin: 0; font-size: 0.9em; color: var(--text-color);">${result.originalName}</p>
-                                <div style="display: flex; align-items: center; margin-top: 5px;">
-                                    <label style="font-size: 0.8em; margin-right: 5px;">Actual Pages:</label>
-                                    <input type="number" id="actual-pages" value="1" min="1" style="width: 50px; padding: 2px; border: 1px solid #ccc; border-radius: 4px;">
+                                <div style="display: flex; align-items: center; margin-top: 8px;">
+                                    <label style="font-size: 0.85em; margin-right: 8px; color: var(--text-color);">Number of Pages in File:</label>
+                                    <input type="number" id="actual-pages" value="1" min="1" style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: black;">
                                 </div>
                             </div>
-                            <button type="button" id="remove-file" style="background: none; border: none; color: #e63946; cursor: pointer; font-size: 1.2em;">&times;</button>
+                            <button type="button" id="remove-file" title="Remove file" style="background: #e63946; border: none; color: white; cursor: pointer; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
                         </div>
                     `;
-                    feedback.style.display = 'block';
                     uploadBtn.style.display = 'none'; 
-                    
                     submitBtn.disabled = false;
                     
                     // Listen for page count changes
@@ -204,10 +209,11 @@
                     calculatePrice();
 
                     document.getElementById('remove-file').addEventListener('click', async () => {
-                        const confirmDelete = confirm("Are you sure you want to remove this file?");
+                        const confirmDelete = confirm("Remove this document?");
                         if (!confirmDelete) return;
 
                         try {
+                            feedback.innerHTML = '<p style="color: #e63946;">Removing file...</p>';
                             await window.storageService.deleteFile(uploadedFileData.fileId);
                             uploadedFileData = null;
                             feedback.style.display = 'none';
@@ -216,18 +222,24 @@
                             uploadBtn.textContent = 'Upload Document';
                             submitBtn.disabled = true;
                             document.getElementById('total-price').textContent = '₦0.00';
-                            fileInput.value = ''; // Reset input
+                            fileInput.value = ''; 
                         } catch (err) {
                             console.error(err);
-                            alert("Error deleting file.");
+                            alert("Error removing file from server.");
                         }
                     });
 
                 } catch (err) {
                     console.error("Order Upload Debug:", err);
-                    alert(`Upload failed: ${err.message || "Please check your internet connection or console for details."}`);
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = `
+                        <div style="background: rgba(230, 57, 70, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #e63946; margin-top: 10px;">
+                            <p style="margin: 0; color: #e63946; font-weight: bold;">❌ Upload Failed</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.9em; color: var(--text-color);">${err.message}</p>
+                        </div>
+                    `;
                     uploadBtn.disabled = false;
-                    uploadBtn.textContent = 'Upload Document';
+                    uploadBtn.textContent = 'Try Upload Again';
                 }
             });
 

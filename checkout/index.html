@@ -9,7 +9,7 @@
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#0a1f44">
     <!-- iOS Mobile Features -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PrintHub">
     <link rel="apple-touch-icon" href="../assets/images/logo.png">
@@ -76,7 +76,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <p>&copy; 2024 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>&copy; 2026 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
                     <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
                 </div>
                 <div class="footer-section university-links">
@@ -98,7 +98,7 @@
 
     <!-- Appwrite SDK & Storage Service -->
     <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
-    <script src="../assets/js/storageService.js?v=20240324_v5"></script>
+    <script src="../assets/js/storageService.js?v=20260324_v1"></script>
     <!-- Firebase SDKs -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="../assets/js/app.js"></script>
@@ -175,9 +175,16 @@
 
                 try {
                     uploadBtn.disabled = true;
-                    uploadBtn.textContent = 'Uploading...';
+                    uploadBtn.textContent = 'Preparing Upload...';
                     
-                    const result = await window.storageService.uploadFile(file);
+                    // Specific feedback for anonymous session
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = '<p style="color: var(--text-color); font-size: 0.85em;">Connecting to secure storage...</p>';
+
+                    const result = await window.storageService.uploadFile(file, (progress) => {
+                        uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
+                    });
+
                     receiptData = result;
                     
                     const isImage = file.type.startsWith('image/');
@@ -186,16 +193,15 @@
                         : `<span style="font-size: 20px; margin-right: 10px;">📄</span>`;
 
                     feedback.innerHTML = `
-                        <div style="display: flex; align-items: center; background: rgba(42, 157, 143, 0.1); padding: 10px; border-radius: 8px; border: 1px solid #2a9d8f; margin-top: 10px; color: #2a9d8f; font-size: 0.9em;">
+                        <div style="display: flex; align-items: center; background: rgba(42, 157, 143, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #2a9d8f; margin-top: 10px; color: #2a9d8f; font-size: 0.9em;">
                             ${previewHtml}
                             <div style="flex: 1;">
-                                <strong>✅ Receipt Ready!</strong><br>
-                                ${result.originalName}
+                                <strong style="color: #2a9d8f;">✅ Receipt Uploaded!</strong><br>
+                                <span style="font-size: 0.85em; color: var(--text-color);">${result.originalName}</span>
                             </div>
-                            <button type="button" id="remove-receipt" style="background: none; border: none; color: #e63946; cursor: pointer; font-size: 1.2em;">&times;</button>
+                            <button type="button" id="remove-receipt" title="Remove receipt" style="background: #e63946; border: none; color: white; cursor: pointer; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
                         </div>
                     `;
-                    feedback.style.display = 'block';
                     uploadBtn.style.display = 'none';
                     confirmBtn.disabled = false;
 
@@ -204,6 +210,7 @@
                         if (!confirmDelete) return;
 
                         try {
+                            feedback.innerHTML = '<p style="color: #e63946; font-size: 0.85em;">Removing receipt...</p>';
                             await window.storageService.deleteFile(receiptData.fileId);
                             receiptData = null;
                             feedback.style.display = 'none';
@@ -214,15 +221,21 @@
                             fileInput.value = '';
                         } catch (err) {
                             console.error(err);
-                            alert("Error deleting receipt.");
+                            alert("Error removing receipt from server.");
                         }
                     });
 
                 } catch (err) {
                     console.error("Receipt Upload Debug:", err);
-                    alert(`Upload failed: ${err.message || "Please check your console for details."}`);
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = `
+                        <div style="background: rgba(230, 57, 70, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #e63946; margin-top: 10px;">
+                            <p style="margin: 0; color: #e63946; font-weight: bold; font-size: 0.9em;">❌ Upload Failed</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.8em; color: var(--text-color);">${err.message}</p>
+                        </div>
+                    `;
                     uploadBtn.disabled = false;
-                    uploadBtn.textContent = 'Upload Receipt';
+                    uploadBtn.textContent = 'Try Upload Again';
                 }
             });
 
