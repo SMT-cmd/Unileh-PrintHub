@@ -10,9 +10,8 @@ function openCloudinaryWidget() {
     const myWidget = cloudinary.createUploadWidget({
       cloudName: CLOUD_NAME,
       uploadPreset: UPLOAD_PRESET,
-      folder: 'unilesh',
-      // 'overwrite' and other restricted parameters removed for unsigned upload compatibility
-      resourceType: 'auto', // type: upload translates to auto or image depending on context, auto is safer
+      // Removed 'folder' because it is often restricted in unsigned uploads.
+      // The folder should be set strictly inside the Cloudinary dashboard preset settings.
       sources: ['local', 'url', 'google_drive'],
       multiple: false,
       clientAllowedFormats: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
