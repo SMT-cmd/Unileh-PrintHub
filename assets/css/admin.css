@@ -47,6 +47,19 @@
   color: var(--primary);
 }
 
+/* Upload Badges */
+.upload-success-badge {
+  display: flex;
+  align-items: center;
+  background: rgba(42, 157, 143, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2a9d8f;
+  margin-top: 10px;
+  color: #2a9d8f;
+  font-size: 0.9em;
+}
+
 /* Tabs */
 .tab-container {
   display: flex;

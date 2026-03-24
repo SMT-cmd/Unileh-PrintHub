@@ -254,7 +254,12 @@ function initDashboard() {
         adUploadButton.addEventListener('click', () => {
             window.openCloudinaryWidget().then(result => {
                 adImageUrl = result.secure_url;
-                adUploadFeedback.innerHTML = `Image attached: <strong>${result.original_filename}</strong>`;
+                adUploadFeedback.innerHTML = `
+                    <div class="upload-success-badge">
+                        <img src="${result.thumbnail_url}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">
+                        <span>✅ Image attached: <strong>${result.original_filename}</strong></span>
+                    </div>
+                `;
                 adUploadFeedback.style.display = 'block';
                 adUploadButton.textContent = 'Change Image';
             }).catch(err => {
@@ -313,7 +318,13 @@ function initDashboard() {
                     type: result.resource_type, // 'image' or 'raw'
                     filename: result.original_filename
                 };
-                annUploadFeedback.innerHTML = `Attached: <strong>${annAttachment.filename}</strong>`;
+                
+                const previewIcon = annAttachment.type === 'image' ? '🖼️' : '📄';
+                annUploadFeedback.innerHTML = `
+                    <div class="upload-success-badge">
+                        <span>${previewIcon} ✅ Attached: <strong>${annAttachment.filename}</strong></span>
+                    </div>
+                `;
                 annUploadFeedback.style.display = 'block';
                 annUploadButton.textContent = 'Change Attachment';
             }).catch(err => {
