@@ -11,10 +11,7 @@ function openCloudinaryWidget() {
       cloudName: CLOUD_NAME,
       uploadPreset: UPLOAD_PRESET,
       folder: 'unilesh',
-      overwrite: false,
-      useFilename: false,
-      uniqueFilename: false,
-      useFilenameAsDisplayName: true,
+      // 'overwrite' and other restricted parameters removed for unsigned upload compatibility
       resourceType: 'auto', // type: upload translates to auto or image depending on context, auto is safer
       sources: ['local', 'url', 'google_drive'],
       multiple: false,
