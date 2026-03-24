@@ -46,14 +46,19 @@ async function ensureSession() {
             await account.createAnonymousSession();
             console.log("Appwrite: Anonymous session created.");
         } catch (sessionError) {
-            console.error("Appwrite Session Error:", sessionError);
+            console.error("Appwrite Session Error Detail:", sessionError);
             
-            // This is the CRITICAL CORS Error detector
+            // 1. CORS / Network Block
             if (sessionError.message.includes("Failed to fetch") || sessionError.code === 0) {
-                throw new Error("CORS BLOCK: Your browser is blocking the connection to Appwrite. Please ensure 'unilesh.afrinethub.com.ng' is added to 'Platforms' in your Appwrite Console.");
+                throw new Error("CORS BLOCK: Please ensure 'unilesh.afrinethub.com.ng' AND 'localhost' are both added to 'Platforms' in your Appwrite Console.");
             }
             
-            throw new Error(`Could not connect to storage (${sessionError.message}). Check your internet and Appwrite project settings.`);
+            // 2. Anonymous Auth Disabled
+            if (sessionError.code === 401 || sessionError.message.includes("anonymous")) {
+                throw new Error("AUTH DISABLED: Please go to 'Auth -> Settings' in Appwrite and enable 'Anonymous' authentication.");
+            }
+            
+            throw new Error(`CONNECTION ERROR (${sessionError.code}): ${sessionError.message}`);
         }
     }
 }
