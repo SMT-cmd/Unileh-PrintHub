@@ -3,7 +3,8 @@
  * Centralized service for handling all file uploads and deletions.
  */
 
-const APPWRITE_ENDPOINT = 'https://nyc.cloud.appwrite.io/v1';
+// USE THE GLOBAL ENDPOINT (The most reliable for Appwrite Cloud)
+const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1'; 
 const APPWRITE_PROJECT_ID = 'unilesh-printhub';
 const BUCKET_ID = '69c2727d00370c585b4b';
 
@@ -37,16 +38,22 @@ initAppwrite();
 async function ensureSession() {
     if (!account) initAppwrite();
     try {
-        await account.get();
-        console.log("Appwrite: Active session found.");
+        const session = await account.get();
+        console.log("Appwrite: Active session found for user:", session.$id);
     } catch (error) {
         console.log("Appwrite: No active session. Creating anonymous session...");
         try {
             await account.createAnonymousSession();
             console.log("Appwrite: Anonymous session created.");
         } catch (sessionError) {
-            console.error("Appwrite: Failed to create session:", sessionError);
-            throw new Error("Could not connect to storage. Please ensure your internet is stable.");
+            console.error("Appwrite Session Error:", sessionError);
+            
+            // This is the CRITICAL CORS Error detector
+            if (sessionError.message.includes("Failed to fetch") || sessionError.code === 0) {
+                throw new Error("CORS BLOCK: Your browser is blocking the connection to Appwrite. Please ensure 'unilesh.afrinethub.com.ng' is added to 'Platforms' in your Appwrite Console.");
+            }
+            
+            throw new Error(`Could not connect to storage (${sessionError.message}). Check your internet and Appwrite project settings.`);
         }
     }
 }
