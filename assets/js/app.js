@@ -1,29 +1,9 @@
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Find the base path (handles GitHub Pages subfolders and Firebase root)
-    let base = window.location.pathname.split('/index.html')[0];
-    if (base.endsWith('/')) base = base.slice(0, -1);
-    
-    // If we are in a subfolder like /order/, we need to go to the root
-    // But since app.js is loaded in all pages, we can just use a relative path to the root.
-    // The most reliable way is to check the current depth.
-    const depth = window.location.pathname.split('/').filter(p => p !== '').length;
-    let swPath = 'service-worker.js';
-    
-    // If we are in a folder like /order/ (depth 1 or more depending on base)
-    // Actually, let's just use the repo detection but make it more generic
-    const isGitHub = window.location.hostname.includes('github.io');
-    const pathParts = window.location.pathname.split('/');
-    const repoName = isGitHub ? pathParts[1] : '';
-    
-    let finalSwPath = '/service-worker.js';
-    if (isGitHub && repoName) {
-      finalSwPath = `/${repoName}/service-worker.js`;
-    } else if (window.location.protocol === 'file:') {
-        // Local file system - SW won't work anyway
-        return;
-    }
+    // Because the site is served from the root domain (unilesh.afrinethub.com.ng), 
+    // the service worker is just at /service-worker.js
+    const finalSwPath = '/service-worker.js';
 
     navigator.serviceWorker.register(finalSwPath)
       .then(reg => {
