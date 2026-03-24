@@ -1,4 +1,4 @@
-const CACHE_NAME = 'printHub-v4-bust';
+const CACHE_NAME = 'printHub-v5-cache';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -13,7 +13,7 @@ const ASSETS_TO_CACHE = [
   './about/index.html',
   './assets/css/style.css',
   './assets/js/app.js',
-  './assets/js/storageService.js?v=20240324',
+  './assets/js/storageService.js?v=20240324_v5',
   './assets/js/database.js',
   './manifest.json'
 ];
@@ -47,33 +47,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Network-First for HTML/CSS/JS, Fallback to Cache
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-only for APIs (Firebase and Appwrite)
+  // COMPLETELY BYPASS SERVICE WORKER FOR API CALLS
   if (
-    url.hostname.includes('firestore.googleapis.com') || 
+    url.hostname.includes('googleapis.com') || 
     url.hostname.includes('appwrite.io') ||
-    url.hostname.includes('cloudinary.com')
+    url.hostname.includes('cloudinary.com') ||
+    event.request.method !== 'GET'
   ) {
-    return; // Let the browser handle these requests normally
+    return; // Let the browser handle these requests natively
   }
 
-  // Network-First strategy for everything else (Ensures latest files are always fetched if online)
   event.respondWith(
-    fetch(event.request).then((networkResponse) => {
-      // Update cache with the latest version
-      if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-      }
-      return networkResponse;
-    }).catch(() => {
-      // If offline or network fails, fallback to cache
-      return caches.match(event.request);
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
     })
   );
 });
