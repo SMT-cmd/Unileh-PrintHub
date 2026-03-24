@@ -23,8 +23,21 @@ function openCloudinaryWidget() {
     const myWidget = cloudinary.createUploadWidget(widgetConfig, (error, result) => {
       if (!error && result && result.event === "success") {
         console.log('Done! Here is the image info: ', result.info);
+        
+        let finalUrl = result.info.secure_url;
+        
+        // Fix for PDF/DOCX 401 errors:
+        // By default, Cloudinary sometimes generates the URL with '/image/upload/' 
+        // even for PDFs, which causes a 401 error. Changing it to '/raw/upload/' 
+        // or '/image/upload/fl_attachment/' forces it to bypass strict visual transformations.
+        if (result.info.format === 'pdf' || result.info.format === 'doc' || result.info.format === 'docx') {
+           // We append fl_attachment so the browser downloads it instead of trying to preview it,
+           // which often bypasses the 401 Unauthorized PDF viewing restriction.
+           finalUrl = finalUrl.replace('/upload/', '/upload/fl_attachment/');
+        }
+        
         resolve({
-          secure_url: result.info.secure_url,
+          secure_url: finalUrl,
           original_filename: result.info.original_filename,
           pages: result.info.pages // Cloudinary returns page count for PDFs
         });
