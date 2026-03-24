@@ -10,8 +10,6 @@ function openCloudinaryWidget() {
     const myWidget = cloudinary.createUploadWidget({
       cloudName: CLOUD_NAME,
       uploadPreset: UPLOAD_PRESET,
-      // Removed 'folder' because it is often restricted in unsigned uploads.
-      // The folder should be set strictly inside the Cloudinary dashboard preset settings.
       sources: ['local', 'url', 'google_drive'],
       multiple: false,
       clientAllowedFormats: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
