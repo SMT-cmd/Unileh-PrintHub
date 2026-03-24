@@ -114,9 +114,9 @@
         </div>
     </footer>
 
-    <!-- Cloudinary Widget -->
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-    <script src="../assets/js/cloudinary.js?v=20240324d"></script>
+    <!-- Appwrite SDK & Storage Service -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
+    <script src="../assets/js/storageService.js?v=20240324"></script>
     <!-- Firebase SDKs -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="../assets/js/app.js"></script>
@@ -128,7 +128,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const checkDeps = setInterval(() => {
-                if (window.openCloudinaryWidget && window.saveOrder) {
+                if (window.storageService && window.saveOrder) {
                     clearInterval(checkDeps);
                     initOrderPage();
                 }
@@ -141,14 +141,39 @@
             const submitBtn = document.getElementById('submit-order');
             const form = document.getElementById('order-form');
 
+            // Add hidden file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.pdf,.doc,.docx,image/*';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
             uploadBtn.addEventListener('click', () => {
-                window.openCloudinaryWidget().then(result => {
-                    uploadedFileData = result;
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (file.size > 10 * 1024 * 1024) {
+                    alert("File too large. Max 10MB allowed.");
+                    return;
+                }
+
+                try {
+                    uploadBtn.disabled = true;
+                    uploadBtn.textContent = 'Uploading...';
                     
-                    // Show detailed feedback with thumbnail/icon
-                    const isImage = result.resource_type === 'image' && result.format !== 'pdf';
+                    const result = await window.storageService.uploadFile(file);
+                    uploadedFileData = {
+                        ...result,
+                        pages: 1 // Default to 1, user can update copies/type
+                    };
+
+                    const isImage = file.type.startsWith('image/');
                     const previewHtml = isImage 
-                        ? `<img src="${result.thumbnail_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
+                        ? `<img src="${result.viewURL}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
                         : `<span style="font-size: 24px; margin-right: 10px;">📄</span>`;
 
                     feedback.innerHTML = `
@@ -156,35 +181,58 @@
                             ${previewHtml}
                             <div style="flex: 1;">
                                 <p style="margin: 0; color: #2a9d8f; font-weight: bold;">✅ File Ready!</p>
-                                <p style="margin: 0; font-size: 0.9em; color: var(--text-color);">${result.original_filename} (${result.pages} pages)</p>
+                                <p style="margin: 0; font-size: 0.9em; color: var(--text-color);">${result.originalName}</p>
+                                <div style="display: flex; align-items: center; margin-top: 5px;">
+                                    <label style="font-size: 0.8em; margin-right: 5px;">Actual Pages:</label>
+                                    <input type="number" id="actual-pages" value="1" min="1" style="width: 50px; padding: 2px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
                             </div>
                             <button type="button" id="remove-file" style="background: none; border: none; color: #e63946; cursor: pointer; font-size: 1.2em;">&times;</button>
                         </div>
                     `;
                     feedback.style.display = 'block';
-                    uploadBtn.style.display = 'none'; // Hide the big upload button
+                    uploadBtn.style.display = 'none'; 
                     
                     submitBtn.disabled = false;
-                    calculatePrice();
-
-                    // Handle file removal
-                    document.getElementById('remove-file').addEventListener('click', () => {
-                        uploadedFileData = null;
-                        feedback.style.display = 'none';
-                        uploadBtn.style.display = 'inline-block';
-                        uploadBtn.textContent = 'Upload Document';
-                        submitBtn.disabled = true;
-                        document.getElementById('total-price').textContent = '₦0.00';
+                    
+                    // Listen for page count changes
+                    document.getElementById('actual-pages').addEventListener('input', (e) => {
+                        uploadedFileData.pages = parseInt(e.target.value) || 1;
+                        calculatePrice();
                     });
 
-                }).catch(err => {
+                    calculatePrice();
+
+                    document.getElementById('remove-file').addEventListener('click', async () => {
+                        const confirmDelete = confirm("Are you sure you want to remove this file?");
+                        if (!confirmDelete) return;
+
+                        try {
+                            await window.storageService.deleteFile(uploadedFileData.fileId);
+                            uploadedFileData = null;
+                            feedback.style.display = 'none';
+                            uploadBtn.style.display = 'inline-block';
+                            uploadBtn.disabled = false;
+                            uploadBtn.textContent = 'Upload Document';
+                            submitBtn.disabled = true;
+                            document.getElementById('total-price').textContent = '₦0.00';
+                            fileInput.value = ''; // Reset input
+                        } catch (err) {
+                            console.error(err);
+                            alert("Error deleting file.");
+                        }
+                    });
+
+                } catch (err) {
                     console.error(err);
                     alert("Upload failed. Please try again.");
-                });
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = 'Upload Document';
+                }
             });
 
             const calculatePrice = () => {
-                if (!uploadedFileData) return;
+                if (!uploadedFileData) return 0;
                 const type = document.getElementById('print-type').value;
                 const copies = parseInt(document.getElementById('copies').value) || 1;
                 const pages = uploadedFileData.pages || 1;
@@ -200,7 +248,7 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!uploadedFileData) {
-                    alert("Hey! Don't forget to upload your document so we can get started.");
+                    alert("Please upload your document first.");
                     return;
                 }
 
@@ -211,8 +259,9 @@
                     printType: document.getElementById('print-type').value,
                     copies: parseInt(document.getElementById('copies').value),
                     notes: document.getElementById('notes').value,
-                    fileUrl: uploadedFileData.secure_url,
-                    fileName: uploadedFileData.original_filename,
+                    fileUrl: uploadedFileData.viewURL,
+                    fileId: uploadedFileData.fileId, // Store fileId for smart deletion
+                    fileName: uploadedFileData.originalName,
                     pageCount: uploadedFileData.pages || 1,
                     totalPrice: total,
                     status: 'Pending',

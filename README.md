@@ -5,7 +5,7 @@ A production-ready, full-stack Progressive Web App (PWA) designed for students o
 ## 🚀 Features
 
 ### For Students
-- **Print-on-Demand:** Upload PDF, DOCX, or images via Cloudinary. Real-time price calculation (B&W vs Color).
+- **Print-on-Demand:** Upload PDF, DOCX, or images via Appwrite Storage. Real-time price calculation (B&W vs Color).
 - **Portal Assistance:** Secure submission of portal login issues, exam card retrieval, and result checking requests.
 - **Real-time News Ticker:** Scrolling marquee for urgent school updates.
 - **Latest News & Partners:** Dedicated pages for detailed platform announcements and trusted student service partners.
@@ -14,17 +14,18 @@ A production-ready, full-stack Progressive Web App (PWA) designed for students o
 
 ### For Admin
 - **Secure Dashboard:** Protected by Firebase Authentication.
-- **Order Management:** Real-time tracking of print orders with "Mark as Printed" status toggles.
-- **Request Handling:** Manage portal assistance requests securely.
+- **Order Management:** Real-time tracking of print orders with "Print Ready" and "Collected" status toggles.
+- **Automated Notifications:** Native WhatsApp notifications when orders are ready for collection.
+- **Daily Accounting:** Real-time calculation of daily earnings from collected orders.
+- **Smart Deletion:** Automatic cleanup of physical files from Appwrite when orders are deleted.
 - **Content Manager:** Create and schedule advertisement banners and scrolling announcements.
 - **Partner Manager:** Add and manage trusted partners with logos and contact links.
-- **WhatsApp Alerts:** Automatic notifications for every new order or inquiry.
 
 ## 🛠️ Tech Stack
 - **Frontend:** Vanilla HTML5, CSS3 (Mobile-first), JavaScript (ES6 Modules).
 - **Backend/Database:** Firebase Firestore (Real-time).
 - **Authentication:** Firebase Auth (Email/Password).
-- **File Management:** Cloudinary (Unsigned Upload Presets).
+- **File Management:** Appwrite Storage (Centralized Utility).
 - **PWA:** Service Workers, Web App Manifest.
 - **Notifications:** WhatsApp API Integration.
 
@@ -37,7 +38,7 @@ ilesha-print-hub/
 │   └── index.html          # Admin login
 ├── assets/
 │   ├── css/                # style.css (Public), admin.css (Private)
-│   ├── js/                 # database.js, cloudinary.js, app.js
+│   ├── js/                 # database.js, storageService.js, app.js
 │   └── images/             # Branding and UI icons
 ├── index.html              # Landing Page
 ├── order.html              # Print Order Form
@@ -55,12 +56,12 @@ ilesha-print-hub/
 ### 1. Prerequisites
 - Node.js installed.
 - A Firebase project created at [console.firebase.google.com](https://console.firebase.google.com).
-- A Cloudinary account with an unsigned upload preset.
+- An Appwrite project with a storage bucket configured.
 
 ### 2. Configuration
 Update the following placeholders in the code:
 - **Firebase Config:** In `assets/js/database.js`.
-- **Cloudinary Config:** In `assets/js/cloudinary.js`.
+- **Appwrite Config:** In `assets/js/storageService.js`.
 - **Contact Info:** Update `YOUR_CONTACT_EMAIL` and `YOUR_LOCATION` in legal pages.
 
 ### 3. Deployment

@@ -96,9 +96,9 @@
         </div>
     </footer>
 
-    <!-- Cloudinary Widget -->
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-    <script src="../assets/js/cloudinary.js?v=20240324d"></script>
+    <!-- Appwrite SDK & Storage Service -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
+    <script src="../assets/js/storageService.js?v=20240324"></script>
     <!-- Firebase SDKs -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="../assets/js/app.js"></script>
@@ -109,7 +109,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const checkDeps = setInterval(() => {
-                if (window.getOrder && window.openCloudinaryWidget) {
+                if (window.getOrder && window.storageService) {
                     clearInterval(checkDeps);
                     initCheckout();
                 }
@@ -158,12 +158,31 @@
             const feedback = document.getElementById('receipt-feedback');
             const confirmBtn = document.getElementById('confirm-payment-btn');
 
+            // Add hidden file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*,.pdf';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
             uploadBtn.addEventListener('click', () => {
-                window.openCloudinaryWidget().then(result => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    uploadBtn.disabled = true;
+                    uploadBtn.textContent = 'Uploading...';
+                    
+                    const result = await window.storageService.uploadFile(file);
                     receiptData = result;
                     
-                    const previewHtml = result.resource_type === 'image' 
-                        ? `<img src="${result.thumbnail_url}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
+                    const isImage = file.type.startsWith('image/');
+                    const previewHtml = isImage 
+                        ? `<img src="${result.viewURL}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
                         : `<span style="font-size: 20px; margin-right: 10px;">📄</span>`;
 
                     feedback.innerHTML = `
@@ -171,7 +190,7 @@
                             ${previewHtml}
                             <div style="flex: 1;">
                                 <strong>✅ Receipt Ready!</strong><br>
-                                ${result.original_filename}
+                                ${result.originalName}
                             </div>
                             <button type="button" id="remove-receipt" style="background: none; border: none; color: #e63946; cursor: pointer; font-size: 1.2em;">&times;</button>
                         </div>
@@ -180,28 +199,54 @@
                     uploadBtn.style.display = 'none';
                     confirmBtn.disabled = false;
 
-                    document.getElementById('remove-receipt').addEventListener('click', () => {
-                        receiptData = null;
-                        feedback.style.display = 'none';
-                        uploadBtn.style.display = 'inline-block';
-                        confirmBtn.disabled = true;
+                    document.getElementById('remove-receipt').addEventListener('click', async () => {
+                        const confirmDelete = confirm("Remove this receipt?");
+                        if (!confirmDelete) return;
+
+                        try {
+                            await window.storageService.deleteFile(receiptData.fileId);
+                            receiptData = null;
+                            feedback.style.display = 'none';
+                            uploadBtn.style.display = 'inline-block';
+                            uploadBtn.disabled = false;
+                            uploadBtn.textContent = 'Upload Receipt';
+                            confirmBtn.disabled = true;
+                            fileInput.value = '';
+                        } catch (err) {
+                            console.error(err);
+                            alert("Error deleting receipt.");
+                        }
                     });
 
-                }).catch(err => {
+                } catch (err) {
                     console.error(err);
                     alert("Upload failed.");
-                });
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = 'Upload Receipt';
+                }
             });
 
-            confirmBtn.addEventListener('click', () => {
+            confirmBtn.addEventListener('click', async () => {
                 if (!receiptData || !currentOrder) return;
 
                 const message = `Order Payment Confirmation!\n\n` +
                                 `Order ID: ${orderId}\n` +
                                 `Student: ${currentOrder.studentName}\n` +
                                 `Amount: ₦${currentOrder.totalPrice.toFixed(2)}\n` +
-                                `Receipt: ${receiptData.secure_url}`;
+                                `Receipt: ${receiptData.viewURL}`;
                 
+                // Update order with receipt info
+                try {
+                    const orderRef = window.firebaseMethods.doc(window.db, "orders", orderId);
+                    await window.firebaseMethods.updateDoc(orderRef, {
+                        receiptUrl: receiptData.viewURL,
+                        receiptId: receiptData.fileId,
+                        status: 'Paid'
+                    });
+                } catch (e) {
+                    console.error("Error updating order with receipt:", e);
+                }
+
                 const whatsappUrl = `https://wa.me/2348022140329?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
             });

@@ -13,7 +13,7 @@ const ASSETS_TO_CACHE = [
   './about/index.html',
   './assets/css/style.css',
   './assets/js/app.js',
-  './assets/js/cloudinary.js?v=20240324',
+  './assets/js/storageService.js?v=20240324',
   './assets/js/database.js',
   './manifest.json'
 ];

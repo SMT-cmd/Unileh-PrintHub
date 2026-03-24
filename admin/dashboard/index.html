@@ -28,6 +28,18 @@
 
     <main class="admin-main">
         <div class="container">
+            <!-- Daily Summary Section -->
+            <section id="daily-summary-container" class="admin-summary-section">
+                <div class="summary-card gold-navy">
+                    <div class="summary-content">
+                        <h3>Today's Earnings (Collected)</h3>
+                        <p id="daily-total-amount">₦0.00</p>
+                        <span id="daily-order-count">0 orders today</span>
+                    </div>
+                    <div class="summary-icon">💰</div>
+                </div>
+            </section>
+
             <div class="tab-container">
                 <button class="tab-button active" data-tab="print-orders">Print Orders</button>
                 <button class="tab-button" data-tab="portal-requests">Portal Requests</button>
@@ -47,10 +59,11 @@
                                 <th>Order ID</th>
                                 <th>Student Name</th>
                                 <th>Phone</th>
-                                <th>Print Type</th>
-                                <th>Copies</th>
+                                <th>Type</th>
+                                <th>Pages/Copies</th>
                                 <th>Total (₦)</th>
-                                <th>File Link</th>
+                                <th>Print File</th>
+                                <th>Receipt</th>
                                 <th>Timestamp</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -292,9 +305,9 @@
         </div>
     </main>
 
-    <!-- Cloudinary Widget -->
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-    <script src="../../assets/js/cloudinary.js?v=20240324d"></script>
+    <!-- Appwrite SDK & Storage Service -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
+    <script src="../../assets/js/storageService.js?v=20240324"></script>
     <!-- Firebase SDKs & Auth -->
     <script type="module" src="../../assets/js/database.js"></script>
     <script src="../js/auth.js"></script>

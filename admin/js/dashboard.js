@@ -11,7 +11,7 @@
 // 1. Dependency Check & Initialization
 const checkDashboardDeps = setInterval(() => {
     // Check if all needed window objects from database.js are ready
-    if (window.db && window.firebaseMethods && window.firebaseMethods.onSnapshot) {
+    if (window.db && window.firebaseMethods && window.firebaseMethods.onSnapshot && window.storageService) {
         clearInterval(checkDashboardDeps);
         initDashboard();
     }
@@ -21,20 +21,43 @@ function initDashboard() {
     console.log("Initializing Admin Dashboard Logic...");
 
     // Alias firebase methods for cleaner code
-    const { collection, orderBy, onSnapshot, query, doc, updateDoc, deleteDoc, addDoc } = window.firebaseMethods;
+    const { collection, orderBy, onSnapshot, query, doc, updateDoc, deleteDoc, addDoc, where } = window.firebaseMethods;
+
+    // --- Daily Accounting ---
+    function updateDailySummary(orders) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const dailyOrders = orders.filter(order => {
+            if (!order.timestamp) return false;
+            const orderDate = new Date(order.timestamp);
+            return orderDate >= today && order.status === 'Collected';
+        });
+
+        const totalAmount = dailyOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+        
+        const amountEl = document.getElementById('daily-total-amount');
+        const countEl = document.getElementById('daily-order-count');
+        
+        if (amountEl) amountEl.textContent = `₦${totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (countEl) countEl.textContent = `${dailyOrders.length} orders collected today`;
+    }
 
     // --- Real-time Listeners ---
 
     // Orders Listener
     onSnapshot(query(collection(window.db, "orders"), orderBy("timestamp", "desc")), (snapshot) => {
         const ordersBody = document.getElementById('orders-body');
+        const allOrders = [];
         if (ordersBody) {
             ordersBody.innerHTML = '';
             snapshot.forEach((docSnap) => {
                 const order = docSnap.data();
+                allOrders.push(order);
                 const row = createOrderRow(docSnap.id, order);
                 ordersBody.appendChild(row);
             });
+            updateDailySummary(allOrders);
         }
     });
 
@@ -120,22 +143,40 @@ function initDashboard() {
     function createOrderRow(id, order) {
         const tr = document.createElement('tr');
         const date = new Date(order.timestamp).toLocaleString();
-        const statusClass = order.status === 'Printed' ? 'status-printed' : 'status-pending';
+        
+        let statusClass = 'status-pending';
+        if (order.status === 'Printed') statusClass = 'status-printed';
+        if (order.status === 'Ready') statusClass = 'status-ready';
+        if (order.status === 'Collected') statusClass = 'status-collected';
+        if (order.status === 'Paid') statusClass = 'status-paid';
+
+        const receiptLink = order.receiptUrl 
+            ? `<a href="${order.receiptUrl}" target="_blank" class="download-link">Receipt</a>`
+            : `<span style="opacity:0.5; font-size:0.8em;">No Receipt</span>`;
 
         tr.innerHTML = `
             <td>${id.substring(0, 8)}...</td>
             <td>${order.studentName}</td>
             <td>${order.phoneNumber}</td>
             <td>${order.printType}</td>
-            <td>${order.copies}</td>
+            <td>${order.pageCount} pgs / ${order.copies} cps</td>
             <td>₦${(order.totalPrice || 0).toFixed(2)}</td>
-            <td><a href="${order.fileUrl}" target="_blank" class="download-link">View File</a></td>
+            <td><a href="${order.fileUrl}" target="_blank" class="download-link">Open File</a></td>
+            <td>${receiptLink}</td>
             <td>${date}</td>
             <td><span class="status-badge ${statusClass}">${order.status}</span></td>
             <td>
-                <button onclick="toggleOrderStatus('${id}', '${order.status}')" class="action-button">
-                    ${order.status === 'Pending' ? 'Mark Printed' : 'Mark Pending'}
-                </button>
+                <div class="action-group">
+                    <button onclick="togglePrintReady('${id}', '${order.status}', '${order.studentName}', '${order.phoneNumber}')" class="action-button-small btn-ready">
+                        ${order.status === 'Ready' ? 'Undo Ready' : 'Print Ready'}
+                    </button>
+                    <button onclick="markAsCollected('${id}')" class="action-button-small btn-collected" ${order.status === 'Collected' ? 'disabled' : ''}>
+                        Collected
+                    </button>
+                    <button onclick="deleteOrder('${id}', '${order.fileId}', '${order.receiptId}')" class="action-button-small btn-delete">
+                        Delete
+                    </button>
+                </div>
             </td>
         `;
         return tr;
@@ -249,23 +290,47 @@ function initDashboard() {
     const adUploadButton = document.getElementById('ad-upload-button');
     const adUploadFeedback = document.getElementById('ad-upload-feedback');
     let adImageUrl = null;
+    let adImageId = null;
 
     if (adUploadButton) {
+        // Add hidden file input
+        const adFileInput = document.createElement('input');
+        adFileInput.type = 'file';
+        adFileInput.accept = 'image/*';
+        adFileInput.style.display = 'none';
+        document.body.appendChild(adFileInput);
+
         adUploadButton.addEventListener('click', () => {
-            window.openCloudinaryWidget().then(result => {
-                adImageUrl = result.secure_url;
+            adFileInput.click();
+        });
+
+        adFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                adUploadButton.disabled = true;
+                adUploadButton.textContent = 'Uploading...';
+                
+                const result = await window.storageService.uploadFile(file);
+                adImageUrl = result.viewURL;
+                adImageId = result.fileId;
+                
                 adUploadFeedback.innerHTML = `
                     <div class="upload-success-badge">
-                        <img src="${result.thumbnail_url}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">
-                        <span>✅ Image attached: <strong>${result.original_filename}</strong></span>
+                        <img src="${result.viewURL}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">
+                        <span>✅ Image attached: <strong>${result.originalName}</strong></span>
                     </div>
                 `;
                 adUploadFeedback.style.display = 'block';
+                adUploadButton.disabled = false;
                 adUploadButton.textContent = 'Change Image';
-            }).catch(err => {
+            } catch (err) {
                 console.error(err);
                 alert("Upload failed.");
-            });
+                adUploadButton.disabled = false;
+                adUploadButton.textContent = 'Upload Image';
+            }
         });
     }
 
@@ -282,6 +347,7 @@ function initDashboard() {
                 title: document.getElementById('ad-title').value,
                 description: document.getElementById('ad-desc-admin').value,
                 imageUrl: adImageUrl,
+                imageId: adImageId,
                 linkUrl: document.getElementById('ad-link').value || '#',
                 startDate: new Date(document.getElementById('ad-start').value).toISOString(),
                 endDate: new Date(document.getElementById('ad-end').value).toISOString(),
@@ -293,6 +359,7 @@ function initDashboard() {
                 alert("Advert saved successfully!");
                 newAdForm.reset();
                 adImageUrl = null;
+                adImageId = null;
                 if (adUploadFeedback) adUploadFeedback.style.display = 'none';
                 if (adUploadButton) adUploadButton.textContent = 'Upload Image';
                 document.getElementById('new-ad-form-container').style.display = 'none';
@@ -311,12 +378,30 @@ function initDashboard() {
     let annAttachment = null;
 
     if (annUploadButton) {
+        const annFileInput = document.createElement('input');
+        annFileInput.type = 'file';
+        annFileInput.accept = 'image/*,.pdf,.doc,.docx';
+        annFileInput.style.display = 'none';
+        document.body.appendChild(annFileInput);
+
         annUploadButton.addEventListener('click', () => {
-            window.openCloudinaryWidget().then(result => {
+            annFileInput.click();
+        });
+
+        annFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                annUploadButton.disabled = true;
+                annUploadButton.textContent = 'Uploading...';
+                
+                const result = await window.storageService.uploadFile(file);
                 annAttachment = {
-                    url: result.secure_url,
-                    type: result.resource_type, // 'image' or 'raw'
-                    filename: result.original_filename
+                    url: result.viewURL,
+                    fileId: result.fileId,
+                    type: file.type.startsWith('image/') ? 'image' : 'raw',
+                    filename: result.originalName
                 };
                 
                 const previewIcon = annAttachment.type === 'image' ? '🖼️' : '📄';
@@ -326,11 +411,14 @@ function initDashboard() {
                     </div>
                 `;
                 annUploadFeedback.style.display = 'block';
+                annUploadButton.disabled = false;
                 annUploadButton.textContent = 'Change Attachment';
-            }).catch(err => {
+            } catch (err) {
                 console.error(err);
                 alert("Upload failed.");
-            });
+                annUploadButton.disabled = false;
+                annUploadButton.textContent = 'Upload Image/File';
+            }
         });
     }
 
@@ -386,6 +474,53 @@ function initDashboard() {
 
     // --- Global Action Functions (Attached to window for HTML onclick access) ---
 
+    window.togglePrintReady = async (id, currentStatus, studentName, phoneNumber) => {
+        const newStatus = currentStatus === 'Ready' ? 'Paid' : 'Ready';
+        try {
+            const orderDoc = doc(window.db, "orders", id);
+            await updateDoc(orderDoc, { status: newStatus });
+
+            if (newStatus === 'Ready') {
+                // Trigger WhatsApp Notification
+                const message = `Hello ${studentName}! Your print job is ready for collection at Unilesh Print Hub! 🚀`;
+                const cleanPhone = phoneNumber.replace(/\s+/g, '');
+                const whatsappUrl = `https://wa.me/${cleanPhone.startsWith('0') ? '234' + cleanPhone.substring(1) : cleanPhone}?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+                console.log("Notification triggered for order", id);
+            }
+        } catch (error) {
+            console.error("Error updating order status: ", error);
+        }
+    };
+
+    window.markAsCollected = async (id) => {
+        try {
+            const orderDoc = doc(window.db, "orders", id);
+            await updateDoc(orderDoc, { status: 'Collected' });
+        } catch (error) {
+            console.error("Error marking as collected: ", error);
+        }
+    };
+
+    window.deleteOrder = async (id, fileId, receiptId) => {
+        if (confirm("Permanently delete this order and its files? This cannot be undone.")) {
+            try {
+                // 1. Delete from Appwrite Storage
+                if (fileId && fileId !== 'undefined') await window.storageService.deleteFile(fileId);
+                if (receiptId && receiptId !== 'undefined') await window.storageService.deleteFile(receiptId);
+
+                // 2. Delete from Firestore
+                const orderDoc = doc(window.db, "orders", id);
+                await deleteDoc(orderDoc);
+                
+                alert("Order and associated files deleted successfully!");
+            } catch (error) {
+                console.error("Error during smart deletion:", error);
+                alert("Failed to delete order fully. Check console.");
+            }
+        }
+    };
+
     window.toggleOrderStatus = async (id, currentStatus) => {
         const newStatus = currentStatus === 'Pending' ? 'Printed' : 'Pending';
         try {
@@ -420,6 +555,20 @@ function initDashboard() {
         if (confirm("Are you sure you want to delete this item? This cannot be undone.")) {
             try {
                 const docRef = doc(window.db, coll, id);
+                const docSnap = await window.firebaseMethods.getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    // Smart Deletion for Adverts
+                    if (coll === 'adverts' && data.imageId) {
+                        await window.storageService.deleteFile(data.imageId);
+                    }
+                    // Smart Deletion for Announcements
+                    if (coll === 'announcements' && data.attachment && data.attachment.fileId) {
+                        await window.storageService.deleteFile(data.attachment.fileId);
+                    }
+                }
+
                 await deleteDoc(docRef);
                 alert("Item deleted successfully.");
             } catch (error) {
