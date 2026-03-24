@@ -26,8 +26,24 @@ if ('serviceWorker' in navigator) {
     }
 
     navigator.serviceWorker.register(finalSwPath)
-      .then(reg => console.log('Service Worker: Registered'))
+      .then(reg => {
+        console.log('Service Worker: Registered');
+        
+        // Check for updates periodically (every 10 minutes)
+        setInterval(() => {
+          reg.update();
+        }, 10 * 60 * 1000);
+      })
       .catch(err => console.log(`Service Worker: Error: ${err}`));
+
+    // When the new service worker takes over, force reload the page to apply new assets
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
   });
 }
 

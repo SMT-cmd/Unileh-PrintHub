@@ -1,4 +1,4 @@
-const CACHE_NAME = 'printHub-v2';
+const CACHE_NAME = 'printHub-v3-clear';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -18,9 +18,9 @@ const ASSETS_TO_CACHE = [
   './manifest.json'
 ];
 
-// Install Event
+// 1. Install Event: Force immediate installation
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Force the new service worker to activate immediately
+  self.skipWaiting(); // IMMEDIATELY force the new service worker to activate
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Service Worker: Caching assets');
@@ -29,29 +29,29 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate Event
+// 2. Activate Event: aggressively clear ALL old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('Service Worker: Clearing old cache');
+            console.log('Service Worker: Clearing old cache', cache);
             return caches.delete(cache);
           }
         })
       );
     }).then(() => {
-      return self.clients.claim(); // Take control of all pages immediately
+      return self.clients.claim(); // IMMEDIATELY take control of all open pages
     })
   );
 });
 
-// Fetch Event (Stale-While-Revalidate Strategy for better freshness)
+// 3. Fetch Event: Network-First for HTML/CSS/JS, Fallback to Cache
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-first for Firestore/Cloudinary API calls
+  // Network-only for APIs
   if (url.hostname.includes('firestore.googleapis.com') || url.hostname.includes('cloudinary.com')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
@@ -59,25 +59,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-While-Revalidate for other assets
+  // Network-First strategy for everything else (Ensures latest files are always fetched if online)
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        // Update the cache with the new response
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(() => {
-        // Fallback to cache if network fails (offline mode)
-        return cachedResponse;
-      });
-
-      // Return cached response immediately if available, otherwise wait for network
-      return cachedResponse || fetchPromise;
+    fetch(event.request).then((networkResponse) => {
+      // Update cache with the latest version
+      if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+      }
+      return networkResponse;
+    }).catch(() => {
+      // If offline or network fails, fallback to cache
+      return caches.match(event.request);
     })
   );
 });
