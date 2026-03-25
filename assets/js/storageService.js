@@ -5,7 +5,7 @@
  */
 
 // --- CONFIGURATION ---
-const APPWRITE_ENDPOINT = 'https://nyc.cloud.appwrite.io/v1'; 
+const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1'; 
 const APPWRITE_PROJECT_ID = '69c303e900353eca2124';
 const BUCKET_ID = '69c307140031f849879a';
 
@@ -97,7 +97,6 @@ async function uploadFile(file, onProgress = null) {
             BUCKET_ID,
             Appwrite.ID.unique(),
             file,
-            [], // Permissions
             (progress) => {
                 if (onProgress) onProgress(progress.progress);
             }
