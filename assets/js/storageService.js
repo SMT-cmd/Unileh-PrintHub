@@ -1,7 +1,7 @@
 /**
- * Unilesh Print Hub - Appwrite Storage Utility
- * Version: 2.1.0 (2026 Updated)
- * Centralized service for handling all file uploads and deletions using Appwrite Cloud.
+ * FIXED Appwrite Storage Service - Unilesh Print Hub
+ * Version: 2.2.0 (User logic integrated)
+ * Centralized service for handling all file uploads and deletions.
  */
 
 // --- CONFIGURATION ---
@@ -10,14 +10,16 @@ const APPWRITE_PROJECT_ID = '69c303e900353eca2124';
 const BUCKET_ID = '69c307140031f849879a';
 
 // --- INITIALIZATION ---
-let client, storage, account;
+let client = null;
+let storage = null;
+let account = null;
 
 /**
  * Initializes the Appwrite client and services.
  */
 function initAppwrite() {
     if (typeof Appwrite === 'undefined') {
-        console.warn('Appwrite SDK not yet loaded. Waiting...');
+        console.error('❌ Appwrite SDK is not loaded!');
         return false;
     }
     
@@ -31,10 +33,10 @@ function initAppwrite() {
         storage = new Storage(client);
         account = new Account(client);
         
-        console.log("Appwrite: Initialized successfully with Project ID:", APPWRITE_PROJECT_ID);
+        console.log('✅ Appwrite initialized successfully with Project ID:', APPWRITE_PROJECT_ID);
         return true;
     } catch (error) {
-        console.error("Appwrite Initialization Failed:", error);
+        console.error("❌ Appwrite Initialization Failed:", error);
         return false;
     }
 }
@@ -44,105 +46,91 @@ initAppwrite();
 
 /**
  * Ensures a session exists for the user.
- * Required for anonymous uploads to work with 'Any' permissions.
+ * If no session exists, it creates an anonymous session.
  */
 async function ensureSession() {
-    if (!account && !initAppwrite()) {
-        throw new Error("Appwrite SDK is missing. Please check your internet and reload.");
-    }
-
+    if (!account) initAppwrite();
     try {
-        // Check if session exists
-        const session = await account.get();
-        console.log("Appwrite: Active session verified:", session.$id);
-        return session;
-    } catch (error) {
-        console.log("Appwrite: No session found. Creating anonymous session...");
+        await account.get();
+        return true;
+    } catch (e) {
+        console.log("Appwrite: No active session. Creating anonymous session...");
         try {
-            const session = await account.createAnonymousSession();
-            console.log("Appwrite: Anonymous session created successfully.");
-            return session;
-        } catch (sessionError) {
-            console.error("Appwrite Session Error:", sessionError);
+            await account.createAnonymousSession();
+            console.log('✅ Anonymous session created');
+            return true;
+        } catch (err) {
+            console.error('Session Error:', err);
             
-            // Map common session errors
-            if (sessionError.code === 401) {
+            // Provide specific feedback for common errors
+            if (err.message.includes("Failed to fetch") || err.code === 0) {
+                throw new Error("Network Error: Could not reach storage. Ensure your domain is registered in Appwrite Console.");
+            }
+            if (err.code === 401) {
                 throw new Error("Auth Error: Anonymous authentication is not enabled in Appwrite Console.");
             }
-            if (sessionError.message.includes("Failed to fetch") || sessionError.code === 0) {
-                throw new Error("Network Error: Could not reach Appwrite. This is usually a CORS issue. Ensure your domain is added to 'Platforms' in Appwrite Console.");
-            }
             
-            throw new Error(`Session Failed (${sessionError.code}): ${sessionError.message}`);
+            throw new Error('Failed to connect to storage. Please check Appwrite settings.');
         }
     }
 }
 
 /**
- * Uploads a file to Appwrite Storage with robust error handling.
+ * Uploads a file to Appwrite Storage with progress tracking.
  * @param {File} file - The file to upload.
- * @param {Function} onProgress - Optional callback for upload progress.
- * @returns {Promise<{fileId: string, viewURL: string, originalName: string, format: string}>}
+ * @param {Function} onProgress - Optional progress callback.
+ * @returns {Promise<Object>} Upload result.
  */
 async function uploadFile(file, onProgress = null) {
     if (!file) throw new Error("No file selected for upload.");
 
     try {
-        // 1. Ensure we have a session
+        const initialized = initAppwrite();
+        if (!initialized) throw new Error("Appwrite SDK not available");
+
         await ensureSession();
 
-        console.log(`Appwrite: Starting upload for ${file.name} (${(file.size / 1024).toFixed(2)} KB)...`);
+        console.log(`Appwrite: Starting upload for ${file.name}...`);
 
-        // 2. Perform the upload
+        // Use Appwrite SDK to create file
         const response = await storage.createFile(
             BUCKET_ID,
             Appwrite.ID.unique(),
             file,
-            [], // Permissions (defaults to bucket permissions)
+            [], // Permissions
             (progress) => {
                 if (onProgress) onProgress(progress.progress);
             }
         );
 
         const fileId = response.$id;
-        const viewURL = storage.getFileView(BUCKET_ID, fileId).href;
-        const downloadURL = storage.getFileDownload(BUCKET_ID, fileId).href;
         
-        console.log("Appwrite: Upload complete! File ID:", fileId);
+        // Construct the view URL as requested by the user
+        const viewURL = `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}`;
+        const downloadURL = `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${fileId}/download?project=${APPWRITE_PROJECT_ID}`;
 
+        console.log('✅ Upload successful:', file.name);
+        
         return { 
+            success: true,
             fileId: fileId, 
             viewURL: viewURL, 
             downloadURL: downloadURL,
-            originalName: file.name,
+            fileName: file.name,
+            originalName: file.name, // Keep for backward compatibility
+            size: file.size,
             format: file.name.split('.').pop().toLowerCase()
         };
 
     } catch (error) {
-        console.error("Appwrite Upload Error:", error);
+        console.error("❌ Upload failed:", error);
         
-        // Detailed error mapping for production feedback
-        if (error.message.includes("Failed to fetch") || error.code === 0) {
-            throw new Error("Network Error: Connection to Appwrite blocked. Please check your internet or domain registration in Appwrite Console.");
-        }
+        // Detailed error mapping
+        if (error.code === 403) throw new Error("Access Forbidden: Your domain is not authorized. Add it to Appwrite Platforms.");
+        if (error.code === 404) throw new Error(`Bucket Not Found: Verify Bucket ID '${BUCKET_ID}' exists.`);
+        if (error.code === 413) throw new Error("File Too Large: Exceeds maximum allowed size.");
         
-        if (error.code === 401) {
-            throw new Error("Permission Denied: Ensure your Appwrite Bucket has 'Create' permissions enabled for 'Any'.");
-        }
-
-        if (error.code === 403) {
-            throw new Error("Access Forbidden: Your domain is not authorized to upload to this project.");
-        }
-
-        if (error.code === 404) {
-            throw new Error(`Bucket Not Found: Verify Bucket ID '${BUCKET_ID}' exists in your Appwrite Console.`);
-        }
-
-        if (error.code === 413) {
-            throw new Error("File Too Large: The file exceeds the maximum allowed size in Appwrite Settings.");
-        }
-
-        throw new Error(`Upload Failed: ${error.message}`);
+        throw new Error(error.message || "Upload failed. Please try again.");
     }
 }
 
@@ -153,6 +141,7 @@ async function uploadFile(file, onProgress = null) {
 async function deleteFile(fileId) {
     if (!fileId) return;
     try {
+        if (!storage) initAppwrite();
         await storage.deleteFile(BUCKET_ID, fileId);
         console.log(`Appwrite: File ${fileId} deleted successfully.`);
     } catch (error) {
@@ -166,19 +155,18 @@ async function deleteFile(fileId) {
  * Gets the direct view URL for a file.
  */
 function getFileView(fileId) {
-    if (!storage) initAppwrite();
-    return storage.getFileView(BUCKET_ID, fileId).href;
+    return `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}`;
 }
 
 /**
  * Gets the download URL for a file.
  */
 function getFileDownload(fileId) {
-    if (!storage) initAppwrite();
-    return storage.getFileDownload(BUCKET_ID, fileId).href;
+    return `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${fileId}/download?project=${APPWRITE_PROJECT_ID}`;
 }
 
 // --- EXPORT TO GLOBAL WINDOW ---
+// Export as both storageService (for existing code) and AppwriteStorage (as requested)
 window.storageService = {
     uploadFile,
     deleteFile,
@@ -186,3 +174,10 @@ window.storageService = {
     getFileDownload,
     initAppwrite
 };
+
+window.AppwriteStorage = { 
+    uploadFile, 
+    initAppwrite 
+};
+
+console.log('✅ AppwriteStorage module loaded');
