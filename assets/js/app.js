@@ -4,6 +4,7 @@ if ('serviceWorker' in navigator) {
     for (let registration of registrations) {
       registration.unregister().then(() => {
         console.log('✅ Service Worker Unregistered');
+        window.location.reload(); // Force reload once after unregistering
       });
     }
   });
