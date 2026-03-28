@@ -7,9 +7,7 @@
 // --- CONFIGURATION ---
 const SUPABASE_URL = 'https://oxyvzcgjracrlyckhent.supabase.co';
 // Using the long JWT (Anon Key) provided by the user
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eXZ6Y2dqcmFjcmx5Y2toZW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2OTIxMDYsImV4cCI6MjA5MDI2ODEwNn0.4N81chDh9Nuc_uWeTDS9SnEf05Z3M-_9lcU6h12wJLQ';
-// Alternatively, if the above fails, you can try the publishable key:
-// const SUPABASE_ANON_KEY = 'sb_publishable_Zj88czAqo9_OA6hN0VDqpw_y8vRtL3L';
+const SUPABASE_ANON_KEY = 'sb_publishable_f3g4xUVmod3xgqv6KE8_XQ_Yydete1X';
 const BUCKET_NAME = 'unilesh';
 
 // --- INITIALIZATION ---
