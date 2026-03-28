@@ -16,14 +16,20 @@ let supabaseClient = null;
  * Initializes the Supabase client.
  */
 function initSupabase() {
-    if (typeof supabase === 'undefined') {
+    // Standard Supabase global variable is 'supabase'
+    // Alias to 'supabasejs' as requested by user
+    if (typeof supabase !== 'undefined' && typeof supabasejs === 'undefined') {
+        window.supabasejs = supabase;
+    }
+
+    if (typeof supabasejs === 'undefined') {
         console.error('❌ Supabase SDK is not loaded!');
         return false;
     }
 
     try {
         if (!supabaseClient) {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseClient = supabasejs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             console.log('✅ Supabase initialized successfully');
         }
         return true;
@@ -81,14 +87,17 @@ async function uploadFile(file, onProgress = null) {
         };
 
     } catch (error) {
-        console.error("❌ Upload failed:", error);
+        console.error("❌ Supabase Upload failed:", error);
         
-        // Handle network/connection errors specifically
-        if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
-            throw new Error("Could not connect to storage. Please ensure your internet is stable and try again.");
+        // Provide specific Supabase error feedback
+        if (error.statusCode === '413') {
+            throw new Error("File too large for Supabase storage.");
+        }
+        if (error.message === 'Failed to fetch') {
+            throw new Error("Supabase connection error: Failed to fetch. Check your API URL and key.");
         }
         
-        throw new Error(error.message || "Upload failed. Please try again.");
+        throw new Error(`Supabase Error: ${error.message || "Upload failed. Please try again."}`);
     }
 }
 
