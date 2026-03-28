@@ -1,30 +1,22 @@
-// Service Worker Registration
+// --- Service Worker Removal & Cache Clearing ---
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // Because the site is served from the root domain (unilesh.afrinethub.com.ng), 
-    // the service worker is just at /service-worker.js
-    const finalSwPath = '/service-worker.js';
-
-    navigator.serviceWorker.register(finalSwPath)
-      .then(reg => {
-        console.log('Service Worker: Registered');
-        
-        // Check for updates periodically (every 10 minutes)
-        setInterval(() => {
-          reg.update();
-        }, 10 * 60 * 1000);
-      })
-      .catch(err => console.log(`Service Worker: Error: ${err}`));
-
-    // When the new service worker takes over, force reload the page to apply new assets
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (let registration of registrations) {
+      registration.unregister().then(() => {
+        console.log('✅ Service Worker Unregistered');
+      });
+    }
   });
+
+  // Clear all caches to force update to latest code
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      for (let name of names) {
+        caches.delete(name);
+      }
+      console.log('✅ All Caches Cleared');
+    });
+  }
 }
 
 // Dark/Light Theme Toggle
