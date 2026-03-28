@@ -154,13 +154,16 @@ function initDashboard() {
             ? `<a href="${order.receiptUrl}" target="_blank" class="download-link">Receipt</a>`
             : `<span style="opacity:0.5; font-size:0.8em;">No Receipt</span>`;
 
+        const displayId = order.orderNumber || `${id.substring(0, 5)}...`;
+        const priceBreakdown = `<span style="font-size: 0.8em; display: block; color: #666;">(${order.pageCount}pgs × ${order.copies}cps)</span>`;
+
         tr.innerHTML = `
-            <td>${id.substring(0, 8)}...</td>
+            <td title="Firebase ID: ${id}"><strong>${displayId}</strong></td>
             <td>${order.studentName}</td>
             <td>${order.phoneNumber}</td>
             <td>${order.printType}</td>
             <td>${order.pageCount} pgs / ${order.copies} cps</td>
-            <td>₦${(order.totalPrice || 0).toFixed(2)}</td>
+            <td>₦${(order.totalPrice || 0).toFixed(2)}${priceBreakdown}</td>
             <td><a href="${order.fileUrl}" target="_blank" class="download-link">Open File</a></td>
             <td>${receiptLink}</td>
             <td>${date}</td>

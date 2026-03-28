@@ -15,6 +15,8 @@
     
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- PDF-Lib for Auto Page Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
     <link rel="icon" href="../assets/images/logo.png" type="image/png">
 </head>
 <body class="watermark-bg">
@@ -175,9 +177,24 @@
                         uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
                     });
 
+                    // --- Auto Page Detection ---
+                    let detectedPages = 1;
+                    let detectionStatus = '';
+
+                    if (file.type === 'application/pdf') {
+                        try {
+                            const arrayBuffer = await file.arrayBuffer();
+                            const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                            detectedPages = pdfDoc.getPageCount();
+                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">✨ Auto-detected: ${detectedPages} pages</p>`;
+                        } catch (pdfErr) {
+                            console.error("PDF detection failed:", pdfErr);
+                        }
+                    }
+
                     uploadedFileData = {
                         ...result,
-                        pages: 1 
+                        pages: detectedPages 
                     };
 
                     const isImage = file.type.startsWith('image/');
@@ -192,8 +209,11 @@
                                 <p style="margin: 0; color: #2a9d8f; font-weight: bold;">✅ File Uploaded Successfully!</p>
                                 <p style="margin: 0; font-size: 0.9em; color: var(--text-color);">${result.originalName}</p>
                                 <div style="display: flex; align-items: center; margin-top: 8px;">
-                                    <label style="font-size: 0.85em; margin-right: 8px; color: var(--text-color);">Number of Pages in File:</label>
-                                    <input type="number" id="actual-pages" value="1" min="1" style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: black;">
+                                    <div style="flex: 1;">
+                                        <label style="font-size: 0.85em; margin-right: 8px; color: var(--text-color);">Number of Pages in File:</label>
+                                        <input type="number" id="actual-pages" value="${detectedPages}" min="1" style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: black;">
+                                        ${detectionStatus}
+                                    </div>
                                 </div>
                             </div>
                             <button type="button" id="remove-file" title="Remove file" style="background: #e63946; border: none; color: white; cursor: pointer; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
@@ -252,7 +272,16 @@
                 const pages = uploadedFileData.pages || 1;
                 const rate = type === 'B&W' ? BW_PRICE : COLOR_PRICE;
                 const total = rate * pages * copies;
-                document.getElementById('total-price').textContent = `₦${total.toFixed(2)}`;
+                
+                // Show breakdown
+                const totalPages = pages * copies;
+                const breakdown = `(₦${rate} × ${pages} pages × ${copies} copies)`;
+                document.getElementById('total-price').innerHTML = `
+                    ₦${total.toFixed(2)}
+                    <div style="font-size: 0.4em; color: var(--text-color); font-weight: normal; margin-top: 4px;">
+                        ${breakdown}
+                    </div>
+                `;
                 return total;
             };
 

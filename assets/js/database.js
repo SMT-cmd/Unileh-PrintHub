@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
-import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
 // Your web app's Firebase configuration
@@ -28,11 +28,30 @@ try {
 }
 
 /**
+ * Generates a short, human-readable order ID.
+ */
+function generateShortId() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Avoid ambiguous O, 0, I, 1
+  let result = '';
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `UPH-${result}`;
+}
+
+/**
  * Saves a print order to Firestore.
  */
 async function saveOrder(orderData) {
   try {
-    const docRef = await addDoc(collection(db, "orders"), orderData);
+    const shortId = generateShortId();
+    const orderWithId = {
+      ...orderData,
+      orderNumber: shortId,
+      status: 'Pending',
+      createdAt: serverTimestamp()
+    };
+    const docRef = await addDoc(collection(db, "orders"), orderWithId);
     return docRef.id;
   } catch (error) {
     console.error("Error saving order: ", error);
@@ -184,5 +203,6 @@ window.firebaseMethods = {
   where,
   orderBy,
   onSnapshot,
-  getDocs
+  getDocs,
+  serverTimestamp
 };
