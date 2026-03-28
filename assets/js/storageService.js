@@ -1,6 +1,6 @@
 /**
  * Supabase Storage Service - Unilesh Print Hub
- * Version: 3.0.0 (Migrated from Appwrite)
+ * Version: 3.1.0 (Final Supabase Migration)
  * Centralized service for handling all file uploads and deletions via Supabase.
  */
 
@@ -16,20 +16,14 @@ let supabaseClient = null;
  * Initializes the Supabase client.
  */
 function initSupabase() {
-    // Standard Supabase global variable is 'supabase'
-    // Alias to 'supabasejs' as requested by user
-    if (typeof supabase !== 'undefined' && typeof supabasejs === 'undefined') {
-        window.supabasejs = supabase;
-    }
-
-    if (typeof supabasejs === 'undefined') {
+    if (typeof supabase === 'undefined') {
         console.error('❌ Supabase SDK is not loaded!');
         return false;
     }
 
     try {
         if (!supabaseClient) {
-            supabaseClient = supabasejs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             console.log('✅ Supabase initialized successfully');
         }
         return true;
@@ -45,7 +39,7 @@ initSupabase();
 /**
  * Uploads a file to Supabase Storage.
  * @param {File} file - The file to upload.
- * @param {Function} onProgress - Optional progress callback (Supabase-js v2 doesn't support progress in simple upload).
+ * @param {Function} onProgress - Optional progress callback.
  * @returns {Promise<Object>} Upload result compatible with database.js.
  */
 async function uploadFile(file, onProgress = null) {
@@ -71,19 +65,14 @@ async function uploadFile(file, onProgress = null) {
             .from(BUCKET_NAME)
             .getPublicUrl(filePath);
 
-        const viewURL = publicUrlData.publicUrl;
-
         console.log('✅ Upload successful:', file.name);
 
+        // Return exact object structure as requested
         return {
             success: true,
             fileId: filePath,
-            viewURL: viewURL,
-            downloadURL: viewURL, // Supabase public URL can be used for both
-            fileName: file.name,
-            originalName: file.name,
-            size: file.size,
-            format: file.name.split('.').pop().toLowerCase()
+            viewURL: publicUrlData.publicUrl,
+            originalName: file.name
         };
 
     } catch (error) {
@@ -92,9 +81,6 @@ async function uploadFile(file, onProgress = null) {
         // Provide specific Supabase error feedback
         if (error.statusCode === '413') {
             throw new Error("File too large for Supabase storage.");
-        }
-        if (error.message === 'Failed to fetch') {
-            throw new Error("Supabase connection error: Failed to fetch. Check your API URL and key.");
         }
         
         throw new Error(`Supabase Error: ${error.message || "Upload failed. Please try again."}`);
@@ -141,22 +127,20 @@ function getFileDownload(fileId) {
 }
 
 // --- EXPORT TO GLOBAL WINDOW ---
-// Export as both storageService (for existing code) and maintain initAppwrite as alias
+// Export as storageService (primary) and maintain Appwrite aliases for backward compatibility
 window.storageService = {
     uploadFile,
     deleteFile,
     getFileView,
     getFileDownload,
-    initAppwrite: initSupabase // Backward compatibility alias
+    initAppwrite: initSupabase
 };
 
-// Also maintain AppwriteStorage alias for compatibility
 window.AppwriteStorage = {
     uploadFile,
     initAppwrite: initSupabase
 };
 
-// Global initAppwrite alias
 window.initAppwrite = initSupabase;
 
 console.log('✅ Supabase Storage module loaded');

@@ -505,7 +505,7 @@ function initDashboard() {
     window.deleteOrder = async (id, fileId, receiptId) => {
         if (confirm("Permanently delete this order and its files? This cannot be undone.")) {
             try {
-                // 1. Delete from Appwrite Storage
+                // 1. Delete from Supabase Storage
                 if (fileId && fileId !== 'undefined') await window.storageService.deleteFile(fileId);
                 if (receiptId && receiptId !== 'undefined') await window.storageService.deleteFile(receiptId);
 
