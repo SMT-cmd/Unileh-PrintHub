@@ -1,6 +1,6 @@
 /**
  * Supabase Storage Service - Unilesh Print Hub
- * Version: 3.1.0 (Final Supabase Migration)
+ * Version: 3.2.0 (Final Migration)
  * Centralized service for handling all file uploads and deletions via Supabase.
  */
 
@@ -40,7 +40,7 @@ initSupabase();
  * Uploads a file to Supabase Storage.
  * @param {File} file - The file to upload.
  * @param {Function} onProgress - Optional progress callback.
- * @returns {Promise<Object>} Upload result compatible with database.js.
+ * @returns {Promise<Object>} Upload result.
  */
 async function uploadFile(file, onProgress = null) {
     if (!file) throw new Error("No file selected for upload.");
@@ -67,7 +67,7 @@ async function uploadFile(file, onProgress = null) {
 
         console.log('✅ Upload successful:', file.name);
 
-        // Return exact object structure as requested
+        // Return exact object structure as requested by the user
         return {
             success: true,
             fileId: filePath,
@@ -76,14 +76,14 @@ async function uploadFile(file, onProgress = null) {
         };
 
     } catch (error) {
-        console.error("❌ Supabase Upload failed:", error);
+        console.error("❌ Supabase Storage Error:", error);
         
-        // Provide specific Supabase error feedback
+        // Detailed error mapping for better UX
         if (error.statusCode === '413') {
-            throw new Error("File too large for Supabase storage.");
+            throw new Error("File too large. Please select a smaller file.");
         }
         
-        throw new Error(`Supabase Error: ${error.message || "Upload failed. Please try again."}`);
+        throw new Error(`Storage Service Error: ${error.message || "Upload failed. Please try again."}`);
     }
 }
 
@@ -104,7 +104,7 @@ async function deleteFile(fileId) {
         
         console.log(`Supabase: File ${fileId} deleted successfully.`);
     } catch (error) {
-        console.error("Supabase Delete Error:", error);
+        console.error("Supabase Storage Error:", error);
         // Silently fail if file already gone
         if (error.status !== 404) throw error;
     }
@@ -133,14 +133,10 @@ window.storageService = {
     deleteFile,
     getFileView,
     getFileDownload,
-    initAppwrite: initSupabase
+    initAppwrite: initSupabase // Alias to prevent errors in other scripts
 };
 
-window.AppwriteStorage = {
-    uploadFile,
-    initAppwrite: initSupabase
-};
-
+// Global initAppwrite alias
 window.initAppwrite = initSupabase;
 
 console.log('✅ Supabase Storage module loaded');
