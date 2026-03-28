@@ -82,6 +82,12 @@ async function uploadFile(file, onProgress = null) {
 
     } catch (error) {
         console.error("❌ Upload failed:", error);
+        
+        // Handle network/connection errors specifically
+        if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+            throw new Error("Could not connect to storage. Please ensure your internet is stable and try again.");
+        }
+        
         throw new Error(error.message || "Upload failed. Please try again.");
     }
 }

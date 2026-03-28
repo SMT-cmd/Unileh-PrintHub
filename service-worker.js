@@ -1,4 +1,4 @@
-const CACHE_NAME = 'printHub-v2026-v1';
+const CACHE_NAME = 'printHub-v2026-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -13,7 +13,7 @@ const ASSETS_TO_CACHE = [
   './about/index.html',
   './assets/css/style.css',
   './assets/js/app.js',
-  './assets/js/storageService.js?v=20260324_v1',
+  './assets/js/storageService.js?v=supabase_v1',
   './assets/js/database.js',
   './manifest.json'
 ];
@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
   // COMPLETELY BYPASS SERVICE WORKER FOR API CALLS
   if (
     url.hostname.includes('googleapis.com') || 
-    url.hostname.includes('appwrite.io') ||
+    url.hostname.includes('supabase.co') ||
     url.hostname.includes('cloudinary.com') ||
     event.request.method !== 'GET'
   ) {
