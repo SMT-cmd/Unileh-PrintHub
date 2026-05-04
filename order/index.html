@@ -6,6 +6,7 @@
     <title>Place Your Print Order - Unilesh Print Hub</title>
     <meta name="description" content="Upload your documents and place your print order. Black & White or Color prints available with fast delivery for Unilesa students.">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/modern.css">
     <meta name="theme-color" content="#0a1f44">
     <!-- iOS Mobile Features -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -72,8 +73,8 @@
                 <div class="form-group">
                     <label for="print-type">Print Type</label>
                     <select id="print-type" required>
-                        <option value="B&W">Black & White (₦20/page)</option>
-                        <option value="Color">Color (₦50/page)</option>
+                        <option value="B&W">Black & White (₦80 for 1 page, ₦150 for 2 pages)</option>
+                        <option value="Color">Color (₦100/page)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -124,11 +125,10 @@
     <!-- Firebase SDKs -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="../assets/js/app.js?v=supabase_final"></script>
+    <script src="../assets/js/pricing.js?v=pricing_v1"></script>
 
     <script type="module">
         let uploadedFileData = null;
-        const BW_PRICE = 20;
-        const COLOR_PRICE = 50;
 
         document.addEventListener('DOMContentLoaded', () => {
             const checkDeps = setInterval(() => {
@@ -275,23 +275,24 @@
 
             const calculatePrice = () => {
                 if (!uploadedFileData) return 0;
-                const type = document.getElementById('print-type').value;
                 const copies = parseInt(document.getElementById('copies').value) || 1;
                 const pages = uploadedFileData.pages || 1;
-                const rate = type === 'B&W' ? BW_PRICE : COLOR_PRICE;
-                const total = rate * pages * copies;
-                
-                // Show breakdown
-                const totalPages = pages * copies;
-                const breakdown = `(₦${rate} × ${pages} pages × ${copies} copies)`;
+                const printType = document.getElementById('print-type').value;
+                const result = window.printPricing.calculatePrintTotal({
+                    printType,
+                    pagesInFile: pages,
+                    copies
+                });
+                const total = result.total;
                 document.getElementById('total-price').innerHTML = `
                     ₦${total.toFixed(2)}
                     <div style="font-size: 0.4em; color: var(--text-color); font-weight: normal; margin-top: 4px;">
                         ${breakdown}
-                    </div>
+                        ${result.breakdownLabel} • (${pages} pages × ${copies} copies = ${result.totalPagesPrinted} pages)
                 `;
                 return total;
             };
+
 
             document.getElementById('print-type').addEventListener('change', calculatePrice);
             document.getElementById('copies').addEventListener('input', calculatePrice);
@@ -334,5 +335,3 @@
     </script>
 </body>
 </html>
-
-

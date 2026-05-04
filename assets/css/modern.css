@@ -1,0 +1,157 @@
+:root {
+  --uph-radius-sm: 12px;
+  --uph-radius-md: 16px;
+  --uph-radius-lg: 22px;
+  --uph-border: rgba(10, 31, 68, 0.12);
+  --uph-shadow-sm: 0 6px 18px rgba(10, 31, 68, 0.10);
+  --uph-shadow: 0 14px 40px rgba(10, 31, 68, 0.12);
+  --uph-shadow-lg: 0 24px 70px rgba(10, 31, 68, 0.16);
+  --uph-surface: #ffffff;
+  --uph-surface-2: rgba(255, 255, 255, 0.86);
+  --uph-muted: rgba(10, 31, 68, 0.62);
+}
+
+body {
+  letter-spacing: -0.01em;
+}
+
+.container {
+  max-width: 1120px;
+}
+
+header {
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+header .container {
+  gap: 16px;
+}
+
+nav ul {
+  gap: 16px;
+}
+
+nav ul li a {
+  padding: 10px 10px;
+  border-radius: 999px;
+}
+
+nav ul li a:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+[data-theme="light"] nav ul li a:hover {
+  background: rgba(10, 31, 68, 0.06);
+}
+
+#theme-toggle {
+  border-radius: 999px;
+  padding: 10px 14px;
+  box-shadow: 0 10px 24px rgba(255, 107, 53, 0.18);
+}
+
+.cta-button,
+.cta-button-secondary {
+  border-radius: 999px;
+  letter-spacing: 0.6px;
+  box-shadow: 0 10px 24px rgba(10, 31, 68, 0.14);
+}
+
+.cta-button:hover,
+.cta-button-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.hero {
+  padding: 92px 0;
+}
+
+.hero h1 {
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  letter-spacing: -0.03em;
+}
+
+.hero p {
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+}
+
+.card {
+  background: var(--uph-surface-2);
+  color: var(--text-color);
+  border: 1px solid var(--uph-border);
+  border-radius: var(--uph-radius-lg);
+  box-shadow: var(--uph-shadow);
+  padding: 28px;
+}
+
+.portal-services-cta .card,
+.gadgets-cta .card {
+  background: linear-gradient(135deg, var(--primary) 0%, #13335f 60%, rgba(255, 107, 53, 0.20) 120%);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: var(--uph-shadow-lg);
+  color: #ffffff;
+}
+
+.form-card {
+  background: var(--uph-surface-2);
+  border: 1px solid var(--uph-border);
+  border-radius: var(--uph-radius-lg);
+  box-shadow: var(--uph-shadow);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border-radius: var(--uph-radius-md);
+  border: 1px solid var(--uph-border);
+  background: rgba(255, 255, 255, 0.92);
+  outline: none;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: rgba(255, 107, 53, 0.55);
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.14);
+}
+
+.price-display,
+.price-calculator {
+  border-radius: var(--uph-radius-md);
+  border: 1px solid var(--uph-border);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 28px rgba(10, 31, 68, 0.08);
+}
+
+.step,
+.service-item,
+.news-item.card,
+.partner-card.card {
+  border-radius: var(--uph-radius-lg);
+  box-shadow: var(--uph-shadow-sm);
+  border: 1px solid var(--uph-border);
+}
+
+.footer-grid a {
+  border-radius: 10px;
+}
+
+@media (max-width: 860px) {
+  header .container {
+    flex-wrap: wrap;
+  }
+
+  nav ul {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
