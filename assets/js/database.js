@@ -122,22 +122,27 @@ async function saveFeedbackSuggestion(feedbackData) {
  */
 function listenToActiveAdverts(placement, callback) {
   const now = new Date().toISOString();
-  const q = query(
-    collection(db, "adverts"),
-    where("startDate", "<=", now),
-    where("endDate", ">=", now)
+  const q = query(collection(db, "adverts"), where("endDate", ">=", now));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const ads = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (!data) return;
+        if (data.startDate && data.startDate > now) return;
+        if (data.placement === placement || data.placement === "Both") {
+          ads.push({ id: doc.id, ...data });
+        }
+      });
+      callback(ads);
+    },
+    (error) => {
+      console.warn("listenToActiveAdverts snapshot error:", error);
+      callback([]);
+    }
   );
-  
-  return onSnapshot(q, (snapshot) => {
-    const ads = [];
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.placement === placement || data.placement === 'Both') {
-        ads.push({ id: doc.id, ...data });
-      }
-    });
-    callback(ads);
-  });
 }
 
 /**
