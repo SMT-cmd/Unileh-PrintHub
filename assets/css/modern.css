@@ -155,3 +155,47 @@ nav ul li a:hover {
     grid-template-columns: 1fr;
   }
 }
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.upload-feedback,
+.summary-details,
+.price-display,
+#total-price {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 520px) {
+  .container {
+    padding: 0 14px;
+  }
+
+  .logo a {
+    font-size: 1.25rem;
+  }
+
+  .logo img {
+    height: 34px;
+  }
+
+  nav ul {
+    gap: 10px;
+  }
+
+  nav ul li a {
+    padding: 8px 10px;
+  }
+
+  #theme-toggle {
+    padding: 10px 12px;
+  }
+}
