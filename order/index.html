@@ -287,8 +287,8 @@
                 document.getElementById('total-price').innerHTML = `
                     ₦${total.toFixed(2)}
                     <div style="font-size: 0.4em; color: var(--text-color); font-weight: normal; margin-top: 4px;">
-                        ${breakdown}
                         ${result.breakdownLabel} • (${pages} pages × ${copies} copies = ${result.totalPagesPrinted} pages)
+                    </div>
                 `;
                 return total;
             };
