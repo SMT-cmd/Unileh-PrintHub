@@ -106,7 +106,19 @@ nav ul li a:hover {
   border: 1px solid var(--uph-border);
   background: rgba(255, 255, 255, 0.92);
   outline: none;
+  width: 100%;
+  max-width: 100%;
   transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.form-group select {
+  min-width: 0;
+}
+
+.cta-button,
+.cta-button-secondary,
+.cta-button-whatsapp {
+  max-width: 100%;
 }
 
 .form-group input:focus,
