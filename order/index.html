@@ -18,6 +18,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- PDF-Lib for Auto Page Detection -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    <!-- JSZip for DOCX Page Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <link rel="icon" href="../assets/images/logo.png" type="image/png">
 </head>
 <body class="watermark-bg">
@@ -177,35 +179,76 @@
                         uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
                     });
 
+                    const tryDetectDocxPages = async (docFile) => {
+                        if (!window.JSZip) throw new Error("JSZip not available");
+                        const arrayBuffer = await docFile.arrayBuffer();
+                        const zip = await window.JSZip.loadAsync(arrayBuffer);
+                        const appXml = await zip.file('docProps/app.xml')?.async('text');
+                        if (!appXml) return null;
+                        const doc = new DOMParser().parseFromString(appXml, 'application/xml');
+                        const pagesText = doc.querySelector('Pages')?.textContent?.trim();
+                        const pages = Number(pagesText);
+                        if (!Number.isFinite(pages) || pages <= 0) return null;
+                        return pages;
+                    };
+
                     // --- Auto Page Detection ---
                     let detectedPages = 1;
                     let detectionStatus = '';
                     let isLocked = false;
+                    let lockMinPages = false;
 
-                    if (file.type === 'application/pdf') {
+                    const fileName = String(file.name || '').toLowerCase();
+                    const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+                    const isImage = file.type.startsWith('image/');
+                    const isDocx = fileName.endsWith('.docx');
+                    const isDoc = fileName.endsWith('.doc');
+
+                    if (isPdf) {
                         try {
                             const arrayBuffer = await file.arrayBuffer();
                             const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
                             detectedPages = pdfDoc.getPageCount();
-                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">✨ Auto-detected: ${detectedPages} pages</p>`;
+                            lockMinPages = true;
+                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">✨ Auto-detected: ${detectedPages} pages (minimum)</p>`;
                         } catch (pdfErr) {
                             console.error("PDF detection failed:", pdfErr);
                             detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #e63946;">⚠️ Could not read PDF pages. Please enter manually.</p>`;
                         }
-                    } else if (file.type.startsWith('image/')) {
+                    } else if (isImage) {
                         detectedPages = 1;
-                        isLocked = true; // Images are always 1 page
+                        isLocked = true;
+                        lockMinPages = true;
                         detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">📸 Image detected: 1 page</p>`;
-                    } else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-                        detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 Word Doc: Please enter total pages manually.</p>`;
+                    } else if (isDocx) {
+                        try {
+                            const pages = await tryDetectDocxPages(file);
+                            if (pages) {
+                                detectedPages = pages;
+                                lockMinPages = true;
+                                detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">📝 Auto-detected (DOCX): ${detectedPages} pages (minimum)</p>`;
+                            } else {
+                                detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 DOCX: Could not detect pages. Please enter total pages manually.</p>`;
+                            }
+                        } catch (docxErr) {
+                            console.error("DOCX detection failed:", docxErr);
+                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 DOCX: Could not detect pages. Please enter total pages manually.</p>`;
+                        }
+                    } else if (isDoc) {
+                        detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 .DOC format: Please enter total pages manually.</p>`;
                     }
+
+                    detectedPages = Math.max(1, Math.floor(Number(detectedPages) || 1));
+                    const minPages = lockMinPages ? detectedPages : 1;
 
                     uploadedFileData = {
                         ...result,
-                        pages: detectedPages 
+                        pages: detectedPages,
+                        detectedPages,
+                        minPages,
+                        lockMinPages
                     };
 
-                    const isImage = file.type.startsWith('image/');
                     const previewHtml = isImage 
                         ? `<img src="${result.viewURL}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
                         : `<span style="font-size: 24px; margin-right: 10px;">📄</span>`;
@@ -219,7 +262,7 @@
                                 <div style="display: flex; align-items: center; margin-top: 8px;">
                                     <div style="flex: 1;">
                                         <label style="font-size: 0.85em; margin-right: 8px; color: var(--text-color);">Number of Pages in File:</label>
-                                        <input type="number" id="actual-pages" value="${detectedPages}" min="1" ${isLocked ? 'readonly style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: #eee; color: #666; cursor: not-allowed;"' : 'style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: black;"'}>
+                                        <input type="number" id="actual-pages" value="${detectedPages}" min="${minPages}" ${isLocked ? 'readonly style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: #eee; color: #666; cursor: not-allowed;"' : 'style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: black;"'}>
                                         ${detectionStatus}
                                     </div>
                                 </div>
@@ -232,7 +275,12 @@
                     
                     // Listen for page count changes
                     document.getElementById('actual-pages').addEventListener('input', (e) => {
-                        uploadedFileData.pages = parseInt(e.target.value) || 1;
+                        const raw = parseInt(e.target.value);
+                        const value = Number.isFinite(raw) && raw > 0 ? raw : 1;
+                        const min = uploadedFileData?.minPages || 1;
+                        const next = uploadedFileData?.lockMinPages && value < min ? min : value;
+                        if (next !== value) e.target.value = String(next);
+                        uploadedFileData.pages = next;
                         calculatePrice();
                     });
 
@@ -301,6 +349,17 @@
                 e.preventDefault();
                 if (!uploadedFileData) {
                     alert("Please upload your document first.");
+                    return;
+                }
+
+                const minPages = uploadedFileData.minPages || 1;
+                const currentPages = Math.max(1, Math.floor(Number(uploadedFileData.pages) || 1));
+                if (uploadedFileData.lockMinPages && currentPages < minPages) {
+                    uploadedFileData.pages = minPages;
+                    const pagesEl = document.getElementById('actual-pages');
+                    if (pagesEl) pagesEl.value = String(minPages);
+                    alert(`Page count cannot be less than ${minPages} pages (auto-detected minimum).`);
+                    calculatePrice();
                     return;
                 }
 
