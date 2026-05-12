@@ -26,7 +26,7 @@ const currentTheme = localStorage.getItem('theme');
 
 if (currentTheme) {
   document.documentElement.setAttribute('data-theme', currentTheme);
-  if (currentTheme === 'dark') {
+  if (currentTheme === 'dark' && themeToggle) {
     themeToggle.textContent = 'Light Mode';
   }
 } else {
@@ -34,18 +34,20 @@ if (currentTheme) {
   document.documentElement.setAttribute('data-theme', 'light');
 }
 
-themeToggle.addEventListener('click', () => {
-  let theme = document.documentElement.getAttribute('data-theme');
-  if (theme === 'light') {
-    theme = 'dark';
-    themeToggle.textContent = 'Light Mode';
-  } else {
-    theme = 'light';
-    themeToggle.textContent = 'Dark Mode';
-  }
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
-});
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    let theme = document.documentElement.getAttribute('data-theme');
+    if (theme === 'light') {
+      theme = 'dark';
+      themeToggle.textContent = 'Light Mode';
+    } else {
+      theme = 'light';
+      themeToggle.textContent = 'Dark Mode';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  });
+}
 
 // PWA Install Prompt
 let deferredPrompt;
@@ -66,6 +68,7 @@ if (installButton) {
   installButton.addEventListener('click', () => {
     // Hide our custom install UI
     if (installPrompt) installPrompt.style.display = 'none';
+    if (!deferredPrompt) return;
     // Show the prompt
     deferredPrompt.prompt();
     // Wait for the user to respond to the prompt
