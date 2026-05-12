@@ -105,6 +105,7 @@
     <!-- Firebase SDKs -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="../assets/js/app.js?v=supabase_final"></script>
+    <script src="../assets/js/pricing.js?v=pricing_v1"></script>
 
     <script type="module">
         let currentOrder = null;
@@ -135,15 +136,38 @@
                     return;
                 }
 
+                const items = Array.isArray(currentOrder.items) && currentOrder.items.length
+                    ? currentOrder.items
+                    : [{
+                        fileName: currentOrder.fileName,
+                        fileUrl: currentOrder.fileUrl,
+                        pageCount: currentOrder.pageCount,
+                        copies: currentOrder.copies,
+                        printType: currentOrder.printType
+                    }];
+
+                const itemsHtml = items.map((it, i) => {
+                    const pages = parseInt(it.pageCount) || 1;
+                    const copies = parseInt(it.copies) || 1;
+                    const printType = it.printType || 'B&W';
+                    const lineTotal = window.printPricing
+                        ? window.printPricing.calculatePrintTotal({ printType, pagesInFile: pages, copies }).total
+                        : null;
+                    const totalText = Number.isFinite(lineTotal) ? ` • ₦${lineTotal.toFixed(2)}` : '';
+                    const nameText = it.fileName ? ` (${it.fileName})` : '';
+                    return `<div style="margin: 6px 0;"><strong>Document ${i + 1}</strong>${nameText}: ${printType} • ${pages} page${pages === 1 ? '' : 's'} • ${copies} cop${copies === 1 ? 'y' : 'ies'}${totalText}</div>`;
+                }).join('');
+
+                const totalAmount = Number(currentOrder.totalPrice) || 0;
+
                 document.getElementById('checkout-summary').innerHTML = `
                     <div class="summary-details">
                         <p><strong>Student Name:</strong> ${currentOrder.studentName}</p>
                         <p><strong>Order ID:</strong> ${orderId}</p>
-                        <p><strong>Print Type:</strong> ${currentOrder.printType}</p>
-                        <p><strong>Pages:</strong> ${currentOrder.pageCount}</p>
-                        <p><strong>Copies:</strong> ${currentOrder.copies}</p>
                         <hr>
-                        <h3>Total Amount: ₦${currentOrder.totalPrice.toFixed(2)}</h3>
+                        ${itemsHtml}
+                        <hr>
+                        <h3>Total Amount: ₦${totalAmount.toFixed(2)}</h3>
                     </div>
                 `;
                 document.getElementById('payment-ref-id').textContent = orderId;
@@ -245,10 +269,28 @@
             confirmBtn.addEventListener('click', async () => {
                 if (!receiptData || !currentOrder) return;
 
+                const items = Array.isArray(currentOrder.items) && currentOrder.items.length
+                    ? currentOrder.items
+                    : [{
+                        fileName: currentOrder.fileName,
+                        pageCount: currentOrder.pageCount,
+                        copies: currentOrder.copies,
+                        printType: currentOrder.printType
+                    }];
+                const itemsLine = items.map((it, i) => {
+                    const pages = parseInt(it.pageCount) || 1;
+                    const copies = parseInt(it.copies) || 1;
+                    const printType = it.printType || 'B&W';
+                    const name = it.fileName ? ` - ${it.fileName}` : '';
+                    return `Doc ${i + 1}${name}: ${printType}, ${pages}pg, ${copies}cps`;
+                }).join('\n');
+
+                const totalAmount = Number(currentOrder.totalPrice) || 0;
                 const message = `Order Payment Confirmation!\n\n` +
                                 `Order ID: ${orderId}\n` +
                                 `Student: ${currentOrder.studentName}\n` +
-                                `Amount: ₦${currentOrder.totalPrice.toFixed(2)}\n` +
+                                `Amount: ₦${totalAmount.toFixed(2)}\n` +
+                                `${itemsLine}\n` +
                                 `Receipt: ${receiptData.viewURL}`;
                 
                 // Update order with receipt info
@@ -270,4 +312,3 @@
     </script>
 </body>
 </html>
-

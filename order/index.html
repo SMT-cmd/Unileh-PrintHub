@@ -54,10 +54,70 @@
 
         <form id="order-form" class="card form-card">
             <div class="form-group">
-                <label>Upload Document (PDF, DOCX, Image - Max 10MB)</label>
-                <div id="upload-container">
-                    <button type="button" id="upload-button" class="cta-button">Upload File</button>
-                    <div id="upload-feedback" class="upload-feedback" style="display: none;"></div>
+                <label>Upload Documents (PDF, DOCX, Image - Max 10MB each)</label>
+                <div id="documents-container">
+                    <div class="card" style="padding: 12px; margin-bottom: 12px;">
+                        <h4 style="margin: 0 0 10px 0;">Document 1</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="print-type-1">Print Type</label>
+                                <select id="print-type-1" required>
+                                    <option value="B&W">Black & White (₦80 for 1 page, ₦150 for 2 pages)</option>
+                                    <option value="Color">Color (₦100/page)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="copies-1">Copies</label>
+                                <input type="number" id="copies-1" value="1" min="1" required>
+                            </div>
+                        </div>
+                        <div id="upload-container-1">
+                            <button type="button" id="upload-button-1" class="cta-button">Upload File</button>
+                            <div id="upload-feedback-1" class="upload-feedback" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 12px; margin-bottom: 12px;">
+                        <h4 style="margin: 0 0 10px 0;">Document 2 (Optional)</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="print-type-2">Print Type</label>
+                                <select id="print-type-2">
+                                    <option value="B&W">Black & White (₦80 for 1 page, ₦150 for 2 pages)</option>
+                                    <option value="Color">Color (₦100/page)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="copies-2">Copies</label>
+                                <input type="number" id="copies-2" value="1" min="1">
+                            </div>
+                        </div>
+                        <div id="upload-container-2">
+                            <button type="button" id="upload-button-2" class="cta-button">Upload File</button>
+                            <div id="upload-feedback-2" class="upload-feedback" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 12px;">
+                        <h4 style="margin: 0 0 10px 0;">Document 3 (Optional)</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="print-type-3">Print Type</label>
+                                <select id="print-type-3">
+                                    <option value="B&W">Black & White (₦80 for 1 page, ₦150 for 2 pages)</option>
+                                    <option value="Color">Color (₦100/page)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="copies-3">Copies</label>
+                                <input type="number" id="copies-3" value="1" min="1">
+                            </div>
+                        </div>
+                        <div id="upload-container-3">
+                            <button type="button" id="upload-button-3" class="cta-button">Upload File</button>
+                            <div id="upload-feedback-3" class="upload-feedback" style="display: none;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -69,20 +129,6 @@
             <div class="form-group">
                 <label for="phone-number">WhatsApp Phone Number</label>
                 <input type="tel" id="phone-number" placeholder="e.g. 08012345678" required>
-            </div>
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="print-type">Print Type</label>
-                    <select id="print-type" required>
-                        <option value="B&W">Black & White (₦80 for 1 page, ₦150 for 2 pages)</option>
-                        <option value="Color">Color (₦100/page)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="copies">Number of Copies</label>
-                    <input type="number" id="copies" value="1" min="1" required>
-                </div>
             </div>
 
             <div class="form-group">
@@ -130,8 +176,6 @@
     <script src="../assets/js/pricing.js?v=pricing_v1"></script>
 
     <script type="module">
-        let uploadedFileData = null;
-
         document.addEventListener('DOMContentLoaded', () => {
             const checkDeps = setInterval(() => {
                 if (window.storageService && window.saveOrder) {
@@ -142,238 +186,287 @@
         });
 
         function initOrderPage() {
-            const uploadBtn = document.getElementById('upload-button');
-            const feedback = document.getElementById('upload-feedback');
             const submitBtn = document.getElementById('submit-order');
             const form = document.getElementById('order-form');
 
-            // Add hidden file input
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = '.pdf,.doc,.docx,image/*';
-            fileInput.style.display = 'none';
-            document.body.appendChild(fileInput);
-
-            uploadBtn.addEventListener('click', () => {
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                if (file.size > 10 * 1024 * 1024) {
-                    alert("File too large. Max 10MB allowed.");
-                    return;
-                }
-
-                try {
-                    uploadBtn.disabled = true;
-                    uploadBtn.textContent = 'Preparing Upload...';
-                    
-                    // Specific feedback for Supabase storage
-                    feedback.style.display = 'block';
-                    feedback.innerHTML = '<p style="color: var(--text-color);">Uploading to Unilesh Storage...</p>';
-
-                    const result = await window.storageService.uploadFile(file, (progress) => {
-                        uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
-                    });
-
-                    const tryDetectDocxPages = async (docFile) => {
-                        if (!window.JSZip) throw new Error("JSZip not available");
-                        const arrayBuffer = await docFile.arrayBuffer();
-                        const zip = await window.JSZip.loadAsync(arrayBuffer);
-                        const appXml = await zip.file('docProps/app.xml')?.async('text');
-                        if (!appXml) return null;
-                        const doc = new DOMParser().parseFromString(appXml, 'application/xml');
-                        const pagesText = doc.querySelector('Pages')?.textContent?.trim();
-                        const pages = Number(pagesText);
-                        if (!Number.isFinite(pages) || pages <= 0) return null;
-                        return pages;
-                    };
-
-                    // --- Auto Page Detection ---
-                    let detectedPages = 1;
-                    let detectionStatus = '';
-                    let isLocked = false;
-                    let lockMinPages = false;
-
-                    const fileName = String(file.name || '').toLowerCase();
-                    const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
-                    const isImage = file.type.startsWith('image/');
-                    const isDocx = fileName.endsWith('.docx');
-                    const isDoc = fileName.endsWith('.doc');
-
-                    if (isPdf) {
-                        try {
-                            const arrayBuffer = await file.arrayBuffer();
-                            const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-                            detectedPages = pdfDoc.getPageCount();
-                            lockMinPages = true;
-                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">✨ Auto-detected: ${detectedPages} pages (minimum)</p>`;
-                        } catch (pdfErr) {
-                            console.error("PDF detection failed:", pdfErr);
-                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #e63946;">⚠️ Could not read PDF pages. Please enter manually.</p>`;
-                        }
-                    } else if (isImage) {
-                        detectedPages = 1;
-                        isLocked = true;
-                        lockMinPages = true;
-                        detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">📸 Image detected: 1 page</p>`;
-                    } else if (isDocx) {
-                        try {
-                            const pages = await tryDetectDocxPages(file);
-                            if (pages) {
-                                detectedPages = pages;
-                                lockMinPages = true;
-                                detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">📝 Auto-detected (DOCX): ${detectedPages} pages (minimum)</p>`;
-                            } else {
-                                detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 DOCX: Could not detect pages. Please enter total pages manually.</p>`;
-                            }
-                        } catch (docxErr) {
-                            console.error("DOCX detection failed:", docxErr);
-                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 DOCX: Could not detect pages. Please enter total pages manually.</p>`;
-                        }
-                    } else if (isDoc) {
-                        detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 .DOC format: Please enter total pages manually.</p>`;
-                    }
-
-                    detectedPages = Math.max(1, Math.floor(Number(detectedPages) || 1));
-                    const minPages = lockMinPages ? detectedPages : 1;
-
-                    uploadedFileData = {
-                        ...result,
-                        pages: detectedPages,
-                        detectedPages,
-                        minPages,
-                        lockMinPages
-                    };
-
-                    const previewHtml = isImage 
-                        ? `<img src="${result.viewURL}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
-                        : `<span style="font-size: 24px; margin-right: 10px;">📄</span>`;
-
-                    feedback.innerHTML = `
-                        <div style="display: flex; align-items: center; background: rgba(42, 157, 143, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #2a9d8f; margin-top: 10px;">
-                            ${previewHtml}
-                            <div style="flex: 1;">
-                                <p style="margin: 0; color: #2a9d8f; font-weight: bold;">✅ File Uploaded Successfully!</p>
-                                <p style="margin: 0; font-size: 0.9em; color: var(--text-color);">${result.originalName}</p>
-                                <div style="display: flex; align-items: center; margin-top: 8px;">
-                                    <div style="flex: 1;">
-                                        <label style="font-size: 0.85em; margin-right: 8px; color: var(--text-color);">Number of Pages in File:</label>
-                                        <input type="number" id="actual-pages" value="${detectedPages}" min="${minPages}" ${isLocked ? 'readonly style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: #eee; color: #666; cursor: not-allowed;"' : 'style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: black;"'}>
-                                        ${detectionStatus}
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" id="remove-file" title="Remove file" style="background: #e63946; border: none; color: white; cursor: pointer; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
-                        </div>
-                    `;
-                    uploadBtn.style.display = 'none'; 
-                    submitBtn.disabled = false;
-                    
-                    // Listen for page count changes
-                    document.getElementById('actual-pages').addEventListener('input', (e) => {
-                        const raw = parseInt(e.target.value);
-                        const value = Number.isFinite(raw) && raw > 0 ? raw : 1;
-                        const min = uploadedFileData?.minPages || 1;
-                        const next = uploadedFileData?.lockMinPages && value < min ? min : value;
-                        if (next !== value) e.target.value = String(next);
-                        uploadedFileData.pages = next;
-                        calculatePrice();
-                    });
-
-                    calculatePrice();
-
-                    document.getElementById('remove-file').addEventListener('click', async () => {
-                        const confirmDelete = confirm("Remove this document?");
-                        if (!confirmDelete) return;
-
-                        try {
-                            feedback.innerHTML = '<p style="color: #e63946;">Removing file...</p>';
-                            await window.storageService.deleteFile(uploadedFileData.fileId);
-                            uploadedFileData = null;
-                            feedback.style.display = 'none';
-                            uploadBtn.style.display = 'inline-block';
-                            uploadBtn.disabled = false;
-                            uploadBtn.textContent = 'Upload Document';
-                            submitBtn.disabled = true;
-                            document.getElementById('total-price').textContent = '₦0.00';
-                            fileInput.value = ''; 
-                        } catch (err) {
-                            console.error(err);
-                            alert("Error removing file from server.");
-                        }
-                    });
-
-                } catch (err) {
-                    console.error("Order Upload Debug:", err);
-                    feedback.style.display = 'block';
-                    feedback.innerHTML = `
-                        <div style="background: rgba(230, 57, 70, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #e63946; margin-top: 10px;">
-                            <p style="margin: 0; color: #e63946; font-weight: bold;">❌ Upload Failed</p>
-                            <p style="margin: 5px 0 0 0; font-size: 0.9em; color: var(--text-color);">${err.message}</p>
-                        </div>
-                    `;
-                    uploadBtn.disabled = false;
-                    uploadBtn.textContent = 'Try Upload Again';
-                }
-            });
-
-            const calculatePrice = () => {
-                if (!uploadedFileData) return 0;
-                const copies = parseInt(document.getElementById('copies').value) || 1;
-                const pages = uploadedFileData.pages || 1;
-                const printType = document.getElementById('print-type').value;
-                const result = window.printPricing.calculatePrintTotal({
-                    printType,
-                    pagesInFile: pages,
-                    copies
-                });
-                const total = result.total;
-                document.getElementById('total-price').innerHTML = `
-                    ₦${total.toFixed(2)}
-                    <div style="font-size: 0.4em; color: var(--text-color); font-weight: normal; margin-top: 4px;">
-                        ${result.breakdownLabel} • (${pages} pages × ${copies} copies = ${result.totalPagesPrinted} pages)
-                    </div>
-                `;
-                return total;
+            const tryDetectDocxPages = async (docFile) => {
+                if (!window.JSZip) throw new Error("JSZip not available");
+                const arrayBuffer = await docFile.arrayBuffer();
+                const zip = await window.JSZip.loadAsync(arrayBuffer);
+                const appXml = await zip.file('docProps/app.xml')?.async('text');
+                if (!appXml) return null;
+                const doc = new DOMParser().parseFromString(appXml, 'application/xml');
+                const pagesText = doc.querySelector('Pages')?.textContent?.trim();
+                const pages = Number(pagesText);
+                if (!Number.isFinite(pages) || pages <= 0) return null;
+                return pages;
             };
 
+            const orderItems = [1, 2, 3].map((idx) => {
+                const uploadBtn = document.getElementById(`upload-button-${idx}`);
+                const feedback = document.getElementById(`upload-feedback-${idx}`);
+                const printTypeEl = document.getElementById(`print-type-${idx}`);
+                const copiesEl = document.getElementById(`copies-${idx}`);
 
-            document.getElementById('print-type').addEventListener('change', calculatePrice);
-            document.getElementById('copies').addEventListener('input', calculatePrice);
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.pdf,.doc,.docx,image/*';
+                fileInput.style.display = 'none';
+                document.body.appendChild(fileInput);
+
+                const item = {
+                    idx,
+                    uploadBtn,
+                    feedback,
+                    fileInput,
+                    printTypeEl,
+                    copiesEl,
+                    fileData: null
+                };
+
+                uploadBtn.addEventListener('click', () => fileInput.click());
+                printTypeEl.addEventListener('change', () => calculateTotal());
+                copiesEl.addEventListener('input', () => calculateTotal());
+
+                fileInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert("File too large. Max 10MB allowed.");
+                        fileInput.value = '';
+                        return;
+                    }
+
+                    try {
+                        uploadBtn.disabled = true;
+                        uploadBtn.textContent = 'Preparing Upload...';
+
+                        feedback.style.display = 'block';
+                        feedback.innerHTML = '<p style="color: var(--text-color);">Uploading to Unilesh Storage...</p>';
+
+                        const result = await window.storageService.uploadFile(file, (progress) => {
+                            uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
+                        });
+
+                        let detectedPages = 1;
+                        let detectionStatus = '';
+                        let isLocked = false;
+                        let lockMinPages = false;
+
+                        const fileName = String(file.name || '').toLowerCase();
+                        const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+                        const isImage = file.type.startsWith('image/');
+                        const isDocx = fileName.endsWith('.docx');
+                        const isDoc = fileName.endsWith('.doc');
+
+                        if (isPdf) {
+                            try {
+                                const arrayBuffer = await file.arrayBuffer();
+                                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                                detectedPages = pdfDoc.getPageCount();
+                                lockMinPages = true;
+                                detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">✨ Auto-detected: ${detectedPages} pages (minimum)</p>`;
+                            } catch (pdfErr) {
+                                console.error("PDF detection failed:", pdfErr);
+                                detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #e63946;">⚠️ Could not read PDF pages. Please enter manually.</p>`;
+                            }
+                        } else if (isImage) {
+                            detectedPages = 1;
+                            isLocked = true;
+                            lockMinPages = true;
+                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">📸 Image detected: 1 page</p>`;
+                        } else if (isDocx) {
+                            try {
+                                const pages = await tryDetectDocxPages(file);
+                                if (pages) {
+                                    detectedPages = pages;
+                                    lockMinPages = true;
+                                    detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #2a9d8f;">📝 Auto-detected (DOCX): ${detectedPages} pages (minimum)</p>`;
+                                } else {
+                                    detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 DOCX: Could not detect pages. Please enter total pages manually.</p>`;
+                                }
+                            } catch (docxErr) {
+                                console.error("DOCX detection failed:", docxErr);
+                                detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 DOCX: Could not detect pages. Please enter total pages manually.</p>`;
+                            }
+                        } else if (isDoc) {
+                            detectionStatus = `<p style="margin: 0; font-size: 0.8em; color: #f4a261;">📝 .DOC format: Please enter total pages manually.</p>`;
+                        }
+
+                        detectedPages = Math.max(1, Math.floor(Number(detectedPages) || 1));
+                        const minPages = lockMinPages ? detectedPages : 1;
+
+                        item.fileData = {
+                            ...result,
+                            pages: detectedPages,
+                            detectedPages,
+                            minPages,
+                            lockMinPages
+                        };
+
+                        const previewHtml = isImage
+                            ? `<img src="${result.viewURL}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
+                            : `<span style="font-size: 24px; margin-right: 10px;">📄</span>`;
+
+                        const pagesId = `actual-pages-${idx}`;
+                        const removeId = `remove-file-${idx}`;
+
+                        feedback.innerHTML = `
+                            <div style="display: flex; align-items: center; background: rgba(42, 157, 143, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #2a9d8f; margin-top: 10px;">
+                                ${previewHtml}
+                                <div style="flex: 1;">
+                                    <p style="margin: 0; color: #2a9d8f; font-weight: bold;">✅ File Uploaded Successfully!</p>
+                                    <p style="margin: 0; font-size: 0.9em; color: var(--text-color);">${result.originalName}</p>
+                                    <div style="display: flex; align-items: center; margin-top: 8px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 0.85em; margin-right: 8px; color: var(--text-color);">Number of Pages in File:</label>
+                                            <input type="number" id="${pagesId}" value="${detectedPages}" min="${minPages}" ${isLocked ? 'readonly style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: #eee; color: #666; cursor: not-allowed;"' : 'style="width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background: white; color: black;"'}>
+                                            ${detectionStatus}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" id="${removeId}" title="Remove file" style="background: #e63946; border: none; color: white; cursor: pointer; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
+                            </div>
+                        `;
+
+                        uploadBtn.style.display = 'none';
+                        submitBtn.disabled = !orderItems.some((it) => it.fileData);
+
+                        const pagesEl = document.getElementById(pagesId);
+                        if (pagesEl) {
+                            pagesEl.addEventListener('input', (evt) => {
+                                const raw = parseInt(evt.target.value);
+                                const value = Number.isFinite(raw) && raw > 0 ? raw : 1;
+                                const min = item.fileData?.minPages || 1;
+                                const next = item.fileData?.lockMinPages && value < min ? min : value;
+                                if (next !== value) evt.target.value = String(next);
+                                item.fileData.pages = next;
+                                calculateTotal();
+                            });
+                        }
+
+                        const removeBtn = document.getElementById(removeId);
+                        if (removeBtn) {
+                            removeBtn.addEventListener('click', async () => {
+                                const confirmDelete = confirm("Remove this document?");
+                                if (!confirmDelete) return;
+
+                                try {
+                                    feedback.innerHTML = '<p style="color: #e63946;">Removing file...</p>';
+                                    if (item.fileData?.fileId) await window.storageService.deleteFile(item.fileData.fileId);
+                                    item.fileData = null;
+                                    feedback.style.display = 'none';
+                                    uploadBtn.style.display = 'inline-block';
+                                    uploadBtn.disabled = false;
+                                    uploadBtn.textContent = 'Upload File';
+                                    fileInput.value = '';
+                                    submitBtn.disabled = !orderItems.some((it) => it.fileData);
+                                    calculateTotal();
+                                } catch (err) {
+                                    console.error(err);
+                                    alert("Error removing file from server.");
+                                }
+                            });
+                        }
+
+                        calculateTotal();
+                    } catch (err) {
+                        console.error("Order Upload Debug:", err);
+                        feedback.style.display = 'block';
+                        feedback.innerHTML = `
+                            <div style="background: rgba(230, 57, 70, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #e63946; margin-top: 10px;">
+                                <p style="margin: 0; color: #e63946; font-weight: bold;">❌ Upload Failed</p>
+                                <p style="margin: 5px 0 0 0; font-size: 0.9em; color: var(--text-color);">${err.message}</p>
+                            </div>
+                        `;
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = 'Try Upload Again';
+                        fileInput.value = '';
+                    }
+                });
+
+                return item;
+            });
+
+            const calculateTotal = () => {
+                const breakdowns = [];
+                let grandTotal = 0;
+
+                orderItems.forEach((item) => {
+                    if (!item.fileData) return;
+                    const copies = parseInt(item.copiesEl.value) || 1;
+                    const pages = item.fileData.pages || 1;
+                    const printType = item.printTypeEl.value;
+                    const result = window.printPricing.calculatePrintTotal({
+                        printType,
+                        pagesInFile: pages,
+                        copies
+                    });
+                    grandTotal += result.total;
+                    breakdowns.push(
+                        `Doc ${item.idx}: ₦${result.total.toFixed(2)} • ${result.breakdownLabel} • (${pages} pages × ${copies} copies = ${result.totalPagesPrinted} pages)`
+                    );
+                });
+
+                const breakdownHtml = breakdowns.length
+                    ? `<div style="font-size: 0.4em; color: var(--text-color); font-weight: normal; margin-top: 6px; line-height: 1.4;">${breakdowns
+                          .map((b) => `<div>${b}</div>`)
+                          .join('')}</div>`
+                    : '';
+
+                document.getElementById('total-price').innerHTML = `₦${grandTotal.toFixed(2)}${breakdownHtml}`;
+                return grandTotal;
+            };
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                if (!uploadedFileData) {
+                if (!orderItems.some((it) => it.fileData)) {
                     alert("Please upload your document first.");
                     return;
                 }
 
-                const minPages = uploadedFileData.minPages || 1;
-                const currentPages = Math.max(1, Math.floor(Number(uploadedFileData.pages) || 1));
-                if (uploadedFileData.lockMinPages && currentPages < minPages) {
-                    uploadedFileData.pages = minPages;
-                    const pagesEl = document.getElementById('actual-pages');
-                    if (pagesEl) pagesEl.value = String(minPages);
-                    alert(`Page count cannot be less than ${minPages} pages (auto-detected minimum).`);
-                    calculatePrice();
-                    return;
+                for (const item of orderItems) {
+                    if (!item.fileData) continue;
+                    const minPages = item.fileData.minPages || 1;
+                    const currentPages = Math.max(1, Math.floor(Number(item.fileData.pages) || 1));
+                    if (item.fileData.lockMinPages && currentPages < minPages) {
+                        item.fileData.pages = minPages;
+                        const pagesEl = document.getElementById(`actual-pages-${item.idx}`);
+                        if (pagesEl) pagesEl.value = String(minPages);
+                        alert(`Document ${item.idx}: page count cannot be less than ${minPages} pages (auto-detected minimum).`);
+                        calculateTotal();
+                        return;
+                    }
                 }
 
-                const total = calculatePrice();
+                const total = calculateTotal();
+                const items = orderItems
+                    .filter((it) => it.fileData)
+                    .map((it) => ({
+                        fileUrl: it.fileData.viewURL,
+                        fileId: it.fileData.fileId,
+                        fileName: it.fileData.originalName,
+                        pageCount: it.fileData.pages || 1,
+                        detectedPages: it.fileData.detectedPages || null,
+                        minPages: it.fileData.minPages || 1,
+                        lockMinPages: Boolean(it.fileData.lockMinPages),
+                        printType: it.printTypeEl.value,
+                        copies: parseInt(it.copiesEl.value) || 1
+                    }));
+
+                const firstItem = items[0];
                 const orderData = {
                     studentName: document.getElementById('student-name').value,
                     phoneNumber: document.getElementById('phone-number').value,
-                    printType: document.getElementById('print-type').value,
-                    copies: parseInt(document.getElementById('copies').value),
                     notes: document.getElementById('notes').value,
-                    fileUrl: uploadedFileData.viewURL,
-                    fileId: uploadedFileData.fileId, // Store fileId for smart deletion
-                    fileName: uploadedFileData.originalName,
-                    pageCount: uploadedFileData.pages || 1,
+                    items,
+                    printType: firstItem.printType,
+                    copies: firstItem.copies,
+                    fileUrl: firstItem.fileUrl,
+                    fileId: firstItem.fileId,
+                    fileName: firstItem.fileName,
+                    pageCount: firstItem.pageCount,
                     totalPrice: total,
                     status: 'Pending',
                     timestamp: new Date().toISOString()

@@ -155,16 +155,42 @@ function initDashboard() {
             : `<span style="opacity:0.5; font-size:0.8em;">No Receipt</span>`;
 
         const displayId = order.orderNumber || `${id.substring(0, 5)}...`;
-        const priceBreakdown = `<span style="font-size: 0.8em; display: block; color: #666;">(${order.pageCount}pgs × ${order.copies}cps)</span>`;
+        const items = Array.isArray(order.items) && order.items.length
+            ? order.items
+            : [{
+                fileUrl: order.fileUrl,
+                fileId: order.fileId,
+                fileName: order.fileName,
+                pageCount: order.pageCount,
+                copies: order.copies,
+                printType: order.printType
+            }];
+
+        const fileLinks = items
+            .filter((it) => it && it.fileUrl)
+            .map((it, i) => `<a href="${it.fileUrl}" target="_blank" class="download-link">File ${i + 1}</a>`)
+            .join(' ');
+
+        const fileIdsEncoded = encodeURIComponent(JSON.stringify(items.map((it) => it?.fileId).filter(Boolean)));
+
+        const typeSet = new Set(items.map((it) => String(it?.printType || '').trim()).filter(Boolean));
+        const printTypeLabel = typeSet.size > 1 ? 'Mixed' : (items[0]?.printType || order.printType || '-');
+
+        const totalPagesPrinted = items.reduce((sum, it) => {
+            const pages = parseInt(it?.pageCount) || 1;
+            const copies = parseInt(it?.copies) || 1;
+            return sum + pages * copies;
+        }, 0);
+        const priceBreakdown = `<span style="font-size: 0.8em; display: block; color: #666;">(${items.length} file${items.length === 1 ? '' : 's'} • ${totalPagesPrinted} pages printed)</span>`;
 
         tr.innerHTML = `
             <td title="Firebase ID: ${id}"><strong>${displayId}</strong></td>
             <td>${order.studentName}</td>
             <td>${order.phoneNumber}</td>
-            <td>${order.printType}</td>
-            <td>${order.pageCount} pgs / ${order.copies} cps</td>
+            <td>${printTypeLabel}</td>
+            <td>${items.length} file${items.length === 1 ? '' : 's'}</td>
             <td>₦${(order.totalPrice || 0).toFixed(2)}${priceBreakdown}</td>
-            <td><a href="${order.fileUrl}" target="_blank" class="download-link">Open File</a></td>
+            <td>${fileLinks || '-'}</td>
             <td>${receiptLink}</td>
             <td>${date}</td>
             <td><span class="status-badge ${statusClass}">${order.status}</span></td>
@@ -176,7 +202,7 @@ function initDashboard() {
                     <button onclick="markAsCollected('${id}')" class="action-button-small btn-collected" ${order.status === 'Collected' ? 'disabled' : ''}>
                         Collected
                     </button>
-                    <button onclick="deleteOrder('${id}', '${order.fileId}', '${order.receiptId}')" class="action-button-small btn-delete">
+                    <button onclick="deleteOrder('${id}', '${fileIdsEncoded}', '${order.receiptId}')" class="action-button-small btn-delete">
                         Delete
                     </button>
                 </div>
@@ -505,11 +531,20 @@ function initDashboard() {
         }
     };
 
-    window.deleteOrder = async (id, fileId, receiptId) => {
+    window.deleteOrder = async (id, fileIdsEncoded, receiptId) => {
         if (confirm("Permanently delete this order and its files? This cannot be undone.")) {
             try {
                 // 1. Delete from Supabase Storage
-                if (fileId && fileId !== 'undefined') await window.storageService.deleteFile(fileId);
+                try {
+                    const fileIds = JSON.parse(decodeURIComponent(fileIdsEncoded || '%5B%5D'));
+                    if (Array.isArray(fileIds)) {
+                        for (const fid of fileIds) {
+                            if (fid && fid !== 'undefined') await window.storageService.deleteFile(fid);
+                        }
+                    }
+                } catch (e) {
+                    if (fileIdsEncoded && fileIdsEncoded !== 'undefined') await window.storageService.deleteFile(fileIdsEncoded);
+                }
                 if (receiptId && receiptId !== 'undefined') await window.storageService.deleteFile(receiptId);
 
                 // 2. Delete from Firestore
