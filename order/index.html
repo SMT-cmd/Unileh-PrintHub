@@ -8,17 +8,13 @@
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/modern.css">
     <meta name="theme-color" content="#0a1f44">
-    <!-- iOS Mobile Features -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PrintHub">
     <link rel="apple-touch-icon" href="../assets/images/logo.png">
     
-    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- PDF-Lib for Auto Page Detection -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
-    <!-- JSZip for DOCX Page Detection -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <link rel="icon" href="../assets/images/logo.png" type="image/png">
 </head>
@@ -27,18 +23,21 @@
     <header>
         <div class="container">
             <div class="logo">
-                <a href="../">
+                <a href="../" class="brand-link">
                     <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo">
-                    Unilesh Print Hub
+                    <span class="brand-block">
+                        <span class="brand-name">Unilesh Print Hub</span>
+                        <span class="powered-by">powered by AfriNet Hub</span>
+                    </span>
                 </a>
-                <span>powered by AfriNet Hub</span>
             </div>
             <nav>
                 <ul>
-                    <li><a href="../order/" class="active">Print Now</a></li>
+                    <li><a href="../printing/">Printing</a></li>
+                    <li><a href="../gadgets/">Gadgets</a></li>
+                    <li><a href="../housing/">Housing</a></li>
+                    <li><a href="../project/">Project & Seminar</a></li>
                     <li><a href="../portal/">Portal Services</a></li>
-                    <li><a href="../news/">Latest News</a></li>
-                    <li><a href="../partners/">Partners</a></li>
                     <li><a href="../about/">About Us</a></li>
                 </ul>
             </nav>
@@ -152,10 +151,10 @@
                     <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
                 </div>
                 <div class="footer-section university-links">
-                    <h4>University Portals</h4>
+                    <h4>More</h4>
+                    <a href="../news/">Latest News</a>
+                    <a href="../partners/">Partners</a>
                     <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
-                    <a href="https://admissions.unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Admissions Portal</a>
-                    <a href="https://unilesaservices.com.ng" target="_blank" rel="noopener noreferrer">Student Services Hub</a>
                 </div>
                 <div class="footer-section legal-links">
                     <h4>Legal</h4>
@@ -168,9 +167,7 @@
         </div>
     </footer>
 
-    <!-- Storage Service -->
     <script src="../assets/js/storageService.js?v=supabase_final"></script>
-    <!-- Firebase SDKs -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="../assets/js/app.js?v=supabase_final"></script>
     <script src="../assets/js/pricing.js?v=pricing_v1"></script>

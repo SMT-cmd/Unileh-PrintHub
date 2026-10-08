@@ -1,213 +1,178 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
-import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Your web app's Firebase configuration
-const firebaseConfig = { 
-  apiKey: "AIzaSyBjvZiWW-7hnPOxz71zBI41qMOsb4AczBA", 
-  authDomain: "unilesh-4285c.firebaseapp.com", 
-  projectId: "unilesh-4285c", 
-  storageBucket: "unilesh-4285c.firebasestorage.app", 
-  messagingSenderId: "260573469597", 
-  appId: "1:260573469597:web:aac7b0b0d4e03d8d142d74", 
-  measurementId: "G-1M50LQLHY0" 
-};
+const SUPABASE_URL = 'https://uuuoqexhuwwiwpvqgypy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1dW9xZXhodXd3aXdwdnFneXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NDMyMDEsImV4cCI6MjEwNjIxOTIwMX0.ktKrFp8EuYBq9CBLGbME9PEo4GaReiKRVBtEOdR-BYI';
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Optional Analytics (may fail in some environments)
-let analytics;
-try {
-  analytics = getAnalytics(app);
-} catch (e) {
-  console.warn("Firebase Analytics could not be initialized:", e);
-}
-
-/**
- * Generates a short, human-readable order ID.
- */
-function generateShortId() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Avoid ambiguous O, 0, I, 1
-  let result = '';
-  for (let i = 0; i < 5; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return `UPH-${result}`;
-}
-
-/**
- * Saves a print order to Firestore.
- */
 async function saveOrder(orderData) {
   try {
-    const shortId = generateShortId();
-    const orderWithId = {
-      ...orderData,
-      orderNumber: shortId,
-      status: 'Pending',
-      createdAt: serverTimestamp()
-    };
-    const docRef = await addDoc(collection(db, "orders"), orderWithId);
-    return docRef.id;
+    const id = crypto.randomUUID();
+    const { data: orderNumber, error: rpcError } = await supabase.rpc('generate_order_number');
+    if (rpcError) throw rpcError;
+
+    const { error } = await supabase.from('orders').insert({
+      id, order_number: orderNumber, status: 'Pending', data: orderData
+    });
+    if (error) throw error;
+    return id;
   } catch (error) {
-    console.error("Error saving order: ", error);
+    console.error('Error saving order: ', error);
     throw error;
   }
 }
 
-/**
- * Fetches a single order from Firestore by ID.
- */
 async function getOrder(orderId) {
   try {
-    const docRef = doc(db, "orders", orderId);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docSnap.data() : null;
+    const { data, error } = await supabase.rpc('get_order_by_id', { p_id: orderId });
+    if (error) throw error;
+    if (!data || data.length === 0) return null;
+    const row = data[0];
+    return { ...row.data, id: row.id, orderNumber: row.order_number, status: row.status, createdAt: row.created_at };
   } catch (error) {
-    console.error("Error fetching order: ", error);
+    console.error('Error fetching order: ', error);
     throw error;
   }
 }
 
-/**
- * Saves a student portal assistance request to Firestore.
- */
 async function savePortalRequest(requestData) {
   try {
-    const docRef = await addDoc(collection(db, "portalRequests"), requestData);
-    return docRef.id;
+    const id = crypto.randomUUID();
+    const { portalPassword, ...rest } = requestData;
+    const { error } = await supabase.from('portal_requests').insert({
+      id,
+      data: rest,
+      portal_password_plain: portalPassword || null
+    });
+    if (error) throw error;
+    return id;
   } catch (error) {
-    console.error("Error saving portal request: ", error);
+    console.error('Error saving portal request: ', error);
     throw error;
   }
 }
 
-/**
- * Saves an advert inquiry to Firestore.
- */
 async function saveAdvertRequest(advertData) {
   try {
-    const docRef = await addDoc(collection(db, "advertRequests"), {
-      ...advertData,
-      status: 'Pending',
-      timestamp: new Date().toISOString()
-    });
-    return docRef.id;
+    const id = crypto.randomUUID();
+    const { error } = await supabase.from('advert_requests').insert({ id, status: 'Pending', data: advertData });
+    if (error) throw error;
+    return id;
   } catch (error) {
-    console.error("Error saving advert request: ", error);
+    console.error('Error saving advert request: ', error);
     throw error;
   }
 }
 
 async function saveFeedbackSuggestion(feedbackData) {
   try {
-    const docRef = await addDoc(collection(db, "feedbackSuggestions"), {
-      ...feedbackData,
-      status: 'Pending',
-      timestamp: new Date().toISOString()
-    });
-    return docRef.id;
+    const id = crypto.randomUUID();
+    const { error } = await supabase.from('feedback_suggestions').insert({ id, status: 'Pending', data: feedbackData });
+    if (error) throw error;
+    return id;
   } catch (error) {
-    console.error("Error saving feedback suggestion: ", error);
+    console.error('Error saving feedback suggestion: ', error);
     throw error;
   }
 }
 
-/**
- * Real-time listener for active adverts.
- */
+async function saveProjectRequest(requestData) {
+  try {
+    const id = crypto.randomUUID();
+    const { error } = await supabase.from('project_requests').insert({ id, status: 'Pending', data: requestData });
+    if (error) throw error;
+    return id;
+  } catch (error) {
+    console.error('Error saving project request: ', error);
+    throw error;
+  }
+}
+
 function listenToActiveAdverts(placement, callback) {
-  const now = new Date().toISOString();
-  const q = query(collection(db, "adverts"), where("endDate", ">=", now));
-
-  return onSnapshot(
-    q,
-    (snapshot) => {
-      const ads = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (!data) return;
-        if (data.startDate && data.startDate > now) return;
-        if (data.placement === placement || data.placement === "Both") {
-          ads.push({ id: doc.id, ...data });
-        }
-      });
-      callback(ads);
-    },
-    (error) => {
-      console.warn("listenToActiveAdverts snapshot error:", error);
-      callback([]);
-    }
-  );
+  const fetchAndEmit = async () => {
+    const nowIso = new Date().toISOString();
+    const { data, error } = await supabase.from('adverts').select('*').gte('end_date', nowIso);
+    if (error) { console.warn('listenToActiveAdverts error:', error); callback([]); return; }
+    const filtered = (data || []).filter(row => {
+      if (row.start_date && row.start_date > nowIso) return false;
+      return row.placement === placement || row.placement === 'Both';
+    });
+    callback(filtered.map(row => ({ id: row.id, ...row.data, placement: row.placement, startDate: row.start_date, endDate: row.end_date })));
+  };
+  fetchAndEmit();
+  const channel = supabase
+    .channel('adverts-' + placement)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'adverts' }, fetchAndEmit)
+    .subscribe();
+  return () => supabase.removeChannel(channel);
 }
 
-/**
- * Real-time listener for announcements.
- */
 function listenToAnnouncements(callback) {
-  const now = new Date().toISOString();
-  const q = query(
-    collection(db, "announcements"),
-    where("expiryDate", ">=", now),
-    orderBy("expiryDate", "asc")
-  );
-  
-  return onSnapshot(q, (snapshot) => {
-    const list = [];
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() });
-    });
-    callback(list);
-  });
+  const fetchAndEmit = async () => {
+    const nowIso = new Date().toISOString();
+    const { data, error } = await supabase.from('announcements').select('*').gte('expiry_date', nowIso).order('expiry_date', { ascending: true });
+    if (error) { console.warn('listenToAnnouncements error:', error); callback([]); return; }
+    callback((data || []).map(row => ({ id: row.id, ...row.data, expiryDate: row.expiry_date })));
+  };
+  fetchAndEmit();
+  const channel = supabase
+    .channel('announcements-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, fetchAndEmit)
+    .subscribe();
+  return () => supabase.removeChannel(channel);
 }
 
-/**
- * Real-time listener for partners.
- */
 function listenToPartners(callback) {
-  const q = query(collection(db, "partners"), orderBy("name", "asc"));
-  return onSnapshot(q, (snapshot) => {
-    const list = [];
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() });
-    });
-    callback(list);
-  });
+  const fetchAndEmit = async () => {
+    const { data, error } = await supabase.from('partners').select('*').order('name', { ascending: true });
+    if (error) { console.warn('listenToPartners error:', error); callback([]); return; }
+    callback((data || []).map(row => ({ id: row.id, ...row.data, name: row.name })));
+  };
+  fetchAndEmit();
+  const channel = supabase
+    .channel('partners-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'partners' }, fetchAndEmit)
+    .subscribe();
+  return () => supabase.removeChannel(channel);
 }
 
-// Export to window
-window.db = db;
-window.auth = auth;
+function listenToGadgetProducts(callback) {
+  const fetchAndEmit = async () => {
+    const { data, error } = await supabase.from('gadget_products').select('*').order('created_at', { ascending: false });
+    if (error) { console.warn('listenToGadgetProducts error:', error); callback([]); return; }
+    callback((data || []).map(row => ({ id: row.id, category: row.category, ...row.data })));
+  };
+  fetchAndEmit();
+  const channel = supabase
+    .channel('gadget-products-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'gadget_products' }, fetchAndEmit)
+    .subscribe();
+  return () => supabase.removeChannel(channel);
+}
+
+function listenToHousingListings(callback) {
+  const fetchAndEmit = async () => {
+    const { data, error } = await supabase.from('housing_listings').select('*').order('created_at', { ascending: false });
+    if (error) { console.warn('listenToHousingListings error:', error); callback([]); return; }
+    callback((data || []).map(row => ({ id: row.id, type: row.type, pricePeriod: row.price_period, ...row.data })));
+  };
+  fetchAndEmit();
+  const channel = supabase
+    .channel('housing-listings-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'housing_listings' }, fetchAndEmit)
+    .subscribe();
+  return () => supabase.removeChannel(channel);
+}
+
+window.supabaseClient = supabase;
 window.saveOrder = saveOrder;
 window.getOrder = getOrder;
 window.savePortalRequest = savePortalRequest;
 window.saveAdvertRequest = saveAdvertRequest;
 window.saveFeedbackSuggestion = saveFeedbackSuggestion;
+window.saveProjectRequest = saveProjectRequest;
 window.listenToActiveAdverts = listenToActiveAdverts;
 window.listenToAnnouncements = listenToAnnouncements;
 window.listenToPartners = listenToPartners;
-
-// Export Firebase methods for other scripts
-window.firebaseMethods = {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  getDocs,
-  serverTimestamp
-};
+window.listenToGadgetProducts = listenToGadgetProducts;
+window.listenToHousingListings = listenToHousingListings;

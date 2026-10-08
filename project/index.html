@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project & Seminar Help - Unilesh Print Hub</title>
+    <meta name="description" content="Need help with your final year project or seminar paper? Request writing and research assistance for Unilesa students.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/modern.css">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#0a1f44">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+</head>
+<body class="watermark-bg">
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../" class="brand-link">
+                    <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo">
+                    <span class="brand-block">
+                        <span class="brand-name">Unilesh Print Hub</span>
+                        <span class="powered-by">powered by AfriNet Hub</span>
+                    </span>
+                </a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="../printing/">Printing</a></li>
+                    <li><a href="../gadgets/">Gadgets</a></li>
+                    <li><a href="../housing/">Housing</a></li>
+                    <li><a href="../project/" class="active">Project & Seminar</a></li>
+                    <li><a href="../portal/">Portal Services</a></li>
+                    <li><a href="../about/">About Us</a></li>
+                </ul>
+            </nav>
+            <button id="theme-toggle">Toggle Theme</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Project & Seminar Assistance</h1>
+            <p>Writing and research help for your final year project or seminar paper. Tell us what you need, and we'll send you a quote on WhatsApp.</p>
+        </section>
+
+        <form id="project-form" class="card form-card">
+            <div class="disclaimer">
+                <p><strong>Note:</strong> This service is quote-based. Submit your details below and our admin will reach out on WhatsApp with pricing and next steps.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="matric-number">Matriculation Number</label>
+                    <input type="text" id="matric-number" placeholder="Enter your Matric No." required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone-number">WhatsApp Phone Number</label>
+                <input type="tel" id="phone-number" placeholder="e.g. 08012345678" required>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select id="department" required>
+                        <option value="">Select Department</option>
+                        <option value="Science">Science</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Law">Law</option>
+                        <option value="Medicine">Medicine</option>
+                        <option value="Education">Education</option>
+                        <option value="Social Sciences">Social Sciences</option>
+                        <option value="Management Sciences">Management Sciences</option>
+                        <option value="Agriculture">Agriculture</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="level">Level</label>
+                    <select id="level" required>
+                        <option value="">Select Level</option>
+                        <option value="300L">300L</option>
+                        <option value="400L">400L</option>
+                        <option value="500L">500L</option>
+                        <option value="Postgraduate">Postgraduate</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="service-type">Service Needed</label>
+                <select id="service-type" required>
+                    <option value="">Choose Service</option>
+                    <option value="Full Project Write-up">Full Project Write-up</option>
+                    <option value="Seminar Paper">Seminar Paper</option>
+                    <option value="Proposal Writing">Proposal Writing (Chapters 1-3)</option>
+                    <option value="Data Analysis/Statistics">Data Analysis / Statistics</option>
+                    <option value="Editing/Correction">Editing / Correction of Existing Work</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="topic">Project/Seminar Topic</label>
+                <input type="text" id="topic" placeholder="e.g. Impact of Microfinance on SMEs in Nigeria" required>
+            </div>
+
+            <div class="form-group">
+                <label for="deadline">Deadline</label>
+                <input type="date" id="deadline" required>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Additional Details</label>
+                <textarea id="notes" placeholder="Supervisor's requirements, page count, chapters needed, anything else we should know?"></textarea>
+            </div>
+
+            <button type="submit" class="cta-button" id="submit-project">Submit Request</button>
+        </form>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <p>&copy; 2026 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
+                </div>
+                <div class="footer-section university-links">
+                    <h4>More</h4>
+                    <a href="../news/">Latest News</a>
+                    <a href="../partners/">Partners</a>
+                    <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                </div>
+                <div class="footer-section legal-links">
+                    <h4>Legal</h4>
+                    <a href="../privacy/">Privacy Policy</a>
+                    <a href="../terms/">Terms of Service</a>
+                    <a href="../refund/">Refund Policy</a>
+                    <a href="../about/">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/app.js"></script>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.saveProjectRequest) {
+                    clearInterval(checkDeps);
+                    initProjectPage();
+                }
+            }, 100);
+        });
+
+        function initProjectPage() {
+            const form = document.getElementById('project-form');
+            const submitBtn = document.getElementById('submit-project');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const requestData = {
+                    fullName: document.getElementById('full-name').value,
+                    matricNumber: document.getElementById('matric-number').value,
+                    phoneNumber: document.getElementById('phone-number').value,
+                    department: document.getElementById('department').value,
+                    level: document.getElementById('level').value,
+                    serviceType: document.getElementById('service-type').value,
+                    topic: document.getElementById('topic').value,
+                    deadline: document.getElementById('deadline').value,
+                    notes: document.getElementById('notes').value,
+                    status: 'Pending',
+                    timestamp: new Date().toISOString()
+                };
+
+                try {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting Request...';
+                    await window.saveProjectRequest(requestData);
+
+                    const message = `New Project/Seminar Request!\n\n` +
+                                    `Student: ${requestData.fullName}\n` +
+                                    `Matric No: ${requestData.matricNumber}\n` +
+                                    `Service: ${requestData.serviceType}\n` +
+                                    `Topic: ${requestData.topic}\n` +
+                                    `Deadline: ${requestData.deadline}\n` +
+                                    `Phone: ${requestData.phoneNumber}`;
+
+                    const whatsappUrl = `https://wa.me/2348083964600?text=${encodeURIComponent(message)}`;
+                    alert("Request submitted successfully! Redirecting to WhatsApp to notify the admin.");
+                    window.open(whatsappUrl, '_blank');
+                    form.reset();
+                } catch (error) {
+                    alert("Oops! Something went wrong. Please try again.");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Request';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

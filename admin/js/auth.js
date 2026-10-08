@@ -1,7 +1,7 @@
-function waitForAuthDeps() {
+function waitForSupabase() {
   return new Promise((resolve) => {
     const depCheck = setInterval(() => {
-      if (window.auth && window.db && window.firebaseMethods) {
+      if (window.supabaseClient) {
         clearInterval(depCheck);
         resolve();
       }
@@ -9,67 +9,75 @@ function waitForAuthDeps() {
   });
 }
 
-async function signInAdmin(email, password) {
-  try {
-    await waitForAuthDeps();
-    await window.firebaseMethods.signInWithEmailAndPassword(window.auth, email, password);
-  } catch (error) {
-    throw error;
-  }
-}
-
 async function isAdminRegistrationOpen() {
-  await waitForAuthDeps();
-  const setupRef = window.firebaseMethods.doc(window.db, "adminConfig", "setup");
-  const setupSnap = await window.firebaseMethods.getDoc(setupRef);
-  return !setupSnap.exists();
+  await waitForSupabase();
+  const { data, error } = await window.supabaseClient.rpc('is_registration_open');
+  if (error) { console.error(error); return false; }
+  return data;
 }
 
 async function signUpAdmin(email, password) {
-  await waitForAuthDeps();
+  await waitForSupabase();
   const registrationOpen = await isAdminRegistrationOpen();
   if (!registrationOpen) {
-    throw new Error("One-time admin registration is already completed.");
+    throw new Error('One-time admin registration is already completed.');
   }
-  try {
-    const userCredential = await window.firebaseMethods.createUserWithEmailAndPassword(window.auth, email, password);
-    const setupRef = window.firebaseMethods.doc(window.db, "adminConfig", "setup");
-    await window.firebaseMethods.setDoc(setupRef, {
-      registeredAt: new Date().toISOString(),
-      registeredBy: email,
-      uid: userCredential.user.uid
-    });
-    await window.firebaseMethods.signOut(window.auth);
-    return true;
-  } catch (error) {
-    throw error;
+  const { data: signUpData, error: signUpError } = await window.supabaseClient.auth.signUp({ email, password });
+  if (signUpError) throw signUpError;
+
+  if (signUpData.session && signUpData.user) {
+    await claimAdminSlot(signUpData.user.id, signUpData.user.email);
+    await window.supabaseClient.auth.signOut();
+    return { needsEmailConfirmation: false };
   }
+  return { needsEmailConfirmation: true };
+}
+
+async function claimAdminSlot(uid, email) {
+  const stillOpen = await isAdminRegistrationOpen();
+  if (!stillOpen) return;
+  const { error } = await window.supabaseClient.from('admin_config').insert({
+    id: 'setup', uid, registered_by: email
+  });
+  if (error && error.code !== '23505') throw error;
+}
+
+async function signInAdmin(email, password) {
+  await waitForSupabase();
+  const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  // Claiming now happens centrally below, so it covers this AND
+  // sessions Supabase creates automatically (e.g. via a confirmation link).
 }
 
 async function signOutAdmin() {
-  try {
-    await waitForAuthDeps();
-    await window.firebaseMethods.signOut(window.auth);
-    window.location.href = '../admin/';
-  } catch (error) {
-    throw error;
-  }
+  await waitForSupabase();
+  await window.supabaseClient.auth.signOut();
+  window.location.href = '../admin/';
 }
 
+// Runs on every admin page, for every session — whether it came from
+// explicit sign-in or Supabase auto-establishing one after an email
+// confirmation redirect. This is the one place that claims the slot.
 if (window.location.pathname.includes('/admin/dashboard') || window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
-  const checkAuthDeps = setInterval(() => {
-    if (window.auth && window.firebaseMethods && window.firebaseMethods.onAuthStateChanged) {
-      clearInterval(checkAuthDeps);
-      window.firebaseMethods.onAuthStateChanged(window.auth, (user) => {
-        if (window.location.pathname.includes('/admin/dashboard') && !user) {
-          window.location.href = '../admin/';
+  waitForSupabase().then(() => {
+    window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      const user = session && session.user;
+      if (user) {
+        try {
+          await claimAdminSlot(user.id, user.email);
+        } catch (e) {
+          console.error('Error claiming admin slot:', e);
         }
-        if ((window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) && user) {
-          window.location.href = 'dashboard/';
-        }
-      });
-    }
-  }, 100);
+      }
+      if (window.location.pathname.includes('/admin/dashboard') && !user) {
+        window.location.href = '../admin/';
+      }
+      if ((window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) && user) {
+        window.location.href = 'dashboard/';
+      }
+    });
+  });
 }
 
 window.signInAdmin = signInAdmin;

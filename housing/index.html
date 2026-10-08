@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housing & Accommodation - Unilesh Print Hub</title>
+    <meta name="description" content="Apartments, self-contains and short-lets near Unilesa campus.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/modern.css">
+    <meta name="theme-color" content="#0a1f44">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .housing-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 20px 0 30px; }
+        .housing-filter-btn { padding: 8px 16px; border-radius: 999px; border: 1px solid #0a1f44; background: transparent; color: #0a1f44; cursor: pointer; font-weight: 600; font-size: 0.85em; }
+        .housing-filter-btn.active { background: #0a1f44; color: #fff; }
+        .housing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .housing-card { border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+        .housing-card img { width: 100%; height: 180px; object-fit: cover; background: #eee; }
+        .housing-card-body { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+        .housing-card-body h3 { margin: 0 0 4px; font-size: 1.05em; }
+        .housing-location { font-size: 0.8em; opacity: 0.65; margin-bottom: 8px; }
+        .housing-price { font-weight: 800; font-size: 1.15em; color: #e8730a; margin-bottom: 4px; }
+        .housing-period { font-size: 0.75em; opacity: 0.6; margin-bottom: 10px; }
+        .housing-inquire-btn { margin-top: auto; background: #0a1f44; color: #fff; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        .empty-state { text-align: center; opacity: 0.6; padding: 40px 0; }
+    </style>
+</head>
+<body class="watermark-bg">
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../" class="brand-link">
+                    <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo">
+                    <span class="brand-block">
+                        <span class="brand-name">Unilesh Print Hub</span>
+                        <span class="powered-by">powered by AfriNet Hub</span>
+                    </span>
+                </a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="../printing/">Printing</a></li>
+                    <li><a href="../gadgets/">Gadgets</a></li>
+                    <li><a href="../housing/" class="active">Housing</a></li>
+                    <li><a href="../project/">Project & Seminar</a></li>
+                    <li><a href="../portal/">Portal Services</a></li>
+                    <li><a href="../about/">About Us</a></li>
+                </ul>
+            </nav>
+            <button id="theme-toggle">Toggle Theme</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Housing & Accommodation</h1>
+            <p>Apartments, self-contains and short-lets near campus. Message us on WhatsApp to inquire.</p>
+        </section>
+
+        <div class="housing-toolbar" id="type-filters">
+            <button class="housing-filter-btn active" data-type="All">All</button>
+            <button class="housing-filter-btn" data-type="Apartment">Apartment</button>
+            <button class="housing-filter-btn" data-type="Self-contain">Self-contain</button>
+            <button class="housing-filter-btn" data-type="Hostel room">Hostel room</button>
+            <button class="housing-filter-btn" data-type="Short-let">Short-let</button>
+        </div>
+
+        <div id="housing-grid" class="housing-grid">
+            <div class="loading">Loading listings...</div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <p>&copy; 2026 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
+                </div>
+                <div class="footer-section university-links">
+                    <h4>More</h4>
+                    <a href="../news/">Latest News</a>
+                    <a href="../partners/">Partners</a>
+                    <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                </div>
+                <div class="footer-section legal-links">
+                    <h4>Legal</h4>
+                    <a href="../privacy/">Privacy Policy</a>
+                    <a href="../terms/">Terms of Service</a>
+                    <a href="../refund/">Refund Policy</a>
+                    <a href="../about/">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/app.js"></script>
+
+    <script type="module">
+        const WHATSAPP_NUMBER = '2348083964600';
+        const money = (n) => '₦' + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+        let allListings = [];
+        let activeType = 'All';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.listenToHousingListings) {
+                    clearInterval(checkDeps);
+                    initHousingPage();
+                }
+            }, 100);
+        });
+
+        function initHousingPage() {
+            window.listenToHousingListings((listings) => {
+                allListings = listings;
+                renderGrid();
+            });
+
+            document.querySelectorAll('.housing-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.housing-filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeType = btn.dataset.type;
+                    renderGrid();
+                });
+            });
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('housing-grid');
+            const filtered = activeType === 'All' ? allListings : allListings.filter(l => l.type === activeType);
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty-state">No listings in this category yet.</div>`;
+                return;
+            }
+            grid.innerHTML = filtered.map(l => {
+                const img = (l.images && l.images[0] && l.images[0].url) || '';
+                return `
+                    <div class="housing-card card">
+                        <img src="${img}" alt="${l.name}" loading="lazy">
+                        <div class="housing-card-body">
+                            <div style="font-size:0.7em; font-weight:700; color:#e8730a; text-transform:uppercase; margin-bottom:4px;">${l.type}</div>
+                            <h3>${l.name}</h3>
+                            <div class="housing-location">📍 ${l.location || ''}</div>
+                            <div class="housing-price">${money(l.price)}</div>
+                            <div class="housing-period">${l.pricePeriod || ''}</div>
+                            <button class="housing-inquire-btn" data-id="${l.id}">Inquire on WhatsApp</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.querySelectorAll('.housing-inquire-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const listing = allListings.find(l => l.id === btn.dataset.id);
+                    if (!listing) return;
+                    const message = `Hello, I'm interested in this listing:\n\n*${listing.name}*\nType: ${listing.type}\nLocation: ${listing.location}\nPrice: ${money(listing.price)} ${listing.pricePeriod}\n\nIs it still available?`;
+                    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+                });
+            });
+        }
+    </script>
+</body>
+</html>

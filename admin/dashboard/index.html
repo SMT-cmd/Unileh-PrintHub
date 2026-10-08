@@ -47,10 +47,13 @@
             <div class="tab-container">
                 <button class="tab-button active" data-tab="print-orders">Print Orders</button>
                 <button class="tab-button" data-tab="portal-requests">Portal Requests</button>
+                <button class="tab-button" data-tab="project-requests">Project & Seminar</button>
                 <button class="tab-button" data-tab="feedback-manager">Feedback</button>
                 <button class="tab-button" data-tab="adverts-manager">Adverts</button>
                 <button class="tab-button" data-tab="announcements-manager">Announcements</button>
                 <button class="tab-button" data-tab="partners-manager">Partners</button>
+                <button class="tab-button" data-tab="gadgets-manager">Gadgets</button>
+                <button class="tab-button" data-tab="housing-manager">Housing</button>
             </div>
 
             <!-- Print Orders Tab -->
@@ -94,6 +97,7 @@
                                 <th>Level</th>
                                 <th>Service</th>
                                 <th>Username</th>
+                                <th>Password</th>
                                 <th>Timestamp</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -101,6 +105,33 @@
                         </thead>
                         <tbody id="portal-body">
                             <!-- Portal requests will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Project & Seminar Requests Tab -->
+            <section id="project-requests" class="tab-content">
+                <h2>Recent Project & Seminar Requests</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Matric No.</th>
+                                <th>Phone</th>
+                                <th>Department</th>
+                                <th>Level</th>
+                                <th>Service</th>
+                                <th>Topic</th>
+                                <th>Deadline</th>
+                                <th>Timestamp</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="project-body">
+                            <!-- Project requests will be loaded here -->
                         </tbody>
                     </table>
                 </div>
@@ -306,6 +337,153 @@
                     </table>
                 </div>
             </section>
+
+            <!-- Gadgets Manager Tab -->
+            <section id="gadgets-manager" class="tab-content">
+                <div class="admin-section-header">
+                    <h2>Gadgets Manager</h2>
+                    <button id="toggle-new-gadget-form" class="cta-button-small">Add Product</button>
+                </div>
+
+                <div id="new-gadget-form-container" class="form-card" style="display: none;">
+                    <h3>Add New Product</h3>
+                    <form id="new-gadget-form">
+                        <div class="form-group">
+                            <label for="gadget-name">Product Name</label>
+                            <input type="text" id="gadget-name" required>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="gadget-category">Category</label>
+                                <select id="gadget-category" required>
+                                    <option value="Phones">Phones</option>
+                                    <option value="Laptops">Laptops</option>
+                                    <option value="Tablets">Tablets</option>
+                                    <option value="Watches">Watches</option>
+                                    <option value="Cars">Cars</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="gadget-brand">Brand</label>
+                                <input type="text" id="gadget-brand" required>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="gadget-price">Price (₦)</label>
+                                <input type="number" id="gadget-price" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="gadget-old-price">Old Price (₦) (Optional)</label>
+                                <input type="number" id="gadget-old-price">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="gadget-desc">Description</label>
+                            <textarea id="gadget-desc"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Image</label>
+                            <div id="gadget-upload-container">
+                                <button type="button" id="gadget-upload-button" class="cta-button-small">Upload Image</button>
+                                <div id="gadget-upload-feedback" class="upload-feedback" style="display: none; margin-top: 10px;"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="cta-button">Save Product</button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gadgets-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Housing Manager Tab -->
+            <section id="housing-manager" class="tab-content">
+                <div class="admin-section-header">
+                    <h2>Housing Manager</h2>
+                    <button id="toggle-new-housing-form" class="cta-button-small">Add Listing</button>
+                </div>
+
+                <div id="new-housing-form-container" class="form-card" style="display: none;">
+                    <h3>Add New Listing</h3>
+                    <form id="new-housing-form">
+                        <div class="form-group">
+                            <label for="housing-name">Listing Name</label>
+                            <input type="text" id="housing-name" required>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="housing-type">Type</label>
+                                <select id="housing-type" required>
+                                    <option value="Apartment">Apartment</option>
+                                    <option value="Self-contain">Self-contain</option>
+                                    <option value="Hostel room">Hostel room</option>
+                                    <option value="Short-let">Short-let</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="housing-location">Location</label>
+                                <input type="text" id="housing-location" required>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="housing-price">Price (₦)</label>
+                                <input type="number" id="housing-price" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="housing-period">Price Period</label>
+                                <select id="housing-period" required>
+                                    <option value="per year">Per Year</option>
+                                    <option value="per month">Per Month</option>
+                                    <option value="per night">Per Night</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="housing-desc">Description</label>
+                            <textarea id="housing-desc"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Listing Photo</label>
+                            <div id="housing-upload-container">
+                                <button type="button" id="housing-upload-button" class="cta-button-small">Upload Image</button>
+                                <div id="housing-upload-feedback" class="upload-feedback" style="display: none; margin-top: 10px;"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="cta-button">Save Listing</button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="housing-body"></tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </main>
 
@@ -367,8 +545,9 @@
             setupToggle('toggle-new-ad-form', 'new-ad-form-container');
             setupToggle('toggle-new-ann-form', 'new-ann-form-container');
             setupToggle('toggle-new-partner-form', 'new-partner-form-container');
+            setupToggle('toggle-new-gadget-form', 'new-gadget-form-container');
+            setupToggle('toggle-new-housing-form', 'new-housing-form-container');
         });
     </script>
 </body>
 </html>
-

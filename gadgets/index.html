@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gadgets - Unilesh Print Hub</title>
+    <meta name="description" content="Phones, laptops, tablets, watches and cars — direct sales for Unilesa students.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/modern.css">
+    <meta name="theme-color" content="#0a1f44">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PrintHub">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .gadget-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 20px 0 30px; }
+        .gadget-filter-btn { padding: 8px 16px; border-radius: 999px; border: 1px solid #0a1f44; background: transparent; color: #0a1f44; cursor: pointer; font-weight: 600; font-size: 0.85em; }
+        .gadget-filter-btn.active { background: #0a1f44; color: #fff; }
+        .gadget-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .gadget-card { border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+        .gadget-card img { width: 100%; height: 180px; object-fit: cover; background: #eee; }
+        .gadget-card-body { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+        .gadget-card-body h3 { margin: 0 0 4px; font-size: 1.05em; }
+        .gadget-brand { font-size: 0.75em; text-transform: uppercase; opacity: 0.6; margin-bottom: 6px; }
+        .gadget-old-price { text-decoration: line-through; opacity: 0.5; font-size: 0.8em; }
+        .gadget-price { font-weight: 800; font-size: 1.2em; color: #e8730a; margin-bottom: 10px; }
+        .gadget-add-btn { margin-top: auto; background: #0a1f44; color: #fff; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        .cart-fab { position: fixed; bottom: 24px; right: 24px; background: #0a1f44; color: #fff; border-radius: 999px; padding: 14px 20px; display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.25); z-index: 50; border: none; }
+        .cart-badge { background: #e8730a; color: #fff; border-radius: 999px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75em; }
+        .cart-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 100; }
+        .cart-drawer-overlay.open { display: block; }
+        .cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 100%; max-width: 420px; background: #fff; z-index: 101; transform: translateX(100%); transition: transform 0.2s ease; display: flex; flex-direction: column; padding: 20px; }
+        .cart-drawer.open { transform: translateX(0); }
+        .cart-item { display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .cart-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
+        .cart-qty-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid #ccc; background: #f5f5f5; cursor: pointer; }
+        .empty-state { text-align: center; opacity: 0.6; padding: 40px 0; }
+    </style>
+</head>
+<body class="watermark-bg">
+
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../" class="brand-link">
+                    <img src="../assets/images/logo.png" alt="Unilesh Print Hub Logo">
+                    <span class="brand-block">
+                        <span class="brand-name">Unilesh Print Hub</span>
+                        <span class="powered-by">powered by AfriNet Hub</span>
+                    </span>
+                </a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="../printing/">Printing</a></li>
+                    <li><a href="../gadgets/" class="active">Gadgets</a></li>
+                    <li><a href="../housing/">Housing</a></li>
+                    <li><a href="../project/">Project & Seminar</a></li>
+                    <li><a href="../portal/">Portal Services</a></li>
+                    <li><a href="../about/">About Us</a></li>
+                </ul>
+            </nav>
+            <button id="theme-toggle">Toggle Theme</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Gadgets</h1>
+            <p>Phones, laptops, tablets, watches and cars. Direct sales, quality guaranteed.</p>
+        </section>
+
+        <div class="gadget-toolbar" id="category-filters">
+            <button class="gadget-filter-btn active" data-cat="All">All</button>
+            <button class="gadget-filter-btn" data-cat="Phones">Phones</button>
+            <button class="gadget-filter-btn" data-cat="Laptops">Laptops</button>
+            <button class="gadget-filter-btn" data-cat="Tablets">Tablets</button>
+            <button class="gadget-filter-btn" data-cat="Watches">Watches</button>
+            <button class="gadget-filter-btn" data-cat="Cars">Cars</button>
+        </div>
+
+        <div id="gadget-grid" class="gadget-grid">
+            <div class="loading">Loading products...</div>
+        </div>
+    </main>
+
+    <button id="cart-fab" class="cart-fab">
+        🛒 Cart <span id="cart-count" class="cart-badge">0</span>
+    </button>
+
+    <div id="cart-overlay" class="cart-drawer-overlay"></div>
+    <aside id="cart-drawer" class="cart-drawer">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2 style="margin:0;">Your Cart</h2>
+            <button id="close-cart" style="background:none; border:none; font-size:1.4em; cursor:pointer;">&times;</button>
+        </div>
+        <div id="cart-items" style="flex:1; overflow-y:auto;"></div>
+        <div id="cart-footer" style="border-top:1px solid #eee; padding-top:14px; margin-top:10px;">
+            <div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom:12px;">
+                <span>Total:</span>
+                <span id="cart-total">₦0</span>
+            </div>
+            <button id="checkout-btn" class="cta-button" style="width:100%;">Checkout via WhatsApp</button>
+        </div>
+    </aside>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <p>&copy; 2026 Unilesh Print Hub (powered by AfriNet Hub). All Rights Reserved.</p>
+                    <p>Serving the <strong>University of Ilesha (Unilesa)</strong> community.</p>
+                </div>
+                <div class="footer-section university-links">
+                    <h4>More</h4>
+                    <a href="../news/">Latest News</a>
+                    <a href="../partners/">Partners</a>
+                    <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                </div>
+                <div class="footer-section legal-links">
+                    <h4>Legal</h4>
+                    <a href="../privacy/">Privacy Policy</a>
+                    <a href="../terms/">Terms of Service</a>
+                    <a href="../refund/">Refund Policy</a>
+                    <a href="../about/">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/app.js"></script>
+
+    <script type="module">
+        const CART_KEY = 'gadget_cart_v1';
+        const WHATSAPP_NUMBER = '2348083964600';
+
+        const money = (n) => '₦' + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+        function getCart() {
+            try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; }
+        }
+        function setCart(cart) {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            renderCart();
+        }
+
+        let allProducts = [];
+        let activeCategory = 'All';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.listenToGadgetProducts) {
+                    clearInterval(checkDeps);
+                    initGadgetsPage();
+                }
+            }, 100);
+        });
+
+        function initGadgetsPage() {
+            window.listenToGadgetProducts((products) => {
+                allProducts = products;
+                renderGrid();
+            });
+
+            document.querySelectorAll('.gadget-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.gadget-filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeCategory = btn.dataset.cat;
+                    renderGrid();
+                });
+            });
+
+            const cartFab = document.getElementById('cart-fab');
+            const cartOverlay = document.getElementById('cart-overlay');
+            const cartDrawer = document.getElementById('cart-drawer');
+            const closeCart = document.getElementById('close-cart');
+
+            const openCart = () => { cartOverlay.classList.add('open'); cartDrawer.classList.add('open'); };
+            const closeCartFn = () => { cartOverlay.classList.remove('open'); cartDrawer.classList.remove('open'); };
+
+            cartFab.addEventListener('click', openCart);
+            closeCart.addEventListener('click', closeCartFn);
+            cartOverlay.addEventListener('click', closeCartFn);
+
+            document.getElementById('checkout-btn').addEventListener('click', () => {
+                const cart = getCart();
+                if (cart.length === 0) { alert('Your cart is empty.'); return; }
+                let total = 0;
+                let message = `💸 *NEW GADGET ORDER*\n\n`;
+                cart.forEach((item, i) => {
+                    const lineTotal = item.price * item.qty;
+                    total += lineTotal;
+                    message += `${i + 1}. *${item.name}* (${item.brand})\n   Qty: ${item.qty} • ${money(item.price)} each\n\n`;
+                });
+                message += `💝 *TOTAL: ${money(total)}*\n\nPlease confirm availability.`;
+                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+            });
+
+            renderCart();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('gadget-grid');
+            const filtered = activeCategory === 'All' ? allProducts : allProducts.filter(p => p.category === activeCategory);
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty-state">No products in this category yet.</div>`;
+                return;
+            }
+            grid.innerHTML = filtered.map(p => {
+                const img = (p.images && p.images[0] && p.images[0].url) || '';
+                const oldPriceHtml = p.oldPrice && p.oldPrice > p.price
+                    ? `<div class="gadget-old-price">${money(p.oldPrice)}</div>` : '';
+                return `
+                    <div class="gadget-card card">
+                        <img src="${img}" alt="${p.name}" loading="lazy">
+                        <div class="gadget-card-body">
+                            <div style="font-size:0.7em; font-weight:700; color:#e8730a; text-transform:uppercase; margin-bottom:4px;">${p.category}</div>
+                            <h3>${p.name}</h3>
+                            <div class="gadget-brand">${p.brand || ''}</div>
+                            ${oldPriceHtml}
+                            <div class="gadget-price">${money(p.price)}</div>
+                            <button class="gadget-add-btn" data-id="${p.id}">Add to Cart</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.querySelectorAll('.gadget-add-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const product = allProducts.find(p => p.id === btn.dataset.id);
+                    if (!product) return;
+                    const cart = getCart();
+                    const existing = cart.find(c => c.id === product.id);
+                    if (existing) {
+                        existing.qty += 1;
+                    } else {
+                        cart.push({
+                            id: product.id, name: product.name, brand: product.brand,
+                            price: product.price, image: (product.images && product.images[0] && product.images[0].url) || '',
+                            qty: 1
+                        });
+                    }
+                    setCart(cart);
+                    document.getElementById('cart-overlay').classList.add('open');
+                    document.getElementById('cart-drawer').classList.add('open');
+                });
+            });
+        }
+
+        function renderCart() {
+            const cart = getCart();
+            document.getElementById('cart-count').textContent = cart.reduce((s, i) => s + i.qty, 0);
+
+            const itemsEl = document.getElementById('cart-items');
+            if (cart.length === 0) {
+                itemsEl.innerHTML = `<div class="empty-state">Your cart is empty</div>`;
+            } else {
+                itemsEl.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}">
+                        <div style="flex:1;">
+                            <div style="font-weight:600; font-size:0.9em;">${item.name}</div>
+                            <div style="font-size:0.85em; opacity:0.7;">${money(item.price)}</div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                                <button class="cart-qty-btn" data-id="${item.id}" data-delta="-1">-</button>
+                                <span>${item.qty}</span>
+                                <button class="cart-qty-btn" data-id="${item.id}" data-delta="1">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                itemsEl.querySelectorAll('.cart-qty-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const cart = getCart();
+                        const id = btn.dataset.id;
+                        const delta = parseInt(btn.dataset.delta);
+                        const item = cart.find(c => c.id === id);
+                        if (!item) return;
+                        item.qty += delta;
+                        const next = cart.filter(c => c.qty > 0);
+                        setCart(next);
+                    });
+                });
+            }
+
+            const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+            document.getElementById('cart-total').textContent = money(total);
+        }
+    </script>
+</body>
+</html>

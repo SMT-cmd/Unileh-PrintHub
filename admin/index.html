@@ -13,9 +13,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PrintHub">
     <link rel="apple-touch-icon" href="../assets/images/logo.png">
-    
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="admin-login-body watermark-bg">
 
@@ -145,12 +142,18 @@
                     return;
                 }
                 try {
-                    await signUpAdmin(email, password);
+                    const result = await signUpAdmin(email, password);
                     signupForm.reset();
-                    statusDiv.textContent = "Admin registration completed. You can now sign in.";
-                    statusDiv.className = "status-message success";
-                    showSignupBtn.disabled = true;
-                    openLogin();
+                    if (result.needsEmailConfirmation) {
+                        statusDiv.textContent = "Check your email and click the confirmation link, then sign in below to complete setup.";
+                        statusDiv.className = "status-message pending";
+                        openLogin();
+                    } else {
+                        statusDiv.textContent = "Admin registration completed. You can now sign in.";
+                        statusDiv.className = "status-message success";
+                        showSignupBtn.disabled = true;
+                        openLogin();
+                    }
                 } catch (error) {
                     signupError.textContent = error.message || "Registration failed.";
                     signupError.style.display = 'block';
