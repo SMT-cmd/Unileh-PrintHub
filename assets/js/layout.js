@@ -3,11 +3,13 @@
     const BRAND_NAME = 'AfriNet Hub';
     const POWERED_BY = '';   // e.g. 'powered by Something', or leave empty for none
     const TAGLINE = 'Serving the <strong>University of Ilesha (Unilesa)</strong> community.'; // empty string to remove
+    const DATA_URL = 'https://afrinethub.com'; // external data-selling site
     const NAV = [
         { label: 'Printing', path: 'printing/', also: ['order', 'checkout'] },
         { label: 'Gadgets', path: 'gadgets/' },
         { label: 'Housing', path: 'housing/' },
         { label: 'Project &amp; Seminar', path: 'project/' },
+        { label: 'Data', url: DATA_URL },
         { label: 'Portal Services', path: 'portal/' },
         { label: 'About Us', path: 'about/' }
     ];
@@ -33,11 +35,17 @@
     const section = rel.split('/')[0].replace(/\.html$/, '');
 
     const isActive = (item) => {
+        if (!item.path) return false;
         const key = item.path.replace('/', '');
         return section === key || (item.also && item.also.includes(section));
     };
-    const link = (item) =>
-        `<a href="${base}${item.path}"${isActive(item) ? ' class="active"' : ''}>${item.label}</a>`;
+    const link = (item) => {
+        // External items (like Data) open the other site in a new tab
+        if (item.url) {
+            return `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.label} <span aria-hidden="true">&#8599;</span></a>`;
+        }
+        return `<a href="${base}${item.path}"${isActive(item) ? ' class="active"' : ''}>${item.label}</a>`;
+    };
 
     const headerEl = document.querySelector('body > header');
     if (headerEl) {

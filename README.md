@@ -1,4 +1,4 @@
-# Unilesh Print Hub (powered by AfriNet Hub)
+# AfriNet Hub
 
 A production-ready, full-stack Progressive Web App (PWA) designed for students of the University of Ilesha (Unilesa). This platform provides seamless print-on-demand services, student portal assistance, and real-time campus news and advertisements.
 
@@ -100,5 +100,5 @@ firebase deploy
 Owned and operated by **AfriNet Hub**. All rights reserved. Serving the University of Ilesha community.
 
 ---
-**Domain:** [unilesaservices.com.ng](https://unilesaservices.com.ng)  
+**Domain:** [afrinethub.com.ng](https://afrinethub.com.ng)  
 **Admin Contact:** +2348083964600

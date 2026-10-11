@@ -10,18 +10,51 @@ function initDashboard() {
     console.log("Initializing Admin Dashboard Logic...");
     const sb = window.supabaseClient;
 
+    // --- Safe output helpers ---
+    // Everything a visitor can submit (names, messages, URLs...) is untrusted.
+    // Always pass it through esc() before putting it into HTML, and through
+    // attrUrl() before putting it into an href/src attribute.
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+
+    const safeUrl = (value) => {
+        if (!value) return '';
+        try {
+            const u = new URL(String(value), window.location.href);
+            return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+        } catch (e) {
+            return '#';
+        }
+    };
+    const attrUrl = (value) => esc(safeUrl(value));
+
+    const num = (value) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : 0;
+    };
+
+    // Builds the object a row builder receives, falling back to created_at
+    // when the form did not save its own timestamp.
+    const merge = (row, extra) => ({
+        ...(row.data || {}),
+        timestamp: (row.data && row.data.timestamp) || row.created_at,
+        ...extra
+    });
+
     // --- Daily Accounting ---
     function updateDailySummary(orders) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         const dailyOrders = orders.filter(order => {
-            if (!order.data.timestamp) return false;
-            const orderDate = new Date(order.data.timestamp);
+            const ts = (order.data && order.data.timestamp) || order.created_at;
+            if (!ts) return false;
+            const orderDate = new Date(ts);
             return orderDate >= today && order.status === 'Collected';
         });
 
-        const totalAmount = dailyOrders.reduce((sum, order) => sum + (order.data.totalPrice || 0), 0);
+        const totalAmount = dailyOrders.reduce((sum, order) => sum + num(order.data && order.data.totalPrice), 0);
 
         const amountEl = document.getElementById('daily-total-amount');
         const countEl = document.getElementById('daily-order-count');
@@ -43,22 +76,29 @@ function initDashboard() {
           .subscribe();
     }
 
+    // Fills a table body; one malformed row is skipped instead of breaking the table
+    function fill(bodyId, rows, build) {
+        const body = document.getElementById(bodyId);
+        if (!body) return;
+        body.innerHTML = '';
+        rows.forEach((row) => {
+            try {
+                body.appendChild(build(row));
+            } catch (err) {
+                console.error(`Skipped a malformed row in ${bodyId}:`, row && row.id, err);
+            }
+        });
+    }
+
     // Orders
     watchTable('orders', 'created_at', false, (rows) => {
-        const ordersBody = document.getElementById('orders-body');
-        if (!ordersBody) return;
-        ordersBody.innerHTML = '';
-        rows.forEach((row) => ordersBody.appendChild(createOrderRow(row.id, { ...row.data, status: row.status, orderNumber: row.order_number })));
+        fill('orders-body', rows, (row) => createOrderRow(row.id, merge(row, { status: row.status, orderNumber: row.order_number })));
         updateDailySummary(rows);
     });
 
     // Portal Requests — includes the raw password column, split off from `data`
     watchTable('portal_requests', 'created_at', false, (rows) => {
-        const portalBody = document.getElementById('portal-body');
-        if (!portalBody) return;
-        portalBody.innerHTML = '';
-        rows.forEach((row) => portalBody.appendChild(createPortalRow(row.id, {
-            ...row.data,
+        fill('portal-body', rows, (row) => createPortalRow(row.id, merge(row, {
             status: row.status,
             portalPassword: row.portal_password_plain
         })));
@@ -66,69 +106,48 @@ function initDashboard() {
 
     // Project & Seminar Requests
     watchTable('project_requests', 'created_at', false, (rows) => {
-        const projectBody = document.getElementById('project-body');
-        if (!projectBody) return;
-        projectBody.innerHTML = '';
-        rows.forEach((row) => projectBody.appendChild(createProjectRow(row.id, { ...row.data, status: row.status })));
+        fill('project-body', rows, (row) => createProjectRow(row.id, merge(row, { status: row.status })));
     });
 
     // Feedback
     watchTable('feedback_suggestions', 'created_at', false, (rows) => {
-        const feedbackBody = document.getElementById('feedback-body');
-        if (!feedbackBody) return;
-        feedbackBody.innerHTML = '';
-        rows.forEach((row) => feedbackBody.appendChild(createFeedbackRow(row.id, { ...row.data, status: row.status })));
+        fill('feedback-body', rows, (row) => createFeedbackRow(row.id, merge(row, { status: row.status })));
     });
 
     // Adverts
     watchTable('adverts', 'start_date', false, (rows) => {
-        const advertsBody = document.getElementById('adverts-body');
-        if (!advertsBody) return;
-        advertsBody.innerHTML = '';
-        rows.forEach((row) => advertsBody.appendChild(createAdRow(row.id, { ...row.data, startDate: row.start_date, endDate: row.end_date })));
+        fill('adverts-body', rows, (row) => createAdRow(row.id, { ...row.data, startDate: row.start_date, endDate: row.end_date }));
     });
 
     // Advert Requests
     watchTable('advert_requests', 'created_at', false, (rows) => {
-        const advertRequestsBody = document.getElementById('advert-requests-body');
-        if (!advertRequestsBody) return;
-        advertRequestsBody.innerHTML = '';
-        rows.forEach((row) => advertRequestsBody.appendChild(createAdvertRequestRow(row.id, { ...row.data, status: row.status })));
+        fill('advert-requests-body', rows, (row) => createAdvertRequestRow(row.id, merge(row, { status: row.status })));
     });
 
     // Announcements
     watchTable('announcements', 'expiry_date', false, (rows) => {
-        const announcementsBody = document.getElementById('announcements-body');
-        if (!announcementsBody) return;
-        announcementsBody.innerHTML = '';
-        rows.forEach((row) => announcementsBody.appendChild(createAnnouncementRow(row.id, { ...row.data, expiryDate: row.expiry_date })));
+        fill('announcements-body', rows, (row) => createAnnouncementRow(row.id, { ...row.data, expiryDate: row.expiry_date }));
     });
 
     // Partners
     watchTable('partners', 'name', true, (rows) => {
-        const partnersBody = document.getElementById('partners-body');
-        if (!partnersBody) return;
-        partnersBody.innerHTML = '';
-        rows.forEach((row) => partnersBody.appendChild(createPartnerRow(row.id, { ...row.data, name: row.name })));
+        fill('partners-body', rows, (row) => createPartnerRow(row.id, { ...row.data, name: row.name }));
     });
 
     // Gadgets
     watchTable('gadget_products', 'created_at', false, (rows) => {
-        const gadgetsBody = document.getElementById('gadgets-body');
-        if (!gadgetsBody) return;
-        gadgetsBody.innerHTML = '';
-        rows.forEach((row) => gadgetsBody.appendChild(createGadgetRow(row.id, { category: row.category, ...row.data })));
+        fill('gadgets-body', rows, (row) => createGadgetRow(row.id, { category: row.category, ...row.data }));
     });
 
     // Housing
     watchTable('housing_listings', 'created_at', false, (rows) => {
-        const housingBody = document.getElementById('housing-body');
-        if (!housingBody) return;
-        housingBody.innerHTML = '';
-        rows.forEach((row) => housingBody.appendChild(createHousingRow(row.id, { type: row.type, pricePeriod: row.price_period, ...row.data })));
+        fill('housing-body', rows, (row) => createHousingRow(row.id, { type: row.type, pricePeriod: row.price_period, ...row.data }));
     });
 
     // --- Row Creation Helpers ---
+    // Buttons use data-* attributes and one delegated click handler (see the
+    // bottom of this file) instead of inline onclick, so visitor-submitted
+    // text can never become code.
 
     function createOrderRow(id, order) {
         const tr = document.createElement('tr');
@@ -141,10 +160,10 @@ function initDashboard() {
         if (order.status === 'Paid') statusClass = 'status-paid';
 
         const receiptLink = order.receiptUrl
-            ? `<a href="${order.receiptUrl}" target="_blank" class="download-link">Receipt</a>`
+            ? `<a href="${attrUrl(order.receiptUrl)}" target="_blank" rel="noopener noreferrer" class="download-link">Receipt</a>`
             : `<span style="opacity:0.5; font-size:0.8em;">No Receipt</span>`;
 
-        const displayId = order.orderNumber || `${id.substring(0, 5)}...`;
+        const displayId = order.orderNumber || `${String(id).substring(0, 5)}...`;
         const items = Array.isArray(order.items) && order.items.length
             ? order.items
             : [{
@@ -158,7 +177,7 @@ function initDashboard() {
 
         const fileLinks = items
             .filter((it) => it && it.fileUrl)
-            .map((it, i) => `<a href="${it.fileUrl}" target="_blank" class="download-link">File ${i + 1}</a>`)
+            .map((it, i) => `<a href="${attrUrl(it.fileUrl)}" target="_blank" rel="noopener noreferrer" class="download-link">File ${i + 1}</a>`)
             .join(' ');
 
         const fileIdsEncoded = encodeURIComponent(JSON.stringify(items.map((it) => it?.fileId).filter(Boolean)));
@@ -174,25 +193,25 @@ function initDashboard() {
         const priceBreakdown = `<span style="font-size: 0.8em; display: block; color: #666;">(${items.length} file${items.length === 1 ? '' : 's'} • ${totalPagesPrinted} pages printed)</span>`;
 
         tr.innerHTML = `
-            <td title="Order ID: ${id}"><strong>${displayId}</strong></td>
-            <td>${order.studentName}</td>
-            <td>${order.phoneNumber}</td>
-            <td>${printTypeLabel}</td>
+            <td title="Order ID: ${esc(id)}"><strong>${esc(displayId)}</strong></td>
+            <td>${esc(order.studentName)}</td>
+            <td>${esc(order.phoneNumber)}</td>
+            <td>${esc(printTypeLabel)}</td>
             <td>${items.length} file${items.length === 1 ? '' : 's'}</td>
-            <td>₦${(order.totalPrice || 0).toFixed(2)}${priceBreakdown}</td>
+            <td>₦${num(order.totalPrice).toFixed(2)}${priceBreakdown}</td>
             <td>${fileLinks || '-'}</td>
             <td>${receiptLink}</td>
-            <td>${date}</td>
-            <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+            <td>${esc(date)}</td>
+            <td><span class="status-badge ${statusClass}">${esc(order.status)}</span></td>
             <td>
                 <div class="action-group">
-                    <button onclick="togglePrintReady('${id}', '${order.status}', '${order.studentName}', '${order.phoneNumber}')" class="action-button-small btn-ready">
+                    <button data-action="toggle-print-ready" data-id="${esc(id)}" data-status="${esc(order.status)}" data-name="${esc(order.studentName)}" data-phone="${esc(order.phoneNumber)}" class="action-button-small btn-ready">
                         ${order.status === 'Ready' ? 'Undo Ready' : 'Print Ready'}
                     </button>
-                    <button onclick="markAsCollected('${id}')" class="action-button-small btn-collected" ${order.status === 'Collected' ? 'disabled' : ''}>
+                    <button data-action="mark-collected" data-id="${esc(id)}" class="action-button-small btn-collected" ${order.status === 'Collected' ? 'disabled' : ''}>
                         Collected
                     </button>
-                    <button onclick="deleteOrder('${id}', '${fileIdsEncoded}', '${order.receiptId}')" class="action-button-small btn-delete">
+                    <button data-action="delete-order" data-id="${esc(id)}" data-file-ids="${esc(fileIdsEncoded)}" data-receipt-id="${esc(order.receiptId ?? '')}" class="action-button-small btn-delete">
                         Delete
                     </button>
                 </div>
@@ -206,22 +225,22 @@ function initDashboard() {
         const date = new Date(request.timestamp).toLocaleString();
         const statusClass = request.status === 'Handled' ? 'status-handled' : 'status-pending';
         const passwordCell = request.portalPassword
-            ? `<code>${request.portalPassword}</code>`
+            ? `<code>${esc(request.portalPassword)}</code>`
             : `<span style="opacity:0.5; font-size:0.85em;">Expired / removed</span>`;
 
         tr.innerHTML = `
-            <td>${request.fullName}</td>
-            <td>${request.matricNumber}</td>
-            <td>${request.phoneNumber}</td>
-            <td>${request.department}</td>
-            <td>${request.level}</td>
-            <td>${request.serviceRequested}</td>
-            <td>${request.portalUsername}</td>
+            <td>${esc(request.fullName)}</td>
+            <td>${esc(request.matricNumber)}</td>
+            <td>${esc(request.phoneNumber)}</td>
+            <td>${esc(request.department)}</td>
+            <td>${esc(request.level)}</td>
+            <td>${esc(request.serviceRequested)}</td>
+            <td>${esc(request.portalUsername)}</td>
             <td>${passwordCell}</td>
-            <td>${date}</td>
-            <td><span class="status-badge ${statusClass}">${request.status}</span></td>
+            <td>${esc(date)}</td>
+            <td><span class="status-badge ${statusClass}">${esc(request.status)}</span></td>
             <td>
-                <button onclick="togglePortalStatus('${id}', '${request.status}')" class="action-button">
+                <button data-action="toggle-portal" data-id="${esc(id)}" data-status="${esc(request.status)}" class="action-button">
                     ${request.status === 'Pending' ? 'Mark Handled' : 'Mark Pending'}
                 </button>
             </td>
@@ -234,18 +253,18 @@ function initDashboard() {
         const date = new Date(request.timestamp).toLocaleString();
         const statusClass = request.status === 'Handled' ? 'status-handled' : 'status-pending';
         tr.innerHTML = `
-            <td>${request.fullName}</td>
-            <td>${request.matricNumber}</td>
-            <td>${request.phoneNumber}</td>
-            <td>${request.department}</td>
-            <td>${request.level}</td>
-            <td>${request.serviceType}</td>
-            <td>${request.topic}</td>
-            <td>${request.deadline}</td>
-            <td>${date}</td>
-            <td><span class="status-badge ${statusClass}">${request.status}</span></td>
+            <td>${esc(request.fullName)}</td>
+            <td>${esc(request.matricNumber)}</td>
+            <td>${esc(request.phoneNumber)}</td>
+            <td>${esc(request.department)}</td>
+            <td>${esc(request.level)}</td>
+            <td>${esc(request.serviceType)}</td>
+            <td>${esc(request.topic)}</td>
+            <td>${esc(request.deadline)}</td>
+            <td>${esc(date)}</td>
+            <td><span class="status-badge ${statusClass}">${esc(request.status)}</span></td>
             <td>
-                <button onclick="toggleStatus('project_requests', '${id}', '${request.status}', 'Handled')" class="action-button">
+                <button data-action="toggle-status" data-table="project_requests" data-id="${esc(id)}" data-status="${esc(request.status)}" data-handled="Handled" class="action-button">
                     ${request.status === 'Pending' ? 'Mark Handled' : 'Mark Pending'}
                 </button>
             </td>
@@ -256,12 +275,12 @@ function initDashboard() {
     function createAdRow(id, ad) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${ad.title}</td>
-            <td>${ad.placement}</td>
-            <td>${new Date(ad.startDate).toLocaleString()}</td>
-            <td>${new Date(ad.endDate).toLocaleString()}</td>
+            <td>${esc(ad.title)}</td>
+            <td>${esc(ad.placement)}</td>
+            <td>${esc(new Date(ad.startDate).toLocaleString())}</td>
+            <td>${esc(new Date(ad.endDate).toLocaleString())}</td>
             <td>
-                <button onclick="deleteItem('adverts', '${id}')" class="action-button delete">Delete</button>
+                <button data-action="delete-item" data-table="adverts" data-id="${esc(id)}" class="action-button delete">Delete</button>
             </td>
         `;
         return tr;
@@ -270,17 +289,18 @@ function initDashboard() {
     function createFeedbackRow(id, feedback) {
         const tr = document.createElement('tr');
         const date = new Date(feedback.timestamp).toLocaleString();
-        const statusClass = feedback.status === 'Reviewed' ? 'status-handled' : 'status-pending';
+        const status = feedback.status || 'Pending';
+        const statusClass = status === 'Reviewed' ? 'status-handled' : 'status-pending';
         tr.innerHTML = `
-            <td>${feedback.name || 'Anonymous'}</td>
-            <td>${feedback.phone || '-'}</td>
-            <td>${feedback.category || 'Feedback'}</td>
-            <td>${feedback.message}</td>
-            <td>${date}</td>
-            <td><span class="status-badge ${statusClass}">${feedback.status || 'Pending'}</span></td>
+            <td>${esc(feedback.name || 'Anonymous')}</td>
+            <td>${esc(feedback.phone || '-')}</td>
+            <td>${esc(feedback.category || 'Feedback')}</td>
+            <td>${esc(feedback.message)}</td>
+            <td>${esc(date)}</td>
+            <td><span class="status-badge ${statusClass}">${esc(status)}</span></td>
             <td>
-                <button onclick="toggleStatus('feedback_suggestions', '${id}', '${feedback.status || 'Pending'}', 'Reviewed')" class="action-button">
-                    ${(feedback.status || 'Pending') === 'Pending' ? 'Mark Reviewed' : 'Mark Pending'}
+                <button data-action="toggle-status" data-table="feedback_suggestions" data-id="${esc(id)}" data-status="${esc(status)}" data-handled="Reviewed" class="action-button">
+                    ${status === 'Pending' ? 'Mark Reviewed' : 'Mark Pending'}
                 </button>
             </td>
         `;
@@ -291,13 +311,13 @@ function initDashboard() {
         const tr = document.createElement('tr');
         const statusClass = request.status === 'Reviewed' ? 'status-handled' : 'status-pending';
         tr.innerHTML = `
-            <td>${request.businessName}</td>
-            <td>${request.contactPhone}</td>
-            <td>${request.duration} days</td>
-            <td>${request.placement}</td>
-            <td><span class="status-badge ${statusClass}">${request.status}</span></td>
+            <td>${esc(request.businessName)}</td>
+            <td>${esc(request.contactPhone)}</td>
+            <td>${esc(request.duration)} days</td>
+            <td>${esc(request.placement)}</td>
+            <td><span class="status-badge ${statusClass}">${esc(request.status)}</span></td>
             <td>
-                <button onclick="toggleStatus('advert_requests', '${id}', '${request.status}', 'Reviewed')" class="action-button">
+                <button data-action="toggle-status" data-table="advert_requests" data-id="${esc(id)}" data-status="${esc(request.status)}" data-handled="Reviewed" class="action-button">
                     ${request.status === 'Pending' ? 'Review' : 'Unreview'}
                 </button>
             </td>
@@ -308,10 +328,10 @@ function initDashboard() {
     function createAnnouncementRow(id, ann) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${ann.message}</td>
-            <td>${new Date(ann.expiryDate).toLocaleString()}</td>
+            <td>${esc(ann.message)}</td>
+            <td>${esc(new Date(ann.expiryDate).toLocaleString())}</td>
             <td>
-                <button onclick="deleteItem('announcements', '${id}')" class="action-button delete">Delete</button>
+                <button data-action="delete-item" data-table="announcements" data-id="${esc(id)}" class="action-button delete">Delete</button>
             </td>
         `;
         return tr;
@@ -320,11 +340,11 @@ function initDashboard() {
     function createPartnerRow(id, partner) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><img src="${partner.logoUrl}" style="height: 30px; width: auto; max-width: 60px;"></td>
-            <td>${partner.name}</td>
-            <td><a href="${partner.contactUrl}" target="_blank" class="download-link">Visit Link</a></td>
+            <td><img src="${attrUrl(partner.logoUrl)}" style="height: 30px; width: auto; max-width: 60px;"></td>
+            <td>${esc(partner.name)}</td>
+            <td><a href="${attrUrl(partner.contactUrl)}" target="_blank" rel="noopener noreferrer" class="download-link">Visit Link</a></td>
             <td>
-                <button onclick="deleteItem('partners', '${id}')" class="action-button delete">Delete</button>
+                <button data-action="delete-item" data-table="partners" data-id="${esc(id)}" class="action-button delete">Delete</button>
             </td>
         `;
         return tr;
@@ -334,12 +354,12 @@ function initDashboard() {
         const tr = document.createElement('tr');
         const img = (p.images && p.images[0] && p.images[0].url) || '';
         tr.innerHTML = `
-            <td><img src="${img}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px;"></td>
-            <td>${p.name}</td>
-            <td>${p.category}</td>
-            <td>${p.brand}</td>
-            <td>₦${(p.price || 0).toLocaleString()}</td>
-            <td><button onclick="deleteItem('gadget_products', '${id}')" class="action-button delete">Delete</button></td>
+            <td><img src="${attrUrl(img)}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px;"></td>
+            <td>${esc(p.name)}</td>
+            <td>${esc(p.category)}</td>
+            <td>${esc(p.brand)}</td>
+            <td>₦${num(p.price).toLocaleString()}</td>
+            <td><button data-action="delete-item" data-table="gadget_products" data-id="${esc(id)}" class="action-button delete">Delete</button></td>
         `;
         return tr;
     }
@@ -348,12 +368,12 @@ function initDashboard() {
         const tr = document.createElement('tr');
         const img = (l.images && l.images[0] && l.images[0].url) || '';
         tr.innerHTML = `
-            <td><img src="${img}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px;"></td>
-            <td>${l.name}</td>
-            <td>${l.type}</td>
-            <td>${l.location}</td>
-            <td>₦${(l.price || 0).toLocaleString()} ${l.pricePeriod || ''}</td>
-            <td><button onclick="deleteItem('housing_listings', '${id}')" class="action-button delete">Delete</button></td>
+            <td><img src="${attrUrl(img)}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px;"></td>
+            <td>${esc(l.name)}</td>
+            <td>${esc(l.type)}</td>
+            <td>${esc(l.location)}</td>
+            <td>₦${num(l.price).toLocaleString()} ${esc(l.pricePeriod || '')}</td>
+            <td><button data-action="delete-item" data-table="housing_listings" data-id="${esc(id)}" class="action-button delete">Delete</button></td>
         `;
         return tr;
     }
@@ -386,8 +406,8 @@ function initDashboard() {
                 adImageId = result.fileId;
                 adUploadFeedback.innerHTML = `
                     <div class="upload-success-badge">
-                        <img src="${result.viewURL}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">
-                        <span>✅ Image attached: <strong>${result.originalName}</strong></span>
+                        <img src="${attrUrl(result.viewURL)}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">
+                        <span>✅ Image attached: <strong>${esc(result.originalName)}</strong></span>
                     </div>
                 `;
                 adUploadFeedback.style.display = 'block';
@@ -469,7 +489,7 @@ function initDashboard() {
                 const previewIcon = annAttachment.type === 'image' ? '🖼️' : '📄';
                 annUploadFeedback.innerHTML = `
                     <div class="upload-success-badge">
-                        <span>${previewIcon} ✅ Attached: <strong>${annAttachment.filename}</strong></span>
+                        <span>${previewIcon} ✅ Attached: <strong>${esc(annAttachment.filename)}</strong></span>
                     </div>
                 `;
                 annUploadFeedback.style.display = 'block';
@@ -561,7 +581,7 @@ function initDashboard() {
                 const result = await window.storageService.uploadFile(file);
                 gadgetImageUrl = result.viewURL;
                 gadgetImageId = result.fileId;
-                gadgetUploadFeedback.innerHTML = `<div class="upload-success-badge">✅ Image attached: <strong>${result.originalName}</strong></div>`;
+                gadgetUploadFeedback.innerHTML = `<div class="upload-success-badge">✅ Image attached: <strong>${esc(result.originalName)}</strong></div>`;
                 gadgetUploadFeedback.style.display = 'block';
                 gadgetUploadButton.disabled = false;
                 gadgetUploadButton.textContent = 'Change Image';
@@ -629,7 +649,7 @@ function initDashboard() {
                 const result = await window.storageService.uploadFile(file);
                 housingImageUrl = result.viewURL;
                 housingImageId = result.fileId;
-                housingUploadFeedback.innerHTML = `<div class="upload-success-badge">✅ Image attached: <strong>${result.originalName}</strong></div>`;
+                housingUploadFeedback.innerHTML = `<div class="upload-success-badge">✅ Image attached: <strong>${esc(result.originalName)}</strong></div>`;
                 housingUploadFeedback.style.display = 'block';
                 housingUploadButton.disabled = false;
                 housingUploadButton.textContent = 'Change Image';
@@ -682,10 +702,10 @@ function initDashboard() {
             if (error) throw error;
 
             if (newStatus === 'Ready') {
-                const message = `Hello ${studentName}! Your print job is ready for collection at Unilesh Print Hub! 🚀`;
-                const cleanPhone = phoneNumber.replace(/\s+/g, '');
+                const message = `Hello ${studentName}! Your print job is ready for collection at AfriNet Hub! 🚀`;
+                const cleanPhone = String(phoneNumber || '').replace(/\D/g, '');
                 const whatsappUrl = `https://wa.me/${cleanPhone.startsWith('0') ? '234' + cleanPhone.substring(1) : cleanPhone}?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
+                window.open(whatsappUrl, '_blank', 'noopener');
             }
         } catch (error) {
             console.error("Error updating order status: ", error);
@@ -782,4 +802,19 @@ function initDashboard() {
             }
         }
     };
+
+    // --- One click handler for every table button (replaces inline onclick) ---
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const d = btn.dataset;
+        switch (d.action) {
+            case 'toggle-print-ready': window.togglePrintReady(d.id, d.status, d.name, d.phone); break;
+            case 'mark-collected':     window.markAsCollected(d.id); break;
+            case 'delete-order':       window.deleteOrder(d.id, d.fileIds, d.receiptId); break;
+            case 'toggle-portal':      window.togglePortalStatus(d.id, d.status); break;
+            case 'toggle-status':      window.toggleStatus(d.table, d.id, d.status, d.handled); break;
+            case 'delete-item':        window.deleteItem(d.table, d.id); break;
+        }
+    });
 }

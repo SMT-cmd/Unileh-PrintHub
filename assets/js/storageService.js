@@ -1,5 +1,5 @@
 /**
- * Supabase Storage Service - Unilesh Print Hub
+ * Supabase Storage Service - AfriNet Hub
  * Version: 3.3.0 (Consolidated onto shared project)
  */
 
