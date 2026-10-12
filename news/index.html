@@ -37,6 +37,23 @@
     <script src="../assets/js/app.js"></script>
 
     <script type="module">
+        // --- Safe output helpers ---
+        // Anything that comes from the database is untrusted.
+        // esc() before putting text in HTML, attrUrl() before putting an address in href/src.
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const safeUrl = (v) => {
+            if (!v) return '';
+            try {
+                const u = new URL(String(v), window.location.href);
+                return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+            } catch (e) {
+                return '#';
+            }
+        };
+        const attrUrl = (v) => esc(safeUrl(v));
+
         document.addEventListener('DOMContentLoaded', () => {
             const checkDeps = setInterval(() => {
                 if (window.listenToAnnouncements) {
@@ -52,16 +69,16 @@
                 if (list.length > 0) {
                     container.innerHTML = list.map(item => `
                         <article class="news-item card">
-                            <div class="news-date">${new Date(item.timestamp || new Date()).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
-                            <h3>${item.message}</h3>
+                            <div class="news-date">${esc(new Date(item.timestamp || new Date()).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}</div>
+                            <h3>${esc(item.message)}</h3>
                             
                             ${item.attachment ? `
                                 <div class="news-attachment">
                                     ${item.attachment.type === 'image' ? 
-                                        `<img src="${item.attachment.url}" alt="Announcement Image" style="max-width: 100%; border-radius: 10px; margin: 15px 0;">` : 
+                                        `<img src="${attrUrl(item.attachment.url)}" alt="Announcement Image" style="max-width: 100%; border-radius: 10px; margin: 15px 0;">` : 
                                         `<div class="file-link">
-                                            <a href="${item.attachment.url}" target="_blank" class="cta-button-small">
-                                                Download Attachment (${item.attachment.filename})
+                                            <a href="${attrUrl(item.attachment.url)}" target="_blank" rel="noopener noreferrer" class="cta-button-small">
+                                                Download Attachment (${esc(item.attachment.filename)})
                                             </a>
                                         </div>`
                                     }
@@ -69,7 +86,7 @@
                             ` : ''}
 
                             <div class="news-actions">
-                                ${item.link ? `<a href="${item.link}" class="cta-button-small" target="_blank">External Link</a>` : ''}
+                                ${item.link ? `<a href="${attrUrl(item.link)}" class="cta-button-small" target="_blank" rel="noopener noreferrer">External Link</a>` : ''}
                             </div>
                         </article>
                     `).join('');

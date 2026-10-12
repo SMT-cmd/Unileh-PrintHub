@@ -37,6 +37,23 @@
     <script src="../assets/js/app.js"></script>
 
     <script type="module">
+        // --- Safe output helpers ---
+        // Anything that comes from the database is untrusted.
+        // esc() before putting text in HTML, attrUrl() before putting an address in href/src.
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const safeUrl = (v) => {
+            if (!v) return '';
+            try {
+                const u = new URL(String(v), window.location.href);
+                return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+            } catch (e) {
+                return '#';
+            }
+        };
+        const attrUrl = (v) => esc(safeUrl(v));
+
         document.addEventListener('DOMContentLoaded', () => {
             const checkDeps = setInterval(() => {
                 if (window.listenToPartners) {
@@ -52,10 +69,10 @@
                 if (list.length > 0) {
                     container.innerHTML = list.map(item => `
                         <div class="partner-card card">
-                            <img src="${item.logoUrl || '../assets/images/icons/partner-placeholder.svg'}" alt="${item.name}" class="partner-logo">
-                            <h3>${item.name}</h3>
-                            <p>${item.description || ''}</p>
-                            ${item.contactUrl ? `<a href="${item.contactUrl}" class="cta-button-small" target="_blank">Contact / Visit</a>` : ''}
+                            <img src="${attrUrl(item.logoUrl || '../assets/images/icons/partner-placeholder.svg')}" alt="${esc(item.name)}" class="partner-logo">
+                            <h3>${esc(item.name)}</h3>
+                            <p>${esc(item.description || '')}</p>
+                            ${item.contactUrl ? `<a href="${attrUrl(item.contactUrl)}" class="cta-button-small" target="_blank" rel="noopener noreferrer">Contact / Visit</a>` : ''}
                         </div>
                     `).join('');
                 } else {

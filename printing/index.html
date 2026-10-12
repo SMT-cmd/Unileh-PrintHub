@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Printing - AfriNet Hub</title>
-    <meta name="description" content="Your deadline is safe with us. Get crystal-clear prints and essential student services, all in one place. Powered by AfriNet Hub.">
+    <meta name="description" content="Your deadline is safe with us. Get crystal-clear prints and essential student services, all in one place.">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/modern.css">
     <meta name="theme-color" content="#0a1f44">
@@ -184,6 +184,23 @@
     <script src="../assets/js/app.js?v=supabase_final"></script>
 
     <script type="module">
+        // --- Safe output helpers ---
+        // Anything that comes from the database is untrusted.
+        // esc() before putting text in HTML, attrUrl() before putting an address in href/src.
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const safeUrl = (v) => {
+            if (!v) return '';
+            try {
+                const u = new URL(String(v), window.location.href);
+                return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+            } catch (e) {
+                return '#';
+            }
+        };
+        const attrUrl = (v) => esc(safeUrl(v));
+
         document.addEventListener('DOMContentLoaded', () => {
             const toggleAdvertBtn = document.getElementById('toggle-advert-form');
             const advertFormContainer = document.getElementById('advert-form-container');
@@ -225,7 +242,7 @@
                         tickerWrap.style.display = 'block';
                         tickerContent.innerHTML = list.map(item => `
                             <div class="ticker__item">
-                                ${item.link ? `<a href="${item.link}">${item.message}</a>` : item.message}
+                                ${item.link ? `<a href="${attrUrl(item.link)}" target="_blank" rel="noopener noreferrer">${esc(item.message)}</a>` : esc(item.message)}
                             </div>
                         `).join(' • ');
                     } else {
@@ -242,11 +259,11 @@
                         banner.style.display = 'block';
                         container.innerHTML = ads.map(ad => `
                             <div class="ad-item">
-                                <a href="${ad.linkUrl}" target="_blank">
-                                    <img src="${ad.imageUrl}" alt="${ad.title}">
+                                <a href="${attrUrl(ad.linkUrl)}" target="_blank" rel="noopener noreferrer">
+                                    <img src="${attrUrl(ad.imageUrl)}" alt="${esc(ad.title)}">
                                     <div class="ad-overlay">
-                                        <h4>${ad.title}</h4>
-                                        <p>${ad.description}</p>
+                                        <h4>${esc(ad.title)}</h4>
+                                        <p>${esc(ad.description)}</p>
                                     </div>
                                 </a>
                             </div>
@@ -281,7 +298,7 @@
                         const whatsappUrl = `https://wa.me/2348083964600?text=${encodeURIComponent(message)}`;
                         
                         alert("Your inquiry has been submitted! Redirecting to WhatsApp to notify the admin.");
-                        window.open(whatsappUrl, '_blank');
+                        window.open(whatsappUrl, '_blank', 'noopener');
                         advertForm.reset();
                         if (formContainer) formContainer.style.display = 'none';
                         if (toggleBtn) toggleBtn.textContent = 'Advertise With Us';

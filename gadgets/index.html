@@ -93,10 +93,48 @@
         const CART_KEY = 'gadget_cart_v1';
         const WHATSAPP_NUMBER = '2348083964600';
 
-        const money = (n) => '₦' + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+        // --- Safe output helpers ---
+        // Anything that comes from the database or the browser's storage is untrusted.
+        // esc() before putting text in HTML, attrUrl() before putting an address in href/src.
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const safeUrl = (v) => {
+            if (!v) return '';
+            try {
+                const u = new URL(String(v), window.location.href);
+                return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+            } catch (e) {
+                return '#';
+            }
+        };
+        const attrUrl = (v) => esc(safeUrl(v));
+        const num = (v) => {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : 0;
+        };
 
+        const money = (n) => '₦' + num(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+        // The cart lives in the visitor's own browser storage, so it is cleaned on every read.
         function getCart() {
-            try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; }
+            try {
+                const raw = JSON.parse(localStorage.getItem(CART_KEY));
+                if (!Array.isArray(raw)) return [];
+                return raw
+                    .filter((i) => i && typeof i === 'object')
+                    .map((i) => ({
+                        id: String(i.id ?? ''),
+                        name: String(i.name ?? ''),
+                        brand: String(i.brand ?? ''),
+                        price: num(i.price),
+                        image: String(i.image ?? ''),
+                        qty: Math.max(0, Math.floor(num(i.qty)))
+                    }))
+                    .filter((i) => i.id && i.qty > 0);
+            } catch {
+                return [];
+            }
         }
         function setCart(cart) {
             localStorage.setItem(CART_KEY, JSON.stringify(cart));
@@ -148,12 +186,18 @@
                 let total = 0;
                 let message = `💸 *NEW GADGET ORDER*\n\n`;
                 cart.forEach((item, i) => {
-                    const lineTotal = item.price * item.qty;
+                    // Use the current price from the store when the product is still listed,
+                    // so an old or edited cart cannot change what the order says.
+                    const live = allProducts.find(p => p.id === item.id);
+                    const name = live ? live.name : item.name;
+                    const brand = live ? live.brand : item.brand;
+                    const price = live ? num(live.price) : item.price;
+                    const lineTotal = price * item.qty;
                     total += lineTotal;
-                    message += `${i + 1}. *${item.name}* (${item.brand})\n   Qty: ${item.qty} • ${money(item.price)} each\n\n`;
+                    message += `${i + 1}. *${name}*${brand ? ` (${brand})` : ''}\n   Qty: ${item.qty} • ${money(price)} each\n\n`;
                 });
                 message += `💝 *TOTAL: ${money(total)}*\n\nPlease confirm availability.`;
-                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
             });
 
             renderCart();
@@ -168,18 +212,18 @@
             }
             grid.innerHTML = filtered.map(p => {
                 const img = (p.images && p.images[0] && p.images[0].url) || '';
-                const oldPriceHtml = p.oldPrice && p.oldPrice > p.price
+                const oldPriceHtml = num(p.oldPrice) > num(p.price)
                     ? `<div class="gadget-old-price">${money(p.oldPrice)}</div>` : '';
                 return `
                     <div class="gadget-card card">
-                        <img src="${img}" alt="${p.name}" loading="lazy">
+                        <img src="${attrUrl(img)}" alt="${esc(p.name)}" loading="lazy">
                         <div class="gadget-card-body">
-                            <div style="font-size:0.7em; font-weight:700; color:#e8730a; text-transform:uppercase; margin-bottom:4px;">${p.category}</div>
-                            <h3>${p.name}</h3>
-                            <div class="gadget-brand">${p.brand || ''}</div>
+                            <div style="font-size:0.7em; font-weight:700; color:#e8730a; text-transform:uppercase; margin-bottom:4px;">${esc(p.category)}</div>
+                            <h3>${esc(p.name)}</h3>
+                            <div class="gadget-brand">${esc(p.brand || '')}</div>
                             ${oldPriceHtml}
                             <div class="gadget-price">${money(p.price)}</div>
-                            <button class="gadget-add-btn" data-id="${p.id}">Add to Cart</button>
+                            <button class="gadget-add-btn" data-id="${esc(p.id)}">Add to Cart</button>
                         </div>
                     </div>
                 `;
@@ -217,14 +261,14 @@
             } else {
                 itemsEl.innerHTML = cart.map(item => `
                     <div class="cart-item">
-                        <img src="${item.image}" alt="${item.name}">
+                        <img src="${attrUrl(item.image)}" alt="${esc(item.name)}">
                         <div style="flex:1;">
-                            <div style="font-weight:600; font-size:0.9em;">${item.name}</div>
+                            <div style="font-weight:600; font-size:0.9em;">${esc(item.name)}</div>
                             <div style="font-size:0.85em; opacity:0.7;">${money(item.price)}</div>
                             <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
-                                <button class="cart-qty-btn" data-id="${item.id}" data-delta="-1">-</button>
+                                <button class="cart-qty-btn" data-id="${esc(item.id)}" data-delta="-1">-</button>
                                 <span>${item.qty}</span>
-                                <button class="cart-qty-btn" data-id="${item.id}" data-delta="1">+</button>
+                                <button class="cart-qty-btn" data-id="${esc(item.id)}" data-delta="1">+</button>
                             </div>
                         </div>
                     </div>

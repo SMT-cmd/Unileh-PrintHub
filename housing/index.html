@@ -61,7 +61,29 @@
 
     <script type="module">
         const WHATSAPP_NUMBER = '2348083964600';
-        const money = (n) => '₦' + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+        // --- Safe output helpers ---
+        // Anything that comes from the database is untrusted.
+        // esc() before putting text in HTML, attrUrl() before putting an address in href/src.
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const safeUrl = (v) => {
+            if (!v) return '';
+            try {
+                const u = new URL(String(v), window.location.href);
+                return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+            } catch (e) {
+                return '#';
+            }
+        };
+        const attrUrl = (v) => esc(safeUrl(v));
+        const num = (v) => {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : 0;
+        };
+
+        const money = (n) => '₦' + num(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
         let allListings = [];
         let activeType = 'All';
@@ -102,14 +124,14 @@
                 const img = (l.images && l.images[0] && l.images[0].url) || '';
                 return `
                     <div class="housing-card card">
-                        <img src="${img}" alt="${l.name}" loading="lazy">
+                        <img src="${attrUrl(img)}" alt="${esc(l.name)}" loading="lazy">
                         <div class="housing-card-body">
-                            <div style="font-size:0.7em; font-weight:700; color:#e8730a; text-transform:uppercase; margin-bottom:4px;">${l.type}</div>
-                            <h3>${l.name}</h3>
-                            <div class="housing-location">📍 ${l.location || ''}</div>
+                            <div style="font-size:0.7em; font-weight:700; color:#e8730a; text-transform:uppercase; margin-bottom:4px;">${esc(l.type)}</div>
+                            <h3>${esc(l.name)}</h3>
+                            <div class="housing-location">📍 ${esc(l.location || '')}</div>
                             <div class="housing-price">${money(l.price)}</div>
-                            <div class="housing-period">${l.pricePeriod || ''}</div>
-                            <button class="housing-inquire-btn" data-id="${l.id}">Inquire on WhatsApp</button>
+                            <div class="housing-period">${esc(l.pricePeriod || '')}</div>
+                            <button class="housing-inquire-btn" data-id="${esc(l.id)}">Inquire on WhatsApp</button>
                         </div>
                     </div>
                 `;
@@ -120,7 +142,7 @@
                     const listing = allListings.find(l => l.id === btn.dataset.id);
                     if (!listing) return;
                     const message = `Hello, I'm interested in this listing:\n\n*${listing.name}*\nType: ${listing.type}\nLocation: ${listing.location}\nPrice: ${money(listing.price)} ${listing.pricePeriod}\n\nIs it still available?`;
-                    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+                    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
                 });
             });
         }
