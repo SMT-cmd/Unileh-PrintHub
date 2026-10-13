@@ -1,4 +1,24 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// Loads the Supabase library from our own copy in assets/vendor (no outside CDN).
+// Pages that already include the vendor <script> tag will have window.supabase ready;
+// pages that don't (news, partners and so on) get it loaded here.
+async function loadSupabaseLibrary() {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    return window.supabase;
+  }
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = new URL('../vendor/supabase-2.117.2.js', import.meta.url).href;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Could not load the Supabase library'));
+    document.head.appendChild(s);
+  });
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    throw new Error('Supabase library did not initialise');
+  }
+  return window.supabase;
+}
+
+const { createClient } = await loadSupabaseLibrary();
 
 const SUPABASE_URL = 'https://uuuoqexhuwwiwpvqgypy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1dW9xZXhodXd3aXdwdnFneXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NDMyMDEsImV4cCI6MjEwNjIxOTIwMX0.ktKrFp8EuYBq9CBLGbME9PEo4GaReiKRVBtEOdR-BYI';
