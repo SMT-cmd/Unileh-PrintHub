@@ -1,0 +1,18 @@
+{
+  "name": "AfriNet Hub",
+  "short_name": "AfriNet",
+  "description": "Printing, gadgets, housing, and project and seminar services for the University of Ilesha (Unilesa) community.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a1f44",
+  "icons": [
+    {
+      "src": "/assets/images/afrinethub-round.webp",
+      "sizes": "160x160",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+:root {
+  --uph-surface: #ffffff;
+  --uph-surface-2: rgba(255, 255, 255, 0.82);
+  --uph-border: rgba(10, 31, 68, 0.12);
+  --uph-shadow: 0 14px 40px rgba(10, 31, 68, 0.12);
+}
+
+.payment-card {
+  margin-top: 18px;
+}
+
+#checkout-summary .loading {
+  opacity: 0.8;
+}
+
+.summary-details hr {
+  border: none;
+  height: 1px;
+  background: var(--uph-border);
+  margin: 16px 0;
+}
+
+.bank-info {
+  background: var(--uph-surface-2);
+  border: 1px solid var(--uph-border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(10, 31, 68, 0.08);
+}
+
+.highlight {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 107, 53, 0.12);
+  border: 1px solid rgba(255, 107, 53, 0.24);
+}
+
+.instruction {
+  opacity: 0.85;
+  margin-top: 10px;
+}
+
+.confirm-payment {
+  margin-top: 18px;
+}
+
+.cta-button-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  background: #25d366;
+  color: #0b1b12;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cta-button-whatsapp:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cta-button-whatsapp:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(37, 211, 102, 0.25);
+}
