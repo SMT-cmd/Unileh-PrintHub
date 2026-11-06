@@ -47,7 +47,7 @@
 
         <form id="portal-form" class="card form-card">
             <div class="disclaimer">
-                <p><strong>Note:</strong> Your privacy is our priority. All submitted information is handled securely and used only for your requested service. Portal passwords are never stored permanently.</p>
+                <p><strong>Note:</strong> Your privacy is our priority. All submitted information is handled securely and used only for your requested service. We never ask you to submit your portal password.</p>
             </div>
 
             <div class="form-grid">
@@ -114,13 +114,7 @@
                     <label for="portal-user">Unilesa Portal Username/Email</label>
                     <input type="text" id="portal-user" placeholder="Enter username" required>
                 </div>
-                <div class="form-group">
-                    <label for="portal-pass">Unilesa Portal Password</label>
-                    <div class="password-input">
-                        <input type="password" id="portal-pass" placeholder="Enter password" required>
-                        <button type="button" id="toggle-pass" class="toggle-password">Show</button>
-                    </div>
-                </div>
+                <div class="form-group"><p class="privacy-guidance" role="note"><strong>Keep your login secure.</strong> Please do not share your portal password with anyone. Our team can guide you through official login and password recovery steps.</p></div>
             </div>
 
             <div class="form-group">
@@ -173,14 +167,6 @@
         function initPortalPage() {
             const form = document.getElementById('portal-form');
             const submitBtn = document.getElementById('submit-portal');
-            const togglePassBtn = document.getElementById('toggle-pass');
-            const passwordInput = document.getElementById('portal-pass');
-
-            togglePassBtn.addEventListener('click', () => {
-                const isPassword = passwordInput.type === 'password';
-                passwordInput.type = isPassword ? 'text' : 'password';
-                togglePassBtn.textContent = isPassword ? 'Hide' : 'Show';
-            });
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -193,7 +179,7 @@
                     level: document.getElementById('level').value,
                     serviceRequested: document.getElementById('service').value,
                     portalUsername: document.getElementById('portal-user').value,
-                    portalPassword: document.getElementById('portal-pass').value,
+
                     notes: document.getElementById('notes').value,
                     status: 'Pending',
                     timestamp: new Date().toISOString()
