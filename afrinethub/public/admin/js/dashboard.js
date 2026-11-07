@@ -6,8 +6,13 @@ const checkDashboardDeps = setInterval(() => {
     }
 }, 100);
 
-function initDashboard() {
-    console.log("Initializing Admin Dashboard Logic...");
+async function initDashboard() {
+    // No subscriptions or personal data are loaded until admin identity is confirmed.
+    const allowed = await window.isAuthorizedAdmin?.().catch(() => false);
+    if (!allowed) {
+        window.location.replace('../');
+        return;
+    }
     const sb = window.supabaseClient;
 
     // --- Safe output helpers ---

@@ -27,7 +27,7 @@
             </div>
             <div class="admin-auth-switch">
                 <button id="show-login" class="tab-button active" type="button">Sign In</button>
-                <button id="show-signup" class="tab-button" type="button">One-Time Registration</button>
+                <button id="show-signup" class="tab-button" type="button" hidden disabled>One-Time Registration</button>
             </div>
 
             <div id="registration-status" class="status-message"></div>
@@ -47,7 +47,7 @@
                 <button type="submit" class="cta-button">Sign In</button>
             </form>
 
-            <form id="admin-signup-form" style="display: none;">
+            <form id="admin-signup-form" style="display: none;" hidden>
                 <div class="form-group">
                     <label for="admin-signup-email">Admin Email</label>
                     <input type="email" id="admin-signup-email" placeholder="Enter admin email" required>
@@ -67,7 +67,7 @@
         </div>
     </main>
 
-    <!-- Firebase SDKs -->
+    <!-- Supabase administration client -->
     <script type="module" src="../assets/js/database.js"></script>
     <script src="js/auth.js"></script>
 
@@ -104,10 +104,10 @@
 
             const registrationOpen = await isAdminRegistrationOpen();
             if (registrationOpen) {
-                statusDiv.textContent = "Admin registration is open. Complete one-time setup, then use Sign In.";
+                statusDiv.textContent = "Administrator registration is restricted to the platform owner.";
                 statusDiv.className = "status-message pending";
             } else {
-                statusDiv.textContent = "Admin account is already configured. Sign In is active.";
+                statusDiv.textContent = "Sign in with an administrator account. Contact the platform owner if you need access.";
                 statusDiv.className = "status-message success";
                 showSignupBtn.disabled = true;
                 openLogin();

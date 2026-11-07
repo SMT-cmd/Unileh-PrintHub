@@ -1,86 +1,93 @@
+// AfriNet Hub administrator access. Only an existing, provisioned administrator may enter.
+// The database must ALSO enforce row-level and write authorization on every admin table.
 function waitForSupabase() {
-  return new Promise((resolve) => {
-    const depCheck = setInterval(() => {
+  return new Promise((resolve, reject) => {
+    if (window.supabaseClient) return resolve();
+    let elapsed = 0;
+    const watch = setInterval(() => {
+      elapsed += 100;
       if (window.supabaseClient) {
-        clearInterval(depCheck);
+        clearInterval(watch);
         resolve();
+      } else if (elapsed >= 10000) {
+        clearInterval(watch);
+        reject(new Error('Unable to connect to the administration service. Please try again.'));
       }
     }, 100);
   });
 }
 
+async function isAuthorizedAdmin() {
+  await waitForSupabase();
+  const client = window.supabaseClient;
+  const { data: result, error: authError } = await client.auth.getUser();
+  if (authError || !result?.user?.id) return false;
+
+  // Fail closed: an authenticated user is not automatically an administrator.
+  // The admin_config record must identify the exact approved user ID.
+  const { data: admin, error } = await client
+    .from('admin_config')
+    .select('uid')
+    .eq('id', 'setup')
+    .maybeSingle();
+  if (error || !admin?.uid) return false;
+  return admin.uid === result.user.id;
+}
+
 async function isAdminRegistrationOpen() {
-  await waitForSupabase();
-  const { data, error } = await window.supabaseClient.rpc('is_registration_open');
-  if (error) { console.error(error); return false; }
-  return data;
+  // Browser-side administrator creation is disabled. Provision through trusted backend setup.
+  return false;
 }
 
-async function signUpAdmin(email, password) {
-  await waitForSupabase();
-  const registrationOpen = await isAdminRegistrationOpen();
-  if (!registrationOpen) {
-    throw new Error('One-time admin registration is already completed.');
-  }
-  const { data: signUpData, error: signUpError } = await window.supabaseClient.auth.signUp({ email, password });
-  if (signUpError) throw signUpError;
-
-  if (signUpData.session && signUpData.user) {
-    await claimAdminSlot(signUpData.user.id, signUpData.user.email);
-    await window.supabaseClient.auth.signOut();
-    return { needsEmailConfirmation: false };
-  }
-  return { needsEmailConfirmation: true };
-}
-
-async function claimAdminSlot(uid, email) {
-  const stillOpen = await isAdminRegistrationOpen();
-  if (!stillOpen) return;
-  const { error } = await window.supabaseClient.from('admin_config').insert({
-    id: 'setup', uid, registered_by: email
-  });
-  if (error && error.code !== '23505') throw error;
+async function signUpAdmin() {
+  throw new Error('Administrator registration is restricted. Contact the platform owner.');
 }
 
 async function signInAdmin(email, password) {
   await waitForSupabase();
-  const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+  const client = window.supabaseClient;
+  const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) throw error;
-  // Claiming now happens centrally below, so it covers this AND
-  // sessions Supabase creates automatically (e.g. via a confirmation link).
+  const allowed = await isAuthorizedAdmin();
+  if (!allowed) {
+    await client.auth.signOut();
+    throw new Error('This account is not authorized for administration.');
+  }
 }
 
 async function signOutAdmin() {
   await waitForSupabase();
   await window.supabaseClient.auth.signOut();
-  window.location.href = '../admin/';
+  window.location.replace('../admin/');
 }
 
-// Runs on every admin page, for every session — whether it came from
-// explicit sign-in or Supabase auto-establishing one after an email
-// confirmation redirect. This is the one place that claims the slot.
-if (window.location.pathname.includes('/admin/dashboard') || window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) {
-  waitForSupabase().then(() => {
-    window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      const user = session && session.user;
-      if (user) {
-        try {
-          await claimAdminSlot(user.id, user.email);
-        } catch (e) {
-          console.error('Error claiming admin slot:', e);
+function isDashboardPath() { return /\/admin\/dashboard\/?$/.test(window.location.pathname); }
+function isLoginPath() { return /\/admin\/?$/.test(window.location.pathname); }
+
+// Delay permission checks outside the Supabase auth callback to avoid nested auth requests.
+waitForSupabase().then(() => {
+  window.supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (!isDashboardPath() && !isLoginPath()) return;
+    setTimeout(async () => {
+      try {
+        const allowed = Boolean(session?.user) && await isAuthorizedAdmin();
+        if (isDashboardPath() && !allowed) {
+          window.location.replace('../');
+        } else if (isLoginPath() && allowed) {
+          window.location.replace('dashboard/');
         }
+      } catch (error) {
+        console.error('Administrator permission check failed:', error);
+        if (isDashboardPath()) window.location.replace('../');
       }
-      if (window.location.pathname.includes('/admin/dashboard') && !user) {
-        window.location.href = '../admin/';
-      }
-      if ((window.location.pathname.endsWith('/admin/') || window.location.pathname.endsWith('/admin')) && user) {
-        window.location.href = 'dashboard/';
-      }
-    });
+    }, 0);
   });
-}
+}).catch((error) => {
+  console.error('Administrator authentication could not initialize:', error);
+});
 
 window.signInAdmin = signInAdmin;
 window.signUpAdmin = signUpAdmin;
 window.isAdminRegistrationOpen = isAdminRegistrationOpen;
+window.isAuthorizedAdmin = isAuthorizedAdmin;
 window.signOutAdmin = signOutAdmin;
