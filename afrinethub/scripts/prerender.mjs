@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 
 const server = await createServer({
   server: { middlewareMode:true, hmr:false },
+  optimizeDeps: { noDiscovery: true, include: [] },
   appType: 'custom',
   logLevel: 'warn'
 });
