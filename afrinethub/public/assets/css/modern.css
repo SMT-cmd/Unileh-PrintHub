@@ -300,7 +300,7 @@ footer .footer-grid { gap:36px; }
 .about-inline-action {display:inline-flex;gap:9px;font-weight:800;color:#c36220;border-bottom:1px solid #ed701f;padding-bottom:7px;margin-top:12px;}
 .about-owner-figure {margin:0;}
 .about-owner-photo {border-radius:19px;overflow:hidden;height:500px;position:relative;background:linear-gradient(130deg,#172d4b,#48617d);box-shadow:20px 24px 0 #f7eadf;}
-.about-owner-photo img {display:block;width:113%;height:100%;object-fit:cover;object-position:center 43%;transform:translateX(-5.75%);}
+.about-owner-photo img {display:block;width:119%;height:100%;object-fit:cover;object-position:center 43%;transform:translateX(-8%);}
 .about-owner-figure figcaption {font-size:12px;line-height:1.6;color:#67768a;text-align:center;margin-top:18px;}
 .about-offerings-v2 {padding:75px 0 100px;border-top:1px solid #d9e2ed;}
 .about-offerings-v2 h2 {margin-bottom:35px;}
