@@ -1,3 +1,9 @@
+function assertNoPreviewWrites() {
+  if (location.hostname.endsWith('.vercel.app')) {
+    throw new Error('This is a design preview. For orders and requests, please use afrinethub.com.ng.');
+  }
+}
+
 // Loads the Supabase library from our own copy in assets/vendor (no outside CDN).
 // Pages that already include the vendor <script> tag will have window.supabase ready;
 // pages that don't (news, partners and so on) get it loaded here.
@@ -26,6 +32,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function saveOrder(orderData) {
+  assertNoPreviewWrites();
   try {
     const id = crypto.randomUUID();
     const { data: orderNumber, error: rpcError } = await supabase.rpc('generate_order_number');
@@ -56,6 +63,7 @@ async function getOrder(orderId) {
 }
 
 async function savePortalRequest(requestData) {
+  assertNoPreviewWrites();
   try {
     const id = crypto.randomUUID();
     const { portalPassword: _discardedPassword, ...rest } = requestData;
@@ -73,6 +81,7 @@ async function savePortalRequest(requestData) {
 }
 
 async function saveAdvertRequest(advertData) {
+  assertNoPreviewWrites();
   try {
     const id = crypto.randomUUID();
     const { error } = await supabase.from('advert_requests').insert({ id, status: 'Pending', data: advertData });
@@ -85,6 +94,7 @@ async function saveAdvertRequest(advertData) {
 }
 
 async function saveFeedbackSuggestion(feedbackData) {
+  assertNoPreviewWrites();
   try {
     const id = crypto.randomUUID();
     const { error } = await supabase.from('feedback_suggestions').insert({ id, status: 'Pending', data: feedbackData });
@@ -97,6 +107,7 @@ async function saveFeedbackSuggestion(feedbackData) {
 }
 
 async function saveProjectRequest(requestData) {
+  assertNoPreviewWrites();
   try {
     const id = crypto.randomUUID();
     const { error } = await supabase.from('project_requests').insert({ id, status: 'Pending', data: requestData });

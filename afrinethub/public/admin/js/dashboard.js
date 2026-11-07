@@ -7,6 +7,11 @@ const checkDashboardDeps = setInterval(() => {
 }, 100);
 
 async function initDashboard() {
+    if (location.hostname.endsWith('.vercel.app')) {
+        const main = document.querySelector('.admin-main .container');
+        if (main) main.replaceChildren(Object.assign(document.createElement('p'), {textContent:'Design preview only. Live administration is disabled on this preview link.'}));
+        return;
+    }
     // No subscriptions or personal data are loaded until admin identity is confirmed.
     const allowed = await window.isAuthorizedAdmin?.().catch(() => false);
     if (!allowed) {

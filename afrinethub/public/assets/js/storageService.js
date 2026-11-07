@@ -29,6 +29,7 @@ function initSupabase() {
 initSupabase();
 
 async function uploadFile(file, onProgress = null) {
+    if (location.hostname.endsWith(".vercel.app")) throw new Error("Uploads are disabled in this design preview. Please use the main AfriNet Hub website.");
     if (!file) throw new Error("No file selected for upload.");
     try {
         if (!supabaseClient) initSupabase();
@@ -63,6 +64,7 @@ async function uploadFile(file, onProgress = null) {
 }
 
 async function deleteFile(fileId) {
+    if (location.hostname.endsWith(".vercel.app")) throw new Error("Preview mode: deleting live files is disabled.");
     if (!fileId) return;
     try {
         if (!supabaseClient) initSupabase();

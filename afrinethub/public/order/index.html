@@ -198,7 +198,7 @@
                         uploadBtn.textContent = 'Preparing Upload...';
 
                         feedback.style.display = 'block';
-                        feedback.innerHTML = '<p style="color: var(--text-color);">Uploading to secure storage...</p>';
+                        feedback.innerHTML = '<p style="color: var(--text-color);">Uploading your file...</p>';
 
                         const result = await window.storageService.uploadFile(file, (progress) => {
                             uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
