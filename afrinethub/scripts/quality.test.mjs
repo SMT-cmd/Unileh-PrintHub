@@ -27,9 +27,9 @@ test('approved brand and exact university background remain local',()=>{
  assert.ok(existsSync(resolve(root,'public/assets/images/unilesa_background.png')));
  assert.ok(existsSync(resolve(root,'public/assets/images/hero-multiservice.jpg')));
  assert.ok(existsSync(resolve(root,'public/assets/images/hero-printing.jpg')));
- assert.match(read('src/App.jsx'),/afrinethub-round\\.webp/);
- assert.match(read('src/App.jsx'),/hero-multiservice\\.jpg/);
- assert.match(read('src/App.jsx'),/hero-printing\\.jpg/);
+ assert.match(read('src/App.jsx'),/afrinethub-round\.webp/);
+ assert.match(read('src/App.jsx'),/hero-multiservice\.jpg/);
+ assert.match(read('src/App.jsx'),/hero-printing\.jpg/);
  assert.match(read('src/styles.css'),/unilesa_background\.png/);
  const css=read('public/assets/css/style.css');
  assert.ok(css.includes("url('../images/unilesa_background.png')"));
@@ -94,4 +94,26 @@ test('staging blocks real orders, uploads and admin edits',()=>{
  assert.doesNotMatch(auth,/claimAdminSlot\(|\.auth\.signUp\(/);
  assert.match(auth,/async function isAuthorizedAdmin/);
  assert.match(dashboard,/Live administration is disabled on this preview link/);
+});
+
+test('all generated banners are integrated and responsive',()=>{
+ const images=[
+  'hero-services.jpg','connected-services.jpg','campus-essentials.jpg',
+  'connected-community.jpg','service-printing.jpg','service-gadgets.jpg',
+  'service-data.jpg','service-housing.jpg','service-project.jpg'
+ ];
+ const app=read('src/App.jsx');
+ const css=read('src/editorial.css');
+ for(const asset of images){
+  assert.ok(existsSync(resolve(root,'public/assets/images/'+asset)),asset);
+  assert.ok(app.includes(asset),'Rendered component does not reference '+asset);
+ }
+ assert.match(app,/id="mobile-nav"/);
+ assert.match(app,/className="service-media"/);
+ assert.match(app,/className="community-banner"/);
+ assert.match(css,/@media \(max-width:600px\)/);
+ assert.match(css,/@media \(max-width:980px\)/);
+ assert.match(css,/\.hero-art \{position:relative/);
+ assert.match(css,/\.hero-photo-wash/);
+ assert.doesNotMatch(css,/display:none;\s*\/\*\s*mobile hero artwork/i);
 });
