@@ -71,3 +71,21 @@ Earlier version also returned HTTP 200 for printing, order, gadgets, housing, pr
 
 ## Safety of current domains
 Global Webstores hosting and DNS untouched. AfriNet live domain untouched. Original source repo untouched. No production Supabase data changed. PR #2 remains draft and unmerged. Do not switch DNS until live service and security checks pass.
+
+
+## November 7: responsive imagery and live staging QA
+
+- Integrated **9 previously generated user-selected images** into the actual React website, not external flyers: 6 hero slides use image art, 5 service cards have distinct photos, and the trust/campus/community sections show supporting images.
+- Updated the hero so copy and CTA remain **inside the same banner** as the image. Desktop layers HTML copy on the left over a soft contrast wash; mobile/tablet stack the live text and art within one card with size-dependent image cropping.
+- Added `src/editorial.css` with art-directed breakpoints at 1180, 980, 700, 600 and 370px, plus 5 separate card images and a responsive campus panel.
+- All images are optimized JPEG renditions, approximately 70–125 KB each, hosted locally inside the Vercel deployment and tracked in the same Git branch.
+- React renders all hero headings, descriptions and call-to-action links as HTML. No banner text is baked into an image.
+- New documentation: `docs/HOMEPAGE_VISUAL_ASSETS.md`.
+- Latest **staging** release: `dpl_3xFfwhABvEzvyXtLdtxTC3UGUNV2`, READY at `https://afrinethub-6tgkwuftc-kingsmt.vercel.app/`.
+- Verified Vercel build: `npm run test && vite build && node scripts/prerender.mjs`. **8/8 tests passing, 0 failing**; prerender completed.
+- Verified HTTP 200 for homepage, printing, order, checkout, gadgets, housing, project, portal, news, partners, About, sitemap, robots, all nine images, approved round logo and university background.
+- Homepage HTTP confirms 5 image cards, hero HTML text, campus and community image references.
+- Live browser-based device screenshot QA was **not** completed because the third-party browser service account lacks credit; do not describe pixel-perfect mobile/tablet testing as verified.
+- Production DNS/Supabase access and full legacy-to-React conversion remain outstanding. Do **not** repoint `afrinethub.com.ng` or enable staging transactions.
+
+The original main branch, Global Webstores infrastructure, and live AfriNet domain remain unchanged.
