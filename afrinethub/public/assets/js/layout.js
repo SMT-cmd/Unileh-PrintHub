@@ -2,7 +2,7 @@
     // ===== EDIT THESE TO CHANGE BRANDING / MENU SITE-WIDE =====
     const BRAND_NAME = 'AfriNet Hub';
     const POWERED_BY = '';   // e.g. 'powered by Something', or leave empty for none
-    const TAGLINE = 'Serving the <strong>University of Ilesha (Unilesa)</strong> community.'; // empty string to remove
+    const TAGLINE = 'Serving the <strong>University of Ilesa (UNILESA)</strong> community.'; // empty string to remove
     const DATA_URL = 'https://afrinethub.com'; // external data-selling site
     const NAV = [
         { label: 'Printing', path: 'printing/', also: ['order', 'checkout'] },
@@ -60,11 +60,52 @@
                         </span>
                     </a>
                 </div>
-                <nav>
+                <nav id="legacy-main-nav" aria-label="Main navigation">
                     <ul>${NAV.map((n) => `<li>${link(n)}</li>`).join('')}</ul>
                 </nav>
-                <button id="theme-toggle">Toggle Theme</button>
+                <div class="legacy-header-actions">
+                    <button id="theme-toggle" type="button" aria-label="Change color theme">Theme</button>
+                    <button id="legacy-menu-button" class="legacy-menu-button" type="button" aria-label="Open menu" aria-controls="legacy-main-nav" aria-expanded="false">
+                        <span class="legacy-menu-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+                    </button>
+                </div>
             </div>`;
+    }
+
+    const menuButton = headerEl?.querySelector('#legacy-menu-button');
+    const menuNav = headerEl?.querySelector('#legacy-main-nav');
+    const setMenuOpen = (open) => {
+        if (!menuButton || !menuNav) return;
+        menuButton.setAttribute('aria-expanded', String(open));
+        menuButton.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        menuNav.classList.toggle('is-open', open);
+        document.body.classList.toggle('legacy-menu-open', open);
+    };
+    menuButton?.addEventListener('click', () => {
+        setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true');
+    });
+    menuNav?.addEventListener('click', (event) => {
+        if (event.target.closest('a')) setMenuOpen(false);
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setMenuOpen(false);
+    });
+    document.addEventListener('pointerdown', (event) => {
+        if (headerEl && !headerEl.contains(event.target)) setMenuOpen(false);
+    });
+    const desktopBreakpoint = window.matchMedia('(min-width: 981px)');
+    desktopBreakpoint.addEventListener?.('change', (event) => {
+        if (event.matches) setMenuOpen(false);
+    });
+
+    const pageMain = document.querySelector('body > main');
+    if (pageMain && !pageMain.id) pageMain.id = 'legacy-page-main';
+    if (pageMain && !document.querySelector('.legacy-skip-link')) {
+        const skip = document.createElement('a');
+        skip.href = '#legacy-page-main';
+        skip.className = 'legacy-skip-link';
+        skip.textContent = 'Skip to content';
+        document.body.insertBefore(skip, document.body.firstChild);
     }
 
     const footerEl = document.querySelector('body > footer');
@@ -73,6 +114,10 @@
             <div class="container">
                 <div class="footer-grid">
                     <div class="footer-section">
+                        <div class="legacy-footer-brand">
+                            <img src="${base}assets/images/afrinethub-round.webp" alt="" width="52" height="52" loading="lazy">
+                            <strong>AfriNet <span>Hub</span></strong>
+                        </div>
                         <p>&copy; ${new Date().getFullYear()} ${BRAND_NAME}. All Rights Reserved.</p>
                         ${TAGLINE ? `<p>${TAGLINE}</p>` : ''}
                     </div>
