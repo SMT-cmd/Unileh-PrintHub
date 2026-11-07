@@ -70,7 +70,7 @@
                 if (list.length > 0) {
                     container.innerHTML = list.map(item => `
                         <div class="partner-card card">
-                            <img src="${attrUrl(item.logoUrl || '../assets/images/icons/partner-placeholder.svg')}" alt="${esc(item.name)}" class="partner-logo">
+                            <img src="${attrUrl(item.logoUrl || '../assets/images/icons/partner-placeholder.svg')}" alt="${esc(item.name)}" class="partner-logo" loading="lazy" decoding="async">
                             <h3>${esc(item.name)}</h3>
                             <p>${esc(item.description || '')}</p>
                             ${item.contactUrl ? `<a href="${attrUrl(item.contactUrl)}" class="cta-button-small" target="_blank" rel="noopener noreferrer">Contact / Visit</a>` : ''}
