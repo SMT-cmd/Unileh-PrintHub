@@ -61,7 +61,12 @@ function Header() {
 }
 
 function HeroVisual({kind}) {
+  const heroPhoto = kind === 'everything' ? '/assets/images/hero-multiservice.jpg' :
+                    kind === 'printing' ? '/assets/images/hero-printing.jpg' : null;
   return <div className={'hero-art hero-art-'+kind} aria-hidden="true">
+    {heroPhoto && <div className="hero-photo-frame">
+      <img className="hero-photo" src={heroPhoto} alt="" loading={kind==='everything'?'eager':'lazy'} decoding="async" fetchPriority={kind==='everything'?'high':'auto'} />
+    </div>}
      <div className="art-glow art-glow-a"/><div className="art-glow art-glow-b"/><div className="art-orbit"/>
      {kind==='everything' && <div className="art-platform art-all">
        <div className="art-item art-house"><House size={92}/><span className="art-house-roof"/></div>

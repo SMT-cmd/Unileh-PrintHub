@@ -25,7 +25,11 @@ test('all preserved service and admin pages are present',()=>{
 test('approved brand and exact university background remain local',()=>{
  assert.ok(existsSync(resolve(root,'public/assets/images/afrinethub-round.webp')));
  assert.ok(existsSync(resolve(root,'public/assets/images/unilesa_background.png')));
- assert.match(read('src/App.jsx'),/afrinethub-round\.webp/);
+ assert.ok(existsSync(resolve(root,'public/assets/images/hero-multiservice.jpg')));
+ assert.ok(existsSync(resolve(root,'public/assets/images/hero-printing.jpg')));
+ assert.match(read('src/App.jsx'),/afrinethub-round\\.webp/);
+ assert.match(read('src/App.jsx'),/hero-multiservice\\.jpg/);
+ assert.match(read('src/App.jsx'),/hero-printing\\.jpg/);
  assert.match(read('src/styles.css'),/unilesa_background\.png/);
  const css=read('public/assets/css/style.css');
  assert.ok(css.includes("url('../images/unilesa_background.png')"));
