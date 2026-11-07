@@ -82,3 +82,16 @@ test('SEO canonical, non-indexed admin and public sitemap',()=>{
  assert.match(robots,/Disallow: \/admin\//);
  assert.doesNotMatch(sitemap,/\/admin\/|\/checkout\//);
 });
+
+test('staging blocks real orders, uploads and admin edits',()=>{
+ const db=read('public/assets/js/database.js');
+ const storage=read('public/assets/js/storageService.js');
+ const auth=read('public/admin/js/auth.js');
+ const dashboard=read('public/admin/js/dashboard.js');
+ assert.match(db,/function assertNoPreviewWrites/);
+ assert.match(db,/location\.hostname\.endsWith\('\.vercel\.app'\)/);
+ assert.match(storage,/Uploads are disabled in this design preview/);
+ assert.doesNotMatch(auth,/claimAdminSlot\(|\.auth\.signUp\(/);
+ assert.match(auth,/async function isAuthorizedAdmin/);
+ assert.match(dashboard,/Live administration is disabled on this preview link/);
+});
