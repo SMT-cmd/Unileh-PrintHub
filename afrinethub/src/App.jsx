@@ -7,11 +7,11 @@ import {
 } from 'lucide-react';
 
 const services = [
-  { id:'printing', label:'Printing & Photocopying', short:'Print, copy and prepare your documents with less stress.', href:'/printing/', icon:Printer, type:'blue', action:'Print a document', tag:'PRINTING' },
-  { id:'gadgets', label:'Gadgets & Electronics', short:'Explore phones, laptops, tablets, watches and more.', href:'/gadgets/', icon:Laptop, type:'powder', action:'Browse gadgets', tag:'TECH' },
-  { id:'data', label:'Data & Airtime', short:'Get connected with mobile data and airtime.', href:'https://afrinethub.com', icon:Wifi, type:'orange', action:'Buy data or airtime', tag:'CONNECTIVITY', external:true },
-  { id:'housing', label:'Housing & Accommodation', short:'Explore rooms, apartments and short-lets near campus.', href:'/housing/', icon:House, type:'cream', action:'Find accommodation', tag:'HOUSING' },
-  { id:'project', label:'Projects & Seminars', short:'Get guidance, editing and research support for academic work.', href:'/project/', icon:GraduationCap, type:'lavender', action:'Request support', tag:'ACADEMICS' }
+  { id:'printing', label:'Printing & Photocopying', short:'Print, copy and prepare your documents with less stress.', href:'/printing/', icon:Printer, type:'blue', action:'Print a document', tag:'PRINTING' , image:'/assets/images/service-printing.jpg' },
+  { id:'gadgets', label:'Gadgets & Electronics', short:'Explore phones, laptops, tablets, watches and more.', href:'/gadgets/', icon:Laptop, type:'powder', action:'Browse gadgets', tag:'TECH' , image:'/assets/images/service-gadgets.jpg' },
+  { id:'data', label:'Data & Airtime', short:'Get connected with mobile data and airtime.', href:'https://afrinethub.com', icon:Wifi, type:'orange', action:'Buy data or airtime', tag:'CONNECTIVITY', external:true , image:'/assets/images/service-data.jpg' },
+  { id:'housing', label:'Housing & Accommodation', short:'Explore rooms, apartments and short-lets near campus.', href:'/housing/', icon:House, type:'cream', action:'Find accommodation', tag:'HOUSING' , image:'/assets/images/service-housing.jpg' },
+  { id:'project', label:'Projects & Seminars', short:'Get guidance, editing and research support for academic work.', href:'/project/', icon:GraduationCap, type:'lavender', action:'Request support', tag:'ACADEMICS' , image:'/assets/images/service-project.jpg' },
 ];
 const slides = [
  { eyebrow:'ONE HUB. MORE POSSIBILITIES.', kicker:'Welcome to AfriNet Hub', heading:['Life gets easier', 'when everything', 'is in one place.'], emphasis:2, description:'Print your documents, find the right tech, top up data, explore housing and get academic support—all from one trusted place.', cta:'Explore our services', href:'#services', tone:'all', figure:'everything' },
@@ -42,7 +42,7 @@ function Header() {
     <header className="header" id="top">
       <div className="shell header-row">
         <Brand/>
-        <nav className={'nav '+(open?'nav-open':'')} aria-label="Main navigation">
+        <nav id="mobile-nav" className={'nav '+(open?'nav-open':'')} aria-label="Main navigation">
           <a href="/" onClick={()=>setOpen(false)}>Home</a>
           <a href="/#services" onClick={()=>setOpen(false)}>Our services</a>
           <a href="/gadgets/" onClick={()=>setOpen(false)}>Gadgets</a>
@@ -60,29 +60,23 @@ function Header() {
   </>;
 }
 
+const heroImagery = {
+  everything: '/assets/images/hero-services.jpg',
+  printing: '/assets/images/service-printing.jpg',
+  gadgets: '/assets/images/service-gadgets.jpg',
+  data: '/assets/images/service-data.jpg',
+  housing: '/assets/images/service-housing.jpg',
+  project: '/assets/images/service-project.jpg'
+};
 function HeroVisual({kind}) {
-  const heroPhoto = kind === 'everything' ? '/assets/images/hero-multiservice.jpg' :
-                    kind === 'printing' ? '/assets/images/hero-printing.jpg' : null;
   return <div className={'hero-art hero-art-'+kind} aria-hidden="true">
-    {heroPhoto && <div className="hero-photo-frame">
-      <img className="hero-photo" src={heroPhoto} alt="" loading={kind==='everything'?'eager':'lazy'} decoding="async" fetchPriority={kind==='everything'?'high':'auto'} />
-    </div>}
-     <div className="art-glow art-glow-a"/><div className="art-glow art-glow-b"/><div className="art-orbit"/>
-     {kind==='everything' && <div className="art-platform art-all">
-       <div className="art-item art-house"><House size={92}/><span className="art-house-roof"/></div>
-       <div className="art-item art-printer"><Printer size={130}/><div className="print-paper"/></div>
-       <div className="art-item art-laptop"><Laptop size={126}/></div>
-       <div className="art-item art-phone"><Smartphone size={83}/></div>
-       <div className="art-item art-wifi"><Wifi size={78}/></div>
-       <div className="art-item art-books"><BookOpen size={90}/></div>
-     </div>}
-     {kind==='printing' && <div className="art-platform single-art printing-objects"><Printer size={240} strokeWidth={1.15}/><div className="art-sheets"><span/><span/><span/></div><FileText className="art-minor art-minor-a" size={66}/></div>}
-     {kind==='gadgets' && <div className="art-platform single-art gadget-objects"><Laptop size={245} strokeWidth={1.1}/><Smartphone className="gadget-phone" size={112} strokeWidth={1.15}/><Headphones className="gadget-headphones" size={95} strokeWidth={1.3}/></div>}
-     {kind==='data' && <div className="art-platform single-art data-objects"><Smartphone size={242} strokeWidth={1.05}/><Wifi className="data-wifi" size={145} strokeWidth={1.25}/><div className="signal-card">4G / 5G<span>CONNECTED</span></div></div>}
-     {kind==='housing' && <div className="art-platform single-art housing-objects"><House size={260} strokeWidth={1.1}/><div className="key-card"><MapPin size={25}/> Find your next place</div></div>}
-     {kind==='project' && <div className="art-platform single-art project-objects"><GraduationCap size={225} strokeWidth={1.1}/><BookOpen size={135} strokeWidth={1.2}/><FileText size={75} strokeWidth={1.2}/></div>}
-     <div className="art-bottom"><span>AFRINET HUB / SERVICES</span><span>MADE FOR EVERYDAY LIFE</span></div>
-   </div>;
+    <picture className="hero-art-picture">
+      <img className="hero-photo" src={heroImagery[kind] || heroImagery.everything}
+        alt="" width="1600" height="900" loading={kind==='everything'?'eager':'lazy'}
+        decoding="async" fetchPriority={kind==='everything'?'high':'auto'}/>
+    </picture>
+    <div className="hero-photo-wash" />
+  </div>;
 }
 
 function Carousel() {
@@ -116,13 +110,20 @@ function Carousel() {
 }
 
 function ServiceCard({service,index}) {
- const Icon=service.icon;
  return <AppLink href={service.href} external={service.external} className={'service-tile tile-'+service.type}>
-   <div className="service-upper"><span className="service-number">0{index+1} / {service.tag}</span><span className="tile-arrow"><ArrowUpRight size={21}/></span></div>
-   <div className="service-icon"><Icon size={52} strokeWidth={1.35}/><span className="service-icon-halo"/></div>
-   <div className="service-body"><h3>{service.label}</h3><p>{service.short}</p><span className="tile-link">{service.action} <ArrowRight size={15}/></span></div>
+   <div className="service-media">
+     <img src={service.image} alt="" loading="lazy" decoding="async" width="1100" height="826"/>
+     <span className="service-number">0{index+1} / {service.tag}</span>
+     <span className="tile-arrow" aria-hidden="true"><ArrowUpRight size={21}/></span>
+   </div>
+   <div className="service-body">
+     <h3>{service.label}</h3>
+     <p>{service.short}</p>
+     <span className="tile-link">{service.action} <ArrowRight size={15}/></span>
+   </div>
  </AppLink>;
 }
+
 function Services() {
  return <section className="services section" id="services"><div className="shell">
   <div className="section-head"><div><p className="label">FIND WHAT YOU NEED</p><h2>More than one service.<br/><em>One easy place.</em></h2></div><p>Study, work, life and everything in between. Choose a service and we'll help you get started.</p></div>
@@ -132,7 +133,10 @@ function Services() {
 function Trust() {
  const benefits=[{icon:Layers3,title:'Everything together',text:'Printing, tech, housing and student support in one place.'},{icon:Clock3,title:'Less back and forth',text:'Clear next steps so you can spend more time on what matters.'},{icon:MessageCircle,title:'A real team to talk to',text:'Questions about an order or a service? Reach us directly.'}];
  return <section className="trust section"><div className="shell">
-   <div className="trust-title"><p className="label">WHY AFRINET HUB?</p><h2>We make the everyday<br/><em>feel a little easier.</em></h2></div>
+   <div className="trust-intro">
+   <div className="trust-title"><p className="label">WHY AFRINET HUB?</p><h2>We make the everyday<br/><em>feel a little easier.</em></h2><p>One place for the things that keep your day moving.</p></div>
+   <img className="trust-image" src="/assets/images/connected-services.jpg" alt="Printing, electronics, data and housing services brought together" loading="lazy" decoding="async" width="1600" height="900"/>
+ </div>
    <div className="trust-list">{benefits.map(b=><article key={b.title}><span><b.icon size={29}/></span><h3>{b.title}</h3><p>{b.text}</p></article>)}</div>
  </div></section>;
 }
@@ -149,13 +153,20 @@ function Featured() {
      <div><p className="label">MADE FOR CAMPUS LIFE</p><h2>Your assignments.<br/>Your next laptop.<br/><em>Your next place.</em></h2><p>Whatever is next on your list, there is a place to start right here.</p>
        <div className="spotlight-links"><AppLink href="/order/" className="btn btn-orange">Print now <ArrowUpRight size={18}/></AppLink><AppLink href="/housing/" className="btn btn-outline">Find housing <ArrowRight size={18}/></AppLink></div>
      </div>
-     <div className="campus-figure" aria-hidden="true"><div className="campus-card"><House size={115}/></div><div className="campus-card second"><BookOpen size={102}/></div><div className="campus-ring"/></div>
+     <div className="campus-figure"><img className="campus-image" src="/assets/images/campus-essentials.jpg" alt="Printed assignments, a laptop, mobile data and student housing" loading="lazy" decoding="async" width="1600" height="900"/></div>
    </div>
  </div></section>;
 }
 function More() {
  return <section className="more section"><div className="shell">
-  <div className="section-head"><div><p className="label">MORE WAYS WE CAN HELP</p><h2>Good things happen<br/><em>when we connect.</em></h2></div><p>Find student support, campus updates and businesses working with AfriNet Hub.</p></div>
+  <div className="community-banner">
+    <img className="community-image" src="/assets/images/connected-community.jpg" alt="" loading="lazy" decoding="async" width="1600" height="900"/>
+    <div className="community-content">
+      <p className="label">MORE WAYS WE CAN HELP</p>
+      <h2>Good things happen<br/><em>when we connect.</em></h2>
+      <p>Find student support, campus updates and businesses working with AfriNet Hub.</p>
+    </div>
+  </div>
   <div className="more-grid">
     <AppLink href="/portal/" className="more-card"><ShieldCheck size={35}/><h3>Student portal help</h3><p>Need help finding the right way through a portal issue? Let's guide you.</p><span>Get support <ArrowUpRight size={18}/></span></AppLink>
     <AppLink href="/news/" className="more-card"><Zap size={35}/><h3>News & updates</h3><p>Stay informed about what is happening on the platform and around campus.</p><span>See updates <ArrowUpRight size={18}/></span></AppLink>
