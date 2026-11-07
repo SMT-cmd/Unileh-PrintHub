@@ -281,3 +281,39 @@ footer .footer-grid { gap:36px; }
   .page-header h1{font-size:clamp(27px,8vw,38px);}
 }
 @media (prefers-reduced-motion: reduce){.ticker{animation:none!important;padding-left:0;white-space:normal;}.cta-button,.cta-button-secondary,.card{transition:none!important}}
+
+
+/* AfriNet Hub — About page with authentic leadership portrait */
+.about-reborn {max-width:1200px!important;}
+.about-eyebrow {font-size:11px;letter-spacing:.15em;font-weight:800;color:#ed701f;}
+.about-hero-v2 {padding:75px 0 85px;border-bottom:1px solid #d9e2ed;}
+.about-hero-v2 h1 {font-family:Manrope,"Segoe UI",sans-serif;font-size:clamp(37px,5.5vw,72px);line-height:1.11;letter-spacing:-.055em;max-width:1030px;margin:20px 0 25px;color:#0a1f44;font-weight:800;}
+.about-hero-v2 h1 span {color:#ed701f;}
+.about-hero-v2>p {font-size:17px;line-height:1.8;color:#52637d;max-width:680px;}
+.about-hero-actions {display:flex;align-items:center;flex-wrap:wrap;gap:27px;margin-top:32px;}
+.about-hero-actions .cta-button,.about-contact-v2 .cta-button {border-radius:9px;text-transform:none;letter-spacing:0;font-size:14px;padding:14px 23px;}
+.about-secondary-link {font-size:14px;font-weight:800;color:#0a1f44;border-bottom:1px solid #e77b2d;padding-bottom:5px;}
+.about-secondary-link span {color:#ed701f;}
+.about-story-v2 {display:grid;grid-template-columns:1.05fr .95fr;gap:min(8vw,95px);align-items:center;padding:95px 0;}
+.about-story-text h2,.about-offerings-v2 h2,.about-contact-v2 h2 {font-family:Manrope,"Segoe UI",sans-serif;letter-spacing:-.05em;font-weight:800;line-height:1.14;color:#0a1f44;font-size:clamp(32px,4vw,54px);margin:17px 0 23px;}
+.about-story-text p {color:#53637a;line-height:1.84;font-size:15px;margin-bottom:18px;}
+.about-inline-action {display:inline-flex;gap:9px;font-weight:800;color:#c36220;border-bottom:1px solid #ed701f;padding-bottom:7px;margin-top:12px;}
+.about-owner-figure {margin:0;}
+.about-owner-photo {border-radius:19px;overflow:hidden;height:500px;position:relative;background:linear-gradient(130deg,#172d4b,#48617d);box-shadow:20px 24px 0 #f7eadf;}
+.about-owner-photo img {display:block;width:113%;height:100%;object-fit:cover;object-position:center 43%;transform:translateX(-5.75%);}
+.about-owner-figure figcaption {font-size:12px;line-height:1.6;color:#67768a;text-align:center;margin-top:18px;}
+.about-offerings-v2 {padding:75px 0 100px;border-top:1px solid #d9e2ed;}
+.about-offerings-v2 h2 {margin-bottom:35px;}
+.about-offerings-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.about-offerings-grid>a {display:flex;flex-direction:column;min-height:247px;border-radius:13px;padding:26px;background:#f0f5fb;border:1px solid #e5edf5;transition:transform .2s ease,background .2s ease;}
+.about-offerings-grid>a:nth-child(3n+2){background:#fff0e6;}
+.about-offerings-grid>a:hover{transform:translateY(-4px);background:#e3edf9;}
+.about-count {font-weight:800;font-size:11px;color:#e77828;}
+.about-offerings-grid h3 {font-family:Manrope,"Segoe UI",sans-serif;font-size:21px;letter-spacing:-.04em;margin:22px 0 9px;color:#112e53;}
+.about-offerings-grid p {font-size:13px;line-height:1.7;color:#5b6c83;margin-bottom:15px;}
+.about-offerings-grid b {margin-top:auto;font-size:12px;color:#184b82;}
+.about-contact-v2 {display:flex;align-items:end;justify-content:space-between;gap:28px;margin:0 0 20px;padding:55px 60px;background:#0a1f44;color:white;border-radius:15px;}
+.about-contact-v2 h2 {color:white;font-size:clamp(29px,3.5vw,46px);margin-bottom:0;}
+.about-contact-v2 .cta-button{white-space:nowrap;flex-shrink:0;}
+@media(max-width:900px){.about-story-v2{grid-template-columns:1fr;gap:40px;padding:65px 0}.about-owner-photo{height:420px;max-width:530px;margin:auto}.about-offerings-grid{grid-template-columns:repeat(2,1fr)}.about-contact-v2{padding:40px;}}
+@media(max-width:580px){.about-hero-v2{padding:48px 0 56px}.about-hero-v2 h1{font-size:clamp(33px,8.4vw,45px)}.about-hero-v2>p{font-size:14px}.about-hero-actions{gap:20px}.about-hero-actions .cta-button{width:100%;text-align:center}.about-story-v2{padding:60px 0}.about-owner-photo{height:375px}.about-owner-figure figcaption{text-align:left}.about-offerings-v2{padding:58px 0 68px}.about-offerings-grid{grid-template-columns:1fr}.about-offerings-grid>a{min-height:208px}.about-contact-v2{padding:34px 24px;display:block}.about-contact-v2 .cta-button{display:block;margin-top:30px;text-align:center;white-space:normal}}
