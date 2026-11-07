@@ -13,8 +13,8 @@
 ## Vercel
 - Separate target account/team: KINGSMT `team_wTJ5BJ3cFDmuE4GfFJWAjUFV`, **not** the Global Webstores team.
 - Project: `afrinethub` / `prj_GU7VD4gMpTe9sE6KOUDHHYkKuC77`.
-- Latest verified staged deployment: `dpl_87u4MvTzEgqkT4dgUCzCXUWQCNvR`
-- Protected staging: https://afrinethub-1z4d04kvn-kingsmt.vercel.app/
+- Latest verified staged deployment: `dpl_H3C6hHYz98UH89Fh3zs9pS1CZbks`
+- Protected staging: https://afrinethub-loijp59qu-kingsmt.vercel.app/
 - Deployment state: **READY**. Vite production bundle built and React HTML prerender completed.
 - Manual source-file deployment; GitHub login connection is missing in KINGSMT, so automatic deploy-on-push is not active.
 - **Custom domain not attached.** The current afrinethub.com.ng production site has not been changed.
@@ -24,6 +24,7 @@
 - Exact existing University of Ilesa watermark binary retained and corrected in legacy CSS.
 - Six-slide homepage carousel; image-only, optimized hero photographs are integrated for multi-service and printing slides. Other four slides use separate decorative 3D-style CSS compositions, avoiding repetition.
 - Main React homepage: responsive nav, readable real HTML headlines/buttons, services, steps, trust, students, support, footer, animation opt-outs.
+- Cropped the authentic portrait within the About layout without altering face or complexion.
 - Real HTML prerender for crawlable homepage copy, canonical metadata, social image, Organization JSON-LD, robots.txt, sitemap.xml, and relevant page canonical tags.
 - Standardized branding and compact mobile menu across retained original service pages.
 - Updated About page presents the complete multi-service business and uses ONE authentic owner-supplied portrait. No invented identity/name or owner portrait in all slides.
