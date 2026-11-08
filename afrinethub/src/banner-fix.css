@@ -798,3 +798,46 @@ body { max-width:100%; overflow-x:clip; }
  .hero .hero-footer>p {font-size:9px;}
  .trust .trust-title,.spotlight .spotlight-panel>div:first-child,.more .community-content {padding:22px 16px 19px;}
 }
+
+/* Align the image fade exactly to its mobile media region.
+   Avoid masking most of the artwork when a headline wraps to extra lines. */
+@media (max-width:650px) {
+  .hero .hero-grid { --mobile-hero-art:clamp(178px,60vw,260px); }
+  .hero .hero-art-picture {height:var(--mobile-hero-art);}
+  .hero .hero-content {
+    padding-top:calc(var(--mobile-hero-art) - 9px);
+  }
+  .hero .hero-photo-wash {
+    background:linear-gradient(to bottom,
+      transparent 0px,
+      transparent calc(var(--mobile-hero-art) - 80px),
+      rgba(9,35,74,.25) calc(var(--mobile-hero-art) - 60px),
+      rgba(9,35,74,.88) calc(var(--mobile-hero-art) - 22px),
+      #09234a var(--mobile-hero-art),
+      #09234a 100%);
+  }
+  .trust .trust-intro,
+  .spotlight .spotlight-panel,
+  .more .community-banner { --mobile-feature-art:clamp(180px,61vw,255px); }
+  .trust .trust-image,
+  .spotlight .spotlight-panel>.campus-figure,
+  .more .community-banner .community-image {
+    height:var(--mobile-feature-art);
+  }
+  .trust .trust-title,
+  .spotlight .spotlight-panel>div:first-child,
+  .more .community-content {
+    padding-top:calc(var(--mobile-feature-art) - 3px);
+  }
+  .trust .trust-intro::after,
+  .spotlight .spotlight-panel::after,
+  .more .community-banner::after {
+    background:linear-gradient(to bottom,
+      transparent 0px,
+      transparent calc(var(--mobile-feature-art) - 75px),
+      rgba(246,249,253,.42) calc(var(--mobile-feature-art) - 55px),
+      rgba(246,249,253,.92) calc(var(--mobile-feature-art) - 20px),
+      #f6f9fd var(--mobile-feature-art),
+      #f6f9fd 100%);
+  }
+}
