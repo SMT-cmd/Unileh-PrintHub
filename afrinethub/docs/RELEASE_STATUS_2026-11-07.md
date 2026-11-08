@@ -89,3 +89,23 @@ Global Webstores hosting and DNS untouched. AfriNet live domain untouched. Origi
 - Production DNS/Supabase access and full legacy-to-React conversion remain outstanding. Do **not** repoint `afrinethub.com.ng` or enable staging transactions.
 
 The original main branch, Global Webstores infrastructure, and live AfriNet domain remain unchanged.
+
+
+## November 8, 2026 — banner overflow and missing text fix
+
+**Staging-only visual release**: `dpl_GgtLcfSYLn1AL3pCmq5NBenhk1nT` (READY), https://afrinethub-1a21xfn5r-kingsmt.vercel.app/ .
+
+The prior version stacked images outside their associated words on mobile, and five service illustrations were displayed in blank-looking images above separate text cards. The correction is implemented in `src/banner-fix.css` (loaded last in `src/main.jsx`):
+
+- **Hero carousel (all six slides):** image and real HTML headline, description, service CTA and WhatsApp CTA now live inside one responsive banner. Desktop shows a readable left-aligned contrast wash. Mobile shows landscape art top with headline placed in the fading lower section of the *same banner*; no separate art block or fixed-width text.
+- **Five service cards:** titles, descriptions and CTAs are actually overlaid on each image with a dark gradient for contrast. Card banners are no longer empty artwork with copy below.
+- **Why AfriNet Hub:** image and “We make the everyday feel a little easier” headline share one banner. Three benefit cards retain their text.
+- **Campus-life:** “Your assignments / Your next laptop / Your next place” and both CTA links appear within the same image banner; original University of Ilesa watermark remains.
+- **Community:** “Good things happen when we connect” and its description share one image banner.
+- **Final CTA:** tasteful full-width artwork now appears behind the readable closing message.
+- Long headings can wrap; button labels wrap; min-width and max-width safeguards prevent clipping. Responsive overrides cover phones <=365 and <=650px, tablets <=980px, and desktop layouts.
+- Landscape art is kept in a top-height window on small phones to stop severe portrait cropping; all text remains real accessible HTML.
+
+**Verification:** Vercel production-style React build/prerender READY with **9/9 Node regression tests passing**. HTML and generated CSS returned HTTP 200 and contain the correct hero headline, five image cards, campus/community wording, absolute art positioning and mobile text rules. The existing printing page and hero artwork returned HTTP 200 in the final deployment.
+
+**Limitations:** This does NOT certify pixel-perfect browser screenshots at every physical device size. The connected third-party browser session cannot run because of insufficient balance, so cross-device screenshot inspection remains a manual acceptance item. Live database/admin/payment and DNS production blockers from previous release notes remain unchanged. No changes were made to `afrinethub.com.ng`, original Unilesh main, or Global Webstores.
