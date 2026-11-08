@@ -159,3 +159,30 @@ test('mobile wording appears before photographic art inside a single banner',()=
  assert.match(css,/\.more \.community-banner \.community-image \{/);
  assert.match(css,/@media \(max-width:365px\)/);
 });
+
+
+test('Nov 8 mobile banner patch keeps readable headings and cards',()=>{
+ const css=read('src/banner-fix.css');
+ const markup=read('src/App.jsx');
+ const lookFor=[
+  'NOV 8 — MOBILE BANNER FINAL',
+  '.hero .hero-content h1 .orange-text',
+  '.hero .hero-art-picture',
+  '.hero .hero-photo-wash',
+  '.services .service-body h3',
+  '.trust .trust-title h2',
+  '.spotlight .spotlight-panel h2',
+  '.more .community-content h2',
+  '@media (max-width:365px)',
+  '(min-width:651px) and (max-width:1080px)'
+ ];
+ for (const term of lookFor) assert.ok(css.includes(term),'Missing mobile treatment: '+term);
+ assert.ok(markup.includes('<h1>{slide.heading.map('));
+ assert.ok(markup.includes('className="service-body"'));
+ assert.ok(markup.includes('className="community-content"'));
+ assert.ok(markup.includes('className="trust-title"'));
+ assert.ok(markup.includes('className="spotlight-panel school-watermark"'));
+ // Hero text is not built into image files and all call-to-action links remain real anchors.
+ assert.match(markup,/className="btn btn-orange"/);
+ assert.match(markup,/className="hero-description"/);
+});
