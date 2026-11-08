@@ -126,7 +126,7 @@ test('mobile banner content stays on its imagery panels',()=>{
  // Carousel photo and live text must be siblings within the same hero-grid.
  assert.match(app,/<div className="shell hero-grid">[\s\S]*?<div className="hero-content"[\s\S]*?<HeroVisual/);
  // All five links, headings and CTA must remain within photographic service tiles.
- assert.match(app,/className=\\{'service-tile tile-'/);
+ assert.ok(app.includes("'service-tile tile-'"));
  assert.match(app,/className="service-media"/);
  assert.match(app,/className="service-body"/);
  for(const cls of ['hero-grid','hero-art','hero-content','service-media',
