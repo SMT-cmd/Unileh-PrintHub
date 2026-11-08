@@ -1,30 +1,30 @@
-# Mobile banner correction — 8 November 2026
+# Mobile banner alignment and review access — 2026-11-08
 
-## User-reported issue
-User reviewed protected staging on a phone and reported text flowing out of image banners, empty-looking art sections, and headings appearing detached from banners. Review link also became unavailable because Vercel uses temporary protected share links.
+## Reported defects
+- Review link became inaccessible after the protected Vercel sharing URL expired.
+- On phones, banner headings/CTA did not visibly sit on the image composition and some large images looked like empty banners.
+- Existing mobile styles were not present in the previously published Vercel source tree.
 
-## Fix
-- Added high-specificity styles to `src/banner-fix.css` for phone, small-phone, tablet and desktop viewports.
-- The phone carousel now puts visible live headline, description and buttons first on a navy high-contrast area inside the same photographic banner, followed immediately by the service illustration without an unrelated card or detached text.
-- Service cards use full photographic imagery with high-contrast text over the lower image area, better card heights and safe wrapping.
-- Trust, campus, and community feature banners use consistent navy reading areas with their images kept in the same single panel.
-- Guarded against headline/CTA overflow, narrow viewport controls and button clipping.
-- Verified `src/main.jsx` **actually imports** `./banner-fix.css`. An initial manual Vercel upload reused a stale `main.jsx` without this import and failed validation. It was corrected before release.
-- The approved logo, original university watermark, source transactional routes and Supabase preview safety gates are unchanged.
+## Corrective changes
+- Included `src/banner-fix.css` **after** the base and editorial styles in `src/main.jsx`.
+- Added last-in-cascade mobile overrides to keep all six hero slides inside one branded banner with a photographic upper region and live white text on a dark navy lower overlay, including buttons and accessible carousel controls.
+- Protected long headings using content-driven height, `overflow-wrap:anywhere`, responsive type and safe full-width tap targets. No hard-coded banner height clips paragraphs on small phones.
+- Kept five service photos and their matching visible headings and CTA together in image-overlaid cards.
+- Merged trust, campus-life and community artwork with corresponding live headings in the same responsive panel.
+- Aligned top media region to the image fade using `--mobile-hero-art` and `--mobile-feature-art` instead of percentages of variable-height cards, making the pictures more visible.
+- Covered phone widths including <=365px, <=650px and intermediate 651–1080px viewports.
+- No change to live domains, production databases or Global Webstores.
 
-## Verified staging release
-- Deployment `dpl_FLo7JWfj8H8Hn4tEbZzzkzaW1NWA`
-- Protected host `https://afrinethub-qbhkf3a6x-kingsmt.vercel.app/`
-- Status **READY** with **11/11** automated checks passing, Vite production build and HTML prerender complete.
-- HTTP 200 verified for homepage and new hero photo. Server-rendered homepage includes five image cards.
-- Compiled CSS asset `/assets/index-DOulCLNp.css` verified HTTP 200 with the new mobile navy overlay rules and responsive selectors.
-- A fresh share link was obtained; Vercel sharing URLs expire and should not be committed to the repository.
-- Live browser pixel QA at each viewport was not possible through the connected browser-testing tool due to insufficient account balance; don't claim screenshot-based visual acceptance.
+## Build / staging verification
+- Feature branch latest CSS fix: `87a3e19cc2ce42ac5e70edd11b64fdf90edb5863`, followed by this evidence update.
+- Isolated KINGSMT Vercel staged deployment: `dpl_E35RpNmJcHYC7n5X7rgCF5pm1Lxw`.
+- Preview: `https://afrinethub-gtgcgknjg-kingsmt.vercel.app/` (protected, share links expire).
+- Deployment status: **READY**.
+- `npm run test && vite build && node scripts/prerender.mjs`: **11 passed, 0 failed**; JS bundle and crawlable HTML generated.
+- Homepage and compiled CSS served HTTP 200. Bundle contains mobile banner variables / breakpoint styles. All nine integrated images returned HTTP 200.
+- User-visible linked staging preview is separate from live `afrinethub.com.ng` domain.
 
-## Production restrictions
-- Do not switch the live domain or merge without Supabase access, storage/RLS checks and transaction verification.
-- Do not touch Global Webstores or its Vercel project.
-- A separate preview is safe for viewing but intentionally blocks write operations.
-
-## Recovery if share link fails
-The project uses Vercel Deployment Protection. Open a fresh Vercel share URL including its entire `_vercel_share` query, ideally in an external browser; an ordinary bare deployment URL may ask for Vercel login. For a new link, use the Vercel project/deployment's Share action rather than exposing production.
+## Still outstanding
+- Visual screenshot-based acceptance at 320/360/390/430/768/1024px was not available in this connected browser session. No claim of pixel-perfect cross-device sign-off.
+- Previous release blockers remain: production Supabase authorization/RLS/storage, full migration of legacy HTML/JS transactions and admin pages to React, Cloudflare access to authoritative AfriNet DNS, and Vercel GitHub automation connection.
+- Do not merge the draft PR or switch production DNS until those are complete.
