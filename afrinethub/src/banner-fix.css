@@ -253,3 +253,29 @@ body { max-width:100%; overflow-x:clip; }
 @media(prefers-reduced-motion:reduce) {
  .hero *, .services *, .trust *, .spotlight *, .more *, .closing * {animation-duration:0.01ms!important;transition-duration:0.01ms!important;}
 }
+
+/* A landscape banner should NOT be cropped to a portrait on a phone.
+   Keep the whole composition in the top portion, then fade into live copy. */
+@media(max-width:650px) {
+ .hero .hero-art {background:#f7f9fc;}
+ .hero .hero-art-picture {position:absolute;inset:0 0 auto 0;display:block;
+   width:100%;height:clamp(170px,55vw,260px);overflow:hidden;}
+ .hero .hero-art .hero-photo {position:absolute;inset:0;width:100%;height:100%;
+   object-fit:cover;object-position:50% 44%;transform:none;}
+ .hero .hero-photo-wash {background:linear-gradient(180deg,rgba(247,249,252,0) 0%,
+   rgba(247,249,252,.1) 20%,rgba(247,249,252,.76) 29%,
+   #f7f9fc 36%,#f7f9fc 100%);}
+ .trust .trust-image {position:absolute;top:0;bottom:auto;width:100%;
+   height:clamp(172px,54vw,255px);object-fit:cover;object-position:50% 42%;}
+ .trust .trust-intro::after {background:linear-gradient(180deg,transparent 0%,
+   rgba(247,249,252,.2) 22%,#f7f9fc 37%,#f7f9fc 100%);}
+ .spotlight .spotlight-panel>.campus-figure {position:absolute;top:0;bottom:auto;
+   width:100%;height:clamp(170px,55vw,260px);min-height:0;overflow:hidden;}
+ .spotlight .campus-image {width:100%;height:100%;object-fit:cover;object-position:50% 45%;}
+ .spotlight .spotlight-panel::after {background:linear-gradient(180deg,transparent 0%,
+   rgba(248,250,252,.15) 20%,#f8fafc 34%,#f8fafc 100%);}
+ .more .community-banner .community-image {position:absolute;top:0;bottom:auto;
+   width:100%;height:clamp(175px,56vw,260px);object-fit:cover;object-position:50% 48%;}
+ .more .community-banner::after {background:linear-gradient(180deg,transparent 0%,
+   rgba(248,250,252,.15) 19%,#f8fafc 36%,#f8fafc 100%);}
+}

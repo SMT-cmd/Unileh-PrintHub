@@ -142,4 +142,8 @@ test('mobile banner content stays on its imagery panels',()=>{
  assert.match(styles,/\.more \.community-content/);
  assert.match(styles,/background:linear-gradient/);
  assert.match(styles,/overflow-wrap:break-word/);
+ assert.match(styles,/\.hero \.hero-art-picture \{position:absolute/);
+ assert.match(styles,/\.hero \.hero-art \.hero-photo \{position:absolute/);
+ assert.match(styles,/\.spotlight \.spotlight-panel>\.campus-figure/);
+ assert.match(styles,/\.more \.community-banner \.community-image/);
 });
