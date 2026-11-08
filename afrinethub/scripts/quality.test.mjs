@@ -117,3 +117,29 @@ test('all generated banners are integrated and responsive',()=>{
  assert.match(css,/\.hero-photo-wash/);
  assert.doesNotMatch(css,/display:none;\s*\/\*\s*mobile hero artwork/i);
 });
+
+test('mobile banner content stays on its imagery panels',()=>{
+ const app=read('src/App.jsx');
+ const main=read('src/main.jsx');
+ const styles=read('src/banner-fix.css');
+ assert.match(main,/import '\.\/banner-fix\.css'/);
+ // Carousel photo and live text must be siblings within the same hero-grid.
+ assert.match(app,/<div className="shell hero-grid">[\s\S]*?<div className="hero-content"[\s\S]*?<HeroVisual/);
+ // All five links, headings and CTA must remain within photographic service tiles.
+ assert.match(app,/className="service-tile tile-/);
+ assert.match(app,/className="service-media"/);
+ assert.match(app,/className="service-body"/);
+ for(const cls of ['hero-grid','hero-art','hero-content','service-media',
+   'service-body','trust-intro','spotlight-panel','community-banner']) {
+  assert.ok(styles.includes('.'+cls),cls+' has no corrective banner styling');
+ }
+ // Mobile images are absolute backgrounds, while copy is positioned in front.
+ assert.match(styles,/@media\(max-width:650px\)/);
+ assert.match(styles,/\.hero \.hero-art \{position:absolute/);
+ assert.match(styles,/\.hero \.hero-content \{width:100%/);
+ assert.match(styles,/\.services \.service-media \{position:absolute/);
+ assert.match(styles,/\.spotlight \.spotlight-panel>div:first-child/);
+ assert.match(styles,/\.more \.community-content/);
+ assert.match(styles,/background:linear-gradient/);
+ assert.match(styles,/overflow-wrap:break-word/);
+});
