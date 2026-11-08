@@ -147,3 +147,15 @@ test('mobile banner content stays on its imagery panels',()=>{
  assert.match(styles,/\.spotlight \.spotlight-panel>\.campus-figure/);
  assert.match(styles,/\.more \.community-banner \.community-image/);
 });
+
+test('mobile wording appears before photographic art inside a single banner',()=>{
+ const css=read('src/banner-fix.css');
+ assert.match(css,/November 8 corrective pass/);
+ assert.match(css,/\.hero \.hero-art \{position:relative;inset:auto/);
+ assert.match(css,/\.hero \.hero-content \{position:relative;z-index:3/);
+ assert.match(css,/\.hero \.hero-content h1 \{color:#fff/);
+ assert.match(css,/\.services \.service-media::after \{background:linear-gradient/);
+ assert.match(css,/\.trust \.trust-title, \.spotlight \.spotlight-panel>div:first-child/);
+ assert.match(css,/\.more \.community-banner \.community-image \{/);
+ assert.match(css,/@media \(max-width:365px\)/);
+});
