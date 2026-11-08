@@ -279,3 +279,385 @@ body { max-width:100%; overflow-x:clip; }
  .more .community-banner::after {background:linear-gradient(180deg,transparent 0%,
    rgba(248,250,252,.15) 19%,#f8fafc 36%,#f8fafc 100%);}
 }
+
+
+/* NOV 8 — MOBILE BANNER FINAL.
+   Existing 16:9 and 4:3 visuals are preserved at the top of each banner.
+   Live captions share the same visual surface, never clip or leave a blank
+   image as a detached section. These rules intentionally win the cascade. */
+.hero .hero-grid,
+.trust .trust-intro,
+.spotlight .spotlight-panel,
+.more .community-banner {
+  box-sizing:border-box;
+  contain:layout;
+}
+.hero .hero-content,
+.trust .trust-title,
+.spotlight .spotlight-panel > div:first-child,
+.more .community-content {
+  box-sizing:border-box;
+  min-width:0;
+  min-height:0;
+  overflow:visible;
+}
+.hero .hero-content :is(h1,p),
+.trust .trust-title :is(h2,p),
+.spotlight .spotlight-panel :is(h2,p),
+.more .community-content :is(h2,p),
+.closing h2 {
+  max-width:100%;
+  min-width:0;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  hyphens:auto;
+  text-wrap:pretty;
+}
+.hero .hero-content h1,
+.trust .trust-title h2,
+.spotlight .spotlight-panel h2,
+.more .community-content h2 {
+  text-wrap:balance;
+}
+.services .service-body,
+.services .service-body :is(h3,p),
+.trust .trust-list article,
+.more .more-card {
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
+/* On phones, use an actual art-directed portrait-like banner.
+   Photo fills the upper portion. Text overlays the lower portion of
+   THE SAME CARD on a deep branded color that guarantees contrast. */
+@media (max-width:650px) {
+  .hero .hero-grid {
+    display:block;
+    position:relative;
+    min-height:0;
+    height:auto;
+    overflow:hidden;
+    isolation:isolate;
+    background:#09234a;
+    color:#fff;
+    border-radius:16px 16px 0 0;
+  }
+  .hero .hero-art {
+    position:absolute;
+    inset:0;
+    display:block;
+    height:100%;
+    min-height:100%;
+    width:100%;
+    z-index:0;
+    overflow:hidden;
+    background:#09234a;
+  }
+  .hero .hero-art-picture {
+    position:absolute;
+    top:0;
+    right:0;
+    left:0;
+    bottom:auto;
+    width:100%;
+    height:clamp(178px,60vw,260px);
+    overflow:hidden;
+    background:#e9eff8;
+  }
+  .hero .hero-art .hero-photo,
+  .hero .hero-art-everything .hero-photo {
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:50% 50%;
+    filter:none;
+  }
+  .hero .hero-photo-wash {
+    display:block;
+    position:absolute;
+    inset:0;
+    z-index:1;
+    background:linear-gradient(180deg,
+      rgba(9,35,74,0) 0%,
+      rgba(9,35,74,0.06) 13%,
+      rgba(9,35,74,0.75) 27%,
+      #09234a 35%,#09234a 100%);
+  }
+  .hero .hero-content {
+    position:relative;
+    z-index:3;
+    display:block;
+    width:100%;
+    max-width:100%;
+    min-height:0;
+    margin:0;
+    padding:clamp(174px,58vw,245px) 20px 28px;
+    color:#fff;
+    overflow:visible;
+    text-align:left;
+  }
+  .hero .hero-content .eyebrow {
+    font-size:10px;
+    line-height:1.45;
+    letter-spacing:.09em;
+    color:#d9e9ff;
+  }
+  .hero .hero-kicker {
+    color:#ffc092;
+    font-size:12px;
+    line-height:1.4;
+    margin:12px 0 10px;
+  }
+  .hero .hero-content h1,
+  .hero .hero-content h1 span {
+    color:#fff;
+    max-width:100%;
+    min-width:0;
+    overflow:visible;
+    white-space:normal;
+  }
+  .hero .hero-content h1 {
+    font-size:clamp(29px,8vw,40px);
+    line-height:1.11;
+    letter-spacing:-.045em;
+    margin:0;
+  }
+  .hero .hero-content h1 .orange-text {color:#ffac70;}
+  .hero .hero-description {
+    color:#d9e5f5;
+    font-size:13px;
+    line-height:1.62;
+    margin:16px 0 21px;
+    max-width:100%;
+  }
+  .hero .hero-cta {
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    flex-wrap:nowrap;
+    width:100%;
+    gap:14px;
+  }
+  .hero .hero-cta > .btn {
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+    max-width:100%;
+    min-height:48px;
+    white-space:normal;
+    padding:12px 15px;
+    flex-shrink:0;
+    font-size:13px;
+    line-height:1.4;
+    color:#fff;
+  }
+  .hero .hero-quiet {
+    color:#edf5ff;
+    display:inline-flex;
+    flex-wrap:wrap;
+    width:fit-content;
+    font-size:12px;
+    line-height:1.5;
+    min-height:24px;
+  }
+  .hero .hero-footer {
+    background:#fff;
+    border-radius:0 0 16px 16px;
+    padding:12px 10px 16px;
+    margin-bottom:23px;
+  }
+  .hero .hero-controls {gap:3px;}
+  .hero .hero-controls > button {
+    width:28px;
+    min-width:28px;
+    height:28px;
+  }
+  .hero .hero-dots {gap:3px;}
+  .hero .hero-dots > button {width:6px;height:6px;}
+  .hero .hero-dots > button.active {width:15px;}
+  .hero .hero-footer>p {font-size:10px;letter-spacing:0;white-space:nowrap;}
+
+  /* Five individual promotional image cards: visible white copy overlays
+     each photo itself with a navy shade at its bottom. */
+  .services .service-tile,
+  .services .service-tile:nth-child(n+4),
+  .services .service-tile:last-child {
+    grid-column:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    min-height:300px;
+    height:auto;
+    overflow:hidden;
+    isolation:isolate;
+    background:#0b264e!important;
+  }
+  .services .service-media {
+    position:absolute;inset:0;display:block;
+    height:100%;min-height:100%;width:100%;
+  }
+  .services .service-media img {
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;object-position:center 36%;
+  }
+  .services .service-media::after {
+    background:linear-gradient(180deg,
+      rgba(4,19,42,.16) 0%,
+      rgba(4,19,42,.10) 28%,
+      rgba(4,19,42,.8) 62%,
+      rgba(4,19,42,.98) 100%);
+  }
+  .services .service-body {
+    position:relative;z-index:3;
+    flex:0 0 auto;display:block;
+    padding:140px 20px 22px;
+    width:100%;
+  }
+  .services .service-body h3 {color:#fff;font-size:20px;line-height:1.24;}
+  .services .service-body p {color:#e9f0f9;font-size:13px;line-height:1.52;}
+  .services .service-body .tile-link {color:#ffd7b0;}
+  .services .service-number {
+    z-index:4;
+    background:#fff;
+    color:#12304e;
+  }
+
+  /* Illustrated benefits, campus and community all use single surfaces
+     with guaranteed vertical space and visible typography. */
+  .trust .trust-intro,
+  .spotlight .spotlight-panel,
+  .more .community-banner {
+    display:block;
+    position:relative;
+    min-height:0;
+    height:auto;
+    width:100%;
+    overflow:hidden;
+    background:#f6f9fd;
+    border-radius:16px;
+  }
+  .trust .trust-image,
+  .spotlight .spotlight-panel > .campus-figure,
+  .more .community-banner .community-image {
+    position:absolute;
+    top:0;
+    right:0;
+    left:0;
+    bottom:auto;
+    width:100%;
+    height:clamp(180px,61vw,255px);
+    min-height:0;
+    max-width:none;
+    display:block;
+    z-index:0;
+    margin:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .trust .trust-image,
+  .spotlight .campus-image,
+  .more .community-banner .community-image {
+    width:100%;
+    object-fit:cover;
+    object-position:50% 48%;
+  }
+  .spotlight .campus-image {height:100%;}
+  .trust .trust-intro::after,
+  .spotlight .spotlight-panel::after,
+  .more .community-banner::after {
+    display:block;
+    content:"";
+    position:absolute;
+    z-index:1;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(180deg,transparent 0%,
+      rgba(246,249,253,.12) 14%,
+      rgba(246,249,253,.95) 29%,
+      #f6f9fd 36%,#f6f9fd 100%);
+  }
+  .trust .trust-title,
+  .spotlight .spotlight-panel > div:first-child,
+  .more .community-content {
+    position:relative;
+    z-index:3;
+    display:block;
+    max-width:100%;
+    width:100%;
+    height:auto;
+    padding:clamp(180px,59vw,248px) 20px 25px;
+    margin:0;
+    color:#122d50;
+  }
+  .trust .trust-title h2,
+  .spotlight .spotlight-panel h2,
+  .more .community-content h2 {
+    font-size:clamp(29px,7.7vw,40px);
+    line-height:1.16;
+    letter-spacing:-.045em;
+    margin:0;
+    color:#112d50;
+  }
+  .trust .trust-title p:not(.label),
+  .spotlight .spotlight-panel p:not(.label),
+  .more .community-content > p:not(.label) {
+    font-size:13px;
+    line-height:1.6;
+    color:#4d617c;
+    margin:14px 0 20px;
+  }
+  .trust .trust-title p:not(.label) {margin-bottom:0;}
+  .spotlight .spotlight-links {
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    width:100%;
+  }
+  .spotlight .spotlight-links .btn {
+    display:flex;
+    width:100%;
+    max-width:100%;
+    justify-content:space-between;
+    min-height:47px;
+    padding:12px 15px;
+    font-size:13px;
+    line-height:1.4;
+    white-space:normal;
+  }
+  .community-content .label,
+  .trust-title .label,
+  .spotlight .label {color:#c46120;}
+  .closing .closing-grid {min-width:0;gap:20px;}
+  .closing .closing-grid > div {max-width:100%;}
+  .closing .btn {white-space:normal;}
+}
+@media (max-width:365px) {
+  .hero .hero-content {padding:171px 15px 25px;}
+  .hero .hero-content h1 {font-size:28px;}
+  .hero .hero-description {font-size:12.5px;}
+  .services .service-body {padding-left:17px;padding-right:17px;}
+  .trust .trust-title,
+  .spotlight .spotlight-panel>div:first-child,
+  .more .community-content {padding-left:16px;padding-right:16px;}
+  .hero .hero-footer {padding-left:8px;padding-right:8px;}
+  .hero .hero-controls > button {width:26px;min-width:26px;height:26px;}
+}
+
+/* Intermediate tablets / foldables must also allow all banner text
+   to grow vertically instead of clipping against a fixed media height. */
+@media (min-width:651px) and (max-width:1080px) {
+  .hero .hero-grid {min-height:0;height:auto;}
+  .hero .hero-content {height:auto;min-height:0;max-width:100%;}
+  .hero .hero-content h1 {font-size:clamp(34px,4.3vw,52px);}
+  .hero .hero-content h1 span {overflow-wrap:anywhere;}
+  .trust .trust-title,
+  .spotlight .spotlight-panel>div:first-child,
+  .more .community-content {min-width:0;max-width:100%;}
+  .trust .trust-title h2,
+  .spotlight .spotlight-panel h2,
+  .more .community-content h2 {overflow-wrap:anywhere;}
+}
