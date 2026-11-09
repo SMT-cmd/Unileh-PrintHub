@@ -5,23 +5,31 @@
     const TAGLINE = 'Serving the <strong>University of Ilesa (UNILESA)</strong> community.'; // empty string to remove
     const DATA_URL = 'https://afrinethub.com'; // external data-selling site
     const NAV = [
-        { label: 'Printing', path: 'printing/', also: ['order', 'checkout'] },
-        { label: 'Gadgets', path: 'gadgets/' },
-        { label: 'Housing', path: 'housing/' },
-        { label: 'Project &amp; Seminar', path: 'project/' },
-        { label: 'Data', url: DATA_URL },
-        { label: 'Portal Services', path: 'portal/' },
-        { label: 'About Us', path: 'about/' }
+        { label:'Home', path:'' },
+        { label:'Our services', path:'#services' },
+        { label:'Gadgets', path:'gadgets/' },
+        { label:'Housing', path:'housing/' },
+        { label:'Projects', path:'project/' },
+        { label:'About us', path:'about/' },
+        { label:'Updates', path:'news/' }
     ];
-    const MORE = [
-        { label: 'Latest News', path: 'news/' },
-        { label: 'Partners', path: 'partners/' }
+    const FOOTER_SERVICES = [
+        { label:'Printing', path:'printing/' },
+        { label:'Gadgets', path:'gadgets/' },
+        { label:'Data & airtime', url:DATA_URL },
+        { label:'Housing', path:'housing/' },
+        { label:'Projects & seminars', path:'project/' }
+    ];
+    const FOOTER_MORE = [
+        { label:'Portal assistance', path:'portal/' },
+        { label:'News & updates', path:'news/' },
+        { label:'Partners', path:'partners/' },
+        { label:'About us', path:'about/' }
     ];
     const LEGAL = [
-        { label: 'Privacy Policy', path: 'privacy/' },
-        { label: 'Terms of Service', path: 'terms/' },
-        { label: 'Refund Policy', path: 'refund/' },
-        { label: 'About', path: 'about/' }
+        { label:'Privacy policy', path:'privacy/' },
+        { label:'Terms of service', path:'terms/' },
+        { label:'Refund policy', path:'refund/' }
     ];
     // ==========================================================
 
@@ -33,6 +41,7 @@
     const basePath = new URL(base).pathname;
     const rel = location.pathname.startsWith(basePath) ? location.pathname.slice(basePath.length) : '';
     const section = rel.split('/')[0].replace(/\.html$/, '');
+    document.body.dataset.legacyPage = section || 'home';
 
     const isActive = (item) => {
         if (!item.path) return false;
@@ -49,22 +58,24 @@
 
     const headerEl = document.querySelector('body > header');
     if (headerEl) {
+        const topline = document.createElement('div');
+        topline.className='legacy-topline';
+        topline.innerHTML='<div class="container"><span>Serving the University of Ilesa community</span><a href="https://wa.me/2348083964600" target="_blank" rel="noopener noreferrer">Chat with our team &#8599;</a></div>';
+        headerEl.parentNode.insertBefore(topline,headerEl);
         headerEl.innerHTML = `
             <div class="container">
                 <div class="logo">
-                    <a href="${base}" class="brand-link">
-                        <img src="${base}assets/images/afrinethub-round.webp" alt="${BRAND_NAME} Logo">
-                        <span class="brand-block">
-                            <span class="brand-name">${BRAND_NAME}</span>
-                            ${POWERED_BY ? `<span class="powered-by">${POWERED_BY}</span>` : ''}
-                        </span>
+                    <a href="${base}" class="brand-link" aria-label="AfriNet Hub home">
+                        <img src="${base}assets/images/afrinethub-round.webp" alt="" width="46" height="46">
+                        <span class="brand-block"><strong class="brand-name">AFRI<span>NET</span></strong><small class="brand-sub">HUB</small></span>
                     </a>
                 </div>
                 <nav id="legacy-main-nav" aria-label="Main navigation">
-                    <ul>${NAV.map((n) => `<li>${link(n)}</li>`).join('')}</ul>
+                    <ul>${NAV.map(n=>`<li>${link(n)}</li>`).join('')}</ul>
                 </nav>
                 <div class="legacy-header-actions">
-                    <button id="theme-toggle" type="button" aria-label="Change color theme">Theme</button>
+                    <a href="${base}order/" class="legacy-header-order">Print a document <span aria-hidden="true">&#8599;</span></a>
+                    <button id="theme-toggle" type="button" aria-label="Change color theme" title="Change theme">Theme</button>
                     <button id="legacy-menu-button" class="legacy-menu-button" type="button" aria-label="Open menu" aria-controls="legacy-main-nav" aria-expanded="false">
                         <span class="legacy-menu-lines" aria-hidden="true"><i></i><i></i><i></i></span>
                     </button>
@@ -114,23 +125,25 @@
             <div class="container">
                 <div class="footer-grid">
                     <div class="footer-section">
-                        <div class="legacy-footer-brand">
-                            <img src="${base}assets/images/afrinethub-round.webp" alt="" width="52" height="52" loading="lazy">
+                        <a href="${base}" class="legacy-footer-brand" aria-label="AfriNet Hub home">
+                            <img src="${base}assets/images/afrinethub-round.webp" alt="" width="45" height="45" loading="lazy">
                             <strong>AfriNet <span>Hub</span></strong>
-                        </div>
-                        <p>&copy; ${new Date().getFullYear()} ${BRAND_NAME}. All Rights Reserved.</p>
-                        ${TAGLINE ? `<p>${TAGLINE}</p>` : ''}
+                        </a>
+                        <p>Everyday services, brought together. Serving the University of Ilesa community and beyond.</p>
+                        <a href="https://wa.me/2348083964600" target="_blank" rel="noopener noreferrer">Chat on WhatsApp &#8599;</a>
                     </div>
-                    <div class="footer-section university-links">
-                        <h4>More</h4>
-                        ${MORE.map(link).join('')}
-                        <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">Official Unilesa Site</a>
+                    <div class="footer-section">
+                        <h4>Explore</h4>
+                        ${FOOTER_SERVICES.map(link).join('')}
                     </div>
-                    <div class="footer-section legal-links">
-                        <h4>Legal</h4>
+                    <div class="footer-section">
+                        <h4>More &amp; information</h4>
+                        ${FOOTER_MORE.map(link).join('')}
                         ${LEGAL.map(link).join('')}
+                        <a href="https://unilesa.edu.ng" target="_blank" rel="noopener noreferrer">University of Ilesa &#8599;</a>
                     </div>
                 </div>
+                <p class="legacy-footer-bottom">&copy; ${new Date().getFullYear()} AfriNet Hub. All rights reserved.</p>
             </div>`;
     }
 })();
