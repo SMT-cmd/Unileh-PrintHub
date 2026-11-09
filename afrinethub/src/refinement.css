@@ -242,7 +242,7 @@ body {overflow-x:clip;}
     justify-content:space-between;font-size:12px;border-radius:6px;}
  .hero .hero-footer {min-height:43px;padding:5px 1px 7px;}
  .hero .hero-footer>p,.hero .hero-controls>.pause-btn {display:none;}
- .hero .hero-controls {width:100%;justify-content:center;gap:18px;}
+ .hero .hero-controls {width:100%;justify-content:center;gap:8px;}
  .hero .hero-controls>button {width:30px;height:30px;border:0;background:transparent;}
  .hero .hero-dots {gap:7px;margin:0;}
  .hero .hero-dots>button {width:28px;height:36px;min-width:28px;}
