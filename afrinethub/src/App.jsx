@@ -78,8 +78,9 @@ function HeroVisual({kind}) {
   return <div className={'hero-art hero-art-'+kind} aria-hidden="true">
     <picture className="hero-art-picture">
       <img className="hero-photo" src={heroImagery[kind] || heroImagery.everything}
-        alt="" width="1600" height="900" loading={kind==='everything'?'eager':'lazy'}
-        decoding="async" fetchPriority={kind==='everything'?'high':'auto'}/>
+        alt="" width="1600" height="900" loading="eager"
+        decoding="async" fetchPriority={kind==='everything'?'high':'auto'}
+        onError={event=>{if(!event.currentTarget.dataset.fallback){event.currentTarget.dataset.fallback='1';event.currentTarget.src=heroImagery.everything;}}}/>
     </picture>
     <div className="hero-photo-wash" />
   </div>;
@@ -88,6 +89,7 @@ function HeroVisual({kind}) {
 function Carousel() {
   const [active,setActive]=useState(0),[paused,setPaused]=useState(false);
   const [reduced,setReduced]=useState(false), touch=useRef(null);
+  useEffect(()=>{const loaded=Object.values(heroImagery).map(src=>{const image=new Image();image.decoding='async';image.src=src;return image;});return()=>{loaded.forEach(image=>{image.onload=null;image.onerror=null;});};},[]);
   useEffect(()=>{const mq=window.matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(mq.matches);update();mq.addEventListener?.('change',update);return()=>mq.removeEventListener?.('change',update)},[]);
   useEffect(()=>{if(paused||reduced||window.matchMedia('(max-width: 700px)').matches)return;const id=setInterval(()=>setActive(a=>(a+1)%slides.length),7500);return()=>clearInterval(id)},[paused,reduced]);
   const setSlide=(idx)=>setActive((idx+slides.length)%slides.length);
@@ -95,7 +97,6 @@ function Carousel() {
   return <section className={'hero hero-'+slide.tone} aria-label="Featured services" onMouseEnter={()=>setPaused(true)} onMouseLeave={()=>setPaused(false)} onFocusCapture={()=>setPaused(true)} onBlurCapture={e=>{if(!e.currentTarget.contains(e.relatedTarget))setPaused(false)}} onTouchStart={e=>{touch.current=e.touches[0]?.clientX}} onTouchEnd={e=>{if(touch.current===null)return;const dx=e.changedTouches[0].clientX-touch.current;if(Math.abs(dx)>70)setSlide(active+(dx<0?1:-1));touch.current=null}}>
      <div className="shell hero-grid">
        <div className="hero-content" key={'copy-'+active}>
-         <p className="hero-overline">{slide.eyebrow}</p>
          <h1>{slide.heading.map((part,i)=><React.Fragment key={i}>{i>0?' ':null}<span className={i===slide.emphasis?'orange-text':''}>{part}</span></React.Fragment>)}</h1>
          <p className="hero-description">{slide.description}</p>
          <div className="hero-cta">
