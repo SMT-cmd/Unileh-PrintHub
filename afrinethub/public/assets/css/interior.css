@@ -308,3 +308,27 @@ body.admin-dashboard-body .admin-footer{margin-top:25px;padding:20px 0;backgroun
 @media(prefers-reduced-motion:reduce){
   body :where(.cta-button,.cta-button-secondary,.cta-button-small,.gadget-card,.housing-card,.tab-button){transition:none!important;animation:none!important;}
 }
+
+/* Preserve the existing theme preference while keeping text and surfaces readable. */
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body){color:#e9f1fb;background-color:#071b38;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main>.page-header:not(.hero){background-color:#102b4c;border-color:#34516f;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main>.page-header :where(h1,p){color:#f0f5fc;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main :where(.form-card,.card,.news-item,.partner-card,.gadget-card,.housing-card,.legal-content,.step,.service-item){background:#102a49;color:#edf3fb;border-color:#355373;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main :where(.card h2,.card h3,.card h4,.legal-section h3,.gadget-card h3,.housing-card h3){color:#f5f8fe;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main :where(.legal-content p,.legal-content li,.gadget-card p,.housing-card p){color:#d1e0f2;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main .form-group label{color:#e7f1fb;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main :where(.gadget-filter-btn,.housing-filter-btn){background:#173a61;border-color:#3e5e7e;color:#eaf4ff;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main :where(.gadget-filter-btn,.housing-filter-btn).active{background:#ec7929;color:#fff;border-color:#ec7929;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main .legal-section strong{color:#fff;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main .form-card .card{background:#173653;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main :where(.form-group input,.form-group select,.form-group textarea){color:#122744;background:#fff;}
+[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main .loading,[data-theme="dark"] body:not(.admin-dashboard-body):not(.admin-login-body) main .empty-state{color:#d1e0f2;background:#112c4d;border-color:#365778;}
+[data-theme="dark"] body[data-legacy-page="printing"] .order-guide{background:#102949;}
+[data-theme="dark"] body[data-legacy-page="printing"] .service-item h3{color:#f4f8ff;}
+[data-theme="dark"] body[data-legacy-page="printing"] .portal-services-cta .card{background:#07192f;}
+[data-theme="dark"] body[data-legacy-page="about"] .about-hero-v2 :where(h1,h2),[data-theme="dark"] body[data-legacy-page="about"] .about-story-text h2,[data-theme="dark"] body[data-legacy-page="about"] .about-offerings-v2 h2{color:#fff;}
+[data-theme="dark"] body[data-legacy-page="about"] .about-hero-v2>p,[data-theme="dark"] body[data-legacy-page="about"] .about-story-text p{color:#d1e0f2;}
+[data-theme="dark"] body[data-legacy-page="about"] .about-offerings-grid>a{background:#173656;border-color:#385577;}
+[data-theme="dark"] body[data-legacy-page="about"] .about-offerings-grid h3{color:#f4f8ff;}
+[data-theme="dark"] body[data-legacy-page="about"] .about-offerings-grid p{color:#cadbed;}
+[data-theme="dark"] body[data-legacy-page="about"] .about-contact-v2{background:#05152a;}
