@@ -163,3 +163,44 @@ test('compact readable hero has touch-friendly carousel navigation and fallback 
  assert.match(css,/\.hero \.hero-dots>button::before/);
  assert.match(css,/\.hero \.hero-content h1/);
 });
+
+
+test('interior pages share one responsive design system',()=>{
+ const pages=['printing','order','checkout','gadgets','housing','project','portal',
+  'news','partners','about','privacy','terms','refund','admin','admin/dashboard'];
+ for(const name of pages){
+  const html=read('public/'+name+'/index.html');
+  const prefix=name==='admin/dashboard'?'../../':'../';
+  assert.ok(html.includes('href="'+prefix+'assets/css/interior.css"'),name+' missing shared styles');
+  assert.match(html,/<meta name="viewport" content="width=device-width/);
+ }
+ const css=read('public/assets/css/interior.css');
+ assert.match(css,/@media\(max-width:980px\)/);
+ assert.match(css,/@media\(max-width:700px\)/);
+ assert.match(css,/@media\(max-width:390px\)/);
+ assert.match(css,/grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(css,/scrollbar-width:thin/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.doesNotMatch(css,/overflow-x:visible!important/);
+});
+test('shared interior header and mobile printing navigation remain accessible',()=>{
+ const js=read('public/assets/js/layout.js');
+ assert.match(js,/class="brand-sub">HUB/);
+ assert.match(js,/class="legacy-mobile-order"/);
+ assert.match(js,/document\.body\.dataset\.legacyPage/);
+ assert.match(js,/id="legacy-main-nav"/);
+ assert.match(js,/aria-expanded="false"/);
+ assert.match(js,/event\.key === 'Escape'/);
+ assert.match(js,/https:\/\/wa\.me\/2348083964600/);
+});
+test('admin and listing pages keep authentic images and safe empty states',()=>{
+ const admin=read('public/admin/dashboard/index.html');
+ const gadgets=read('public/gadgets/index.html');
+ const housing=read('public/housing/index.html');
+ assert.match(admin,/afrinethub-round\.webp/);
+ assert.doesNotMatch(admin,/assets\/images\/logo\.png/);
+ assert.match(gadgets,/service-gadgets\.jpg/);
+ assert.match(housing,/service-housing\.jpg/);
+ assert.match(gadgets,/No products in this category yet/);
+ assert.match(housing,/No listings in this category yet/);
+});
