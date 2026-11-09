@@ -14,13 +14,19 @@ const services = [
   { id:'project', label:'Projects & Seminars', short:'Get guidance, editing and research support for academic work.', href:'/project/', icon:GraduationCap, type:'lavender', action:'Request support', tag:'ACADEMICS' , image:'/assets/images/service-project.jpg' },
 ];
 const slides = [
- { eyebrow:'ONE HUB. MORE POSSIBILITIES.', kicker:'Welcome to AfriNet Hub', heading:['Life gets easier', 'when everything', 'is in one place.'], emphasis:2, description:'Print your documents, find the right tech, top up data, explore housing and get academic support—all from one trusted place.', cta:'Explore our services', href:'#services', tone:'all', figure:'everything' },
- { eyebrow:'PRINTING & PHOTOCOPYING', kicker:'Less waiting. More doing.', heading:['Your deadline', 'is close. We', 'make it easier.'], emphasis:2, description:'Upload your assignments and project files, choose how you want them printed, and get a clear price before you order.', cta:'Start a print order',href:'/order/',tone:'print',figure:'printing' },
- { eyebrow:'GADGETS & ELECTRONICS', kicker:'Upgrade your everyday', heading:['Find the tech', 'that keeps you', 'moving.'], emphasis:1, description:'Discover phones, laptops, tablets, watches and other gadgets for work, study and everyday life.', cta:'Shop gadgets',href:'/gadgets/',tone:'tech',figure:'gadgets' },
- { eyebrow:'DATA & AIRTIME', kicker:'Always within reach', heading:['Stay online.', 'Stay close.', 'Stay connected.'], emphasis:2, description:'Top up your data and airtime quickly through the AfriNet Hub recharge service.',cta:'Buy data & airtime',href:'https://afrinethub.com',tone:'data',figure:'data',external:true },
- { eyebrow:'HOUSING & ACCOMMODATION', kicker:'A place that fits your life',heading:['Find a place', 'to settle in', 'and feel at home.'],emphasis:2,description:'Explore student-friendly rooms, apartments and short-lets around the campus area.',cta:'Explore accommodation',href:'/housing/',tone:'home',figure:'housing' },
- { eyebrow:'PROJECTS & SEMINARS', kicker:'A little help goes a long way',heading:['Big project?', 'You don’t have to', 'figure it out alone.'],emphasis:2,description:'Get support with research planning, analysis, editing and seminar preparation.',cta:'Request project support',href:'/project/',tone:'study',figure:'project' }
-];
+ { eyebrow:'AFRINET HUB', heading:['Your everyday needs,', 'all in one place.'], emphasis:1,
+   description:'Printing, gadgets, data, housing and project support made easier.', cta:'Explore our services', href:'#services',tone:'all',figure:'everything' },
+ { eyebrow:'PRINTING & PHOTOCOPYING', heading:['Print what you need,', 'without the stress.'], emphasis:1,
+   description:'Send your documents, choose your options and see the price.', cta:'Start a print order', href:'/order/',tone:'print',figure:'printing' },
+ { eyebrow:'GADGETS & ELECTRONICS', heading:['Better tech for', 'everyday life.'], emphasis:1,
+   description:'Find phones, laptops and useful gadgets for work and school.', cta:'Browse gadgets', href:'/gadgets/',tone:'tech',figure:'gadgets' },
+ { eyebrow:'DATA & AIRTIME', heading:['Stay connected,', 'wherever you are.'], emphasis:1,
+   description:'Top up your mobile data or airtime through our recharge service.', cta:'Buy data & airtime',href:'https://afrinethub.com',tone:'data',figure:'data',external:true },
+ { eyebrow:'HOUSING & ACCOMMODATION', heading:['Find a place', 'that feels right.'],emphasis:1,
+   description:'Explore rooms, apartments and short-lets around the campus.',cta:'View accommodation',href:'/housing/',tone:'home',figure:'housing' },
+ { eyebrow:'PROJECTS & SEMINARS', heading:['Get help with', 'your next project.'],emphasis:1,
+   description:'Research planning, editing and seminar support when you need it.',cta:'Request project support',href:'/project/',tone:'study',figure:'project' }
+;
 
 function Brand({inverted=false}) {
   return <a className={'brand'+(inverted?' brand-inverted':'')} href="/" aria-label="AfriNet Hub home">
@@ -83,19 +89,17 @@ function Carousel() {
   const [active,setActive]=useState(0),[paused,setPaused]=useState(false);
   const [reduced,setReduced]=useState(false), touch=useRef(null);
   useEffect(()=>{const mq=window.matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(mq.matches);update();mq.addEventListener?.('change',update);return()=>mq.removeEventListener?.('change',update)},[]);
-  useEffect(()=>{if(paused||reduced)return;const id=setInterval(()=>setActive(a=>(a+1)%slides.length),7500);return()=>clearInterval(id)},[paused,reduced]);
+  useEffect(()=>{if(paused||reduced||window.matchMedia('(max-width: 700px)').matches)return;const id=setInterval(()=>setActive(a=>(a+1)%slides.length),7500);return()=>clearInterval(id)},[paused,reduced]);
   const setSlide=(idx)=>setActive((idx+slides.length)%slides.length);
   const slide=slides[active];
   return <section className={'hero hero-'+slide.tone} aria-label="Featured services" onMouseEnter={()=>setPaused(true)} onMouseLeave={()=>setPaused(false)} onFocusCapture={()=>setPaused(true)} onBlurCapture={e=>{if(!e.currentTarget.contains(e.relatedTarget))setPaused(false)}} onTouchStart={e=>{touch.current=e.touches[0]?.clientX}} onTouchEnd={e=>{if(touch.current===null)return;const dx=e.changedTouches[0].clientX-touch.current;if(Math.abs(dx)>70)setSlide(active+(dx<0?1:-1));touch.current=null}}>
      <div className="shell hero-grid">
        <div className="hero-content" key={'copy-'+active}>
-         <div className="eyebrow"><span/> {slide.eyebrow}</div>
-         <p className="hero-kicker">{slide.kicker}</p>
-         <h1>{slide.heading.map((part,i)=><span className={i===slide.emphasis?'orange-text':''} key={part}>{part}</span>)}</h1>
+         <p className="hero-overline">{slide.eyebrow}</p>
+         <h1>{slide.heading.map((part,i)=><React.Fragment key={i}>{i>0?' ':null}<span className={i===slide.emphasis?'orange-text':''}>{part}</span></React.Fragment>)}</h1>
          <p className="hero-description">{slide.description}</p>
          <div className="hero-cta">
           <AppLink href={slide.href} external={slide.external} className="btn btn-orange">{slide.cta} <ArrowUpRight size={19}/></AppLink>
-          <AppLink href="https://wa.me/2348083964600" external className="hero-quiet"><MessageCircle size={18}/> Ask a question</AppLink>
          </div>
        </div>
        <HeroVisual key={'art-'+active} kind={slide.figure}/>
@@ -113,8 +117,6 @@ function ServiceCard({service,index}) {
  return <AppLink href={service.href} external={service.external} className={'service-tile tile-'+service.type}>
    <div className="service-media">
      <img src={service.image} alt="" loading="lazy" decoding="async" width="1100" height="826"/>
-     <span className="service-number">0{index+1} / {service.tag}</span>
-     <span className="tile-arrow" aria-hidden="true"><ArrowUpRight size={21}/></span>
    </div>
    <div className="service-body">
      <h3>{service.label}</h3>
@@ -134,7 +136,7 @@ function Trust() {
  const benefits=[{icon:Layers3,title:'Everything together',text:'Printing, tech, housing and student support in one place.'},{icon:Clock3,title:'Less back and forth',text:'Clear next steps so you can spend more time on what matters.'},{icon:MessageCircle,title:'A real team to talk to',text:'Questions about an order or a service? Reach us directly.'}];
  return <section className="trust section"><div className="shell">
    <div className="trust-intro">
-   <div className="trust-title"><p className="label">WHY AFRINET HUB?</p><h2>We make the everyday<br/><em>feel a little easier.</em></h2><p>One place for the things that keep your day moving.</p></div>
+   <div className="trust-title"><p className="label">WHY AFRINET HUB?</p><h2>We make everyday activities<br/><em>feel a little easier.</em></h2><p>One place for the things that keep your day moving.</p></div>
    <img className="trust-image" src="/assets/images/connected-services.jpg" alt="Printing, electronics, data and housing services brought together" loading="lazy" decoding="async" width="1600" height="900"/>
  </div>
    <div className="trust-list">{benefits.map(b=><article key={b.title}><span><b.icon size={29}/></span><h3>{b.title}</h3><p>{b.text}</p></article>)}</div>
@@ -175,7 +177,7 @@ function More() {
  </div></section>;
 }
 function Closing() {
- return <section className="closing"><div className="shell closing-grid"><div><p className="label">ONE PLACE. REAL POSSIBILITIES.</p><h2>You've got things to do.<br/><em>Let's make them easier.</em></h2><p>Start with what matters to you today. We're right here when you need us.</p></div><AppLink href="#services" className="btn btn-orange">Find a service <ArrowUpRight size={21}/></AppLink></div></section>;
+ return <section className="closing"><div className="shell closing-grid"><div><h2>Ready for what’s next?<br/><em>We’re here to help.</em></h2><p>Start with what matters to you today. We're right here when you need us.</p></div><AppLink href="#services" className="btn btn-orange">Find a service <ArrowUpRight size={21}/></AppLink></div></section>;
 }
 function Footer() {
  return <footer className="footer"><div className="shell">
