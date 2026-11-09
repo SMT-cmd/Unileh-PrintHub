@@ -13,7 +13,7 @@ const server = await createServer({
 try {
   const { default: App } = await server.ssrLoadModule('/src/App.jsx');
   const html = renderToString(React.createElement(App));
-  if (!html.includes('Life gets easier') || !html.includes('Printing &amp; Photocopying')) {
+  if (!html.includes('Your everyday needs,') || !html.includes('Printing &amp; Photocopying')) {
     throw new Error('Server-rendered homepage is missing required service text');
   }
   const filename = resolve('dist/index.html');
