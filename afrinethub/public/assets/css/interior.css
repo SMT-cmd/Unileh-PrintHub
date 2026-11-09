@@ -332,3 +332,9 @@ body.admin-dashboard-body .admin-footer{margin-top:25px;padding:20px 0;backgroun
 [data-theme="dark"] body[data-legacy-page="about"] .about-offerings-grid h3{color:#f4f8ff;}
 [data-theme="dark"] body[data-legacy-page="about"] .about-offerings-grid p{color:#cadbed;}
 [data-theme="dark"] body[data-legacy-page="about"] .about-contact-v2{background:#05152a;}
+
+/* Mobile's primary print action remains available when the desktop header CTA hides. */
+.legacy-mobile-order{display:none;}
+body[data-legacy-page] .cart-drawer-overlay{z-index:1200;}
+body[data-legacy-page] .cart-drawer{z-index:1201;}
+@media(max-width:980px){header:not(.admin-header) nav#legacy-main-nav .legacy-mobile-order{display:block;}}
