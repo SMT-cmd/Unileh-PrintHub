@@ -39,6 +39,7 @@
         .cart-qty-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid #ccc; background: #f5f5f5; cursor: pointer; }
         .empty-state { text-align: center; opacity: 0.6; padding: 40px 0; }
     </style>
+    <link rel="stylesheet" href="../assets/css/interior.css">
 </head>
 <body class="watermark-bg">
 
@@ -47,7 +48,7 @@
     <main class="container">
         <section class="page-header">
             <h1>Gadgets</h1>
-            <p>Phones, laptops, tablets, watches and cars. Direct sales, quality guaranteed.</p>
+            <p>Browse available phones, laptops, tablets and other useful tech.</p>
         </section>
 
         <div class="gadget-toolbar" id="category-filters">
@@ -212,7 +213,7 @@
                 return;
             }
             grid.innerHTML = filtered.map(p => {
-                const img = (p.images && p.images[0] && p.images[0].url) || '';
+                const img = (p.images && p.images[0] && p.images[0].url) || '../assets/images/service-gadgets.jpg';
                 const oldPriceHtml = num(p.oldPrice) > num(p.price)
                     ? `<div class="gadget-old-price">${money(p.oldPrice)}</div>` : '';
                 return `
