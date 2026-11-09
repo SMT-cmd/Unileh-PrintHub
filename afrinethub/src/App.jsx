@@ -26,7 +26,7 @@ const slides = [
    description:'Explore rooms, apartments and short-lets around the campus.',cta:'View accommodation',href:'/housing/',tone:'home',figure:'housing' },
  { eyebrow:'PROJECTS & SEMINARS', heading:['Get help with', 'your next project.'],emphasis:1,
    description:'Research planning, editing and seminar support when you need it.',cta:'Request project support',href:'/project/',tone:'study',figure:'project' }
-;
+];
 
 function Brand({inverted=false}) {
   return <a className={'brand'+(inverted?' brand-inverted':'')} href="/" aria-label="AfriNet Hub home">
