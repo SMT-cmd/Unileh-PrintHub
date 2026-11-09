@@ -30,6 +30,7 @@
         .housing-inquire-btn { margin-top: auto; background: #0a1f44; color: #fff; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 700; }
         .empty-state { text-align: center; opacity: 0.6; padding: 40px 0; }
     </style>
+    <link rel="stylesheet" href="../assets/css/interior.css">
 </head>
 <body class="watermark-bg">
 
@@ -38,7 +39,7 @@
     <main class="container">
         <section class="page-header">
             <h1>Housing & Accommodation</h1>
-            <p>Apartments, self-contains and short-lets near campus. Message us on WhatsApp to inquire.</p>
+            <p>Explore available accommodation near campus and contact us for details.</p>
         </section>
 
         <div class="housing-toolbar" id="type-filters">
@@ -122,7 +123,7 @@
                 return;
             }
             grid.innerHTML = filtered.map(l => {
-                const img = (l.images && l.images[0] && l.images[0].url) || '';
+                const img = (l.images && l.images[0] && l.images[0].url) || '../assets/images/service-housing.jpg';
                 return `
                     <div class="housing-card card">
                         <img src="${attrUrl(img)}" alt="${esc(l.name)}" loading="lazy">
