@@ -120,7 +120,8 @@ test('brand is tightly grouped, words are correct, and pills removed',()=>{
  assert.doesNotMatch(app,/className="hero-kicker"|className="service-number"|className="tile-arrow"/);
  assert.doesNotMatch(app,/className="eyebrow"/);
  assert.match(css,/\.brand-title small/);
- assert.match(css,/letter-spacing:\.13em/);
+ assert.match(css,/\.brand-title small \{[^}]*margin-top:-3px/);
+ assert.doesNotMatch(app,/className="hero-overline"/);
  assert.match(entry,/import '\.\/refinement\.css';/);
  assert.doesNotMatch(entry,/import '\.\/banner-fix\.css'|import '\.\/editorial\.css'/);
 });
@@ -150,4 +151,15 @@ test('all six hero slides have concise useful descriptions and navigation target
  assert.equal((data.match(/cta:/g)||[]).length,6);
  assert.match(data,/HOUSING & ACCOMMODATION[\s\S]*?description:/);
  assert.match(app,/aria-controls="mobile-nav"/);
+});
+
+
+test('compact readable hero has touch-friendly carousel navigation and fallback images',()=>{
+ const app=read('src/App.jsx');
+ const css=read('src/refinement.css');
+ assert.match(app,/loading="eager"/);
+ assert.match(app,/onError=\{event=>/);
+ assert.match(css,/min-height:clamp\(328px,90vw,372px\)/);
+ assert.match(css,/\.hero \.hero-dots>button::before/);
+ assert.match(css,/\.hero \.hero-content h1/);
 });
