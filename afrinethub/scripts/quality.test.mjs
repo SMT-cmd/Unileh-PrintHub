@@ -96,93 +96,58 @@ test('staging blocks real orders, uploads and admin edits',()=>{
  assert.match(dashboard,/Live administration is disabled on this preview link/);
 });
 
-test('all generated banners are integrated and responsive',()=>{
- const images=[
-  'hero-services.jpg','connected-services.jpg','campus-essentials.jpg',
-  'connected-community.jpg','service-printing.jpg','service-gadgets.jpg',
-  'service-data.jpg','service-housing.jpg','service-project.jpg'
- ];
+
+test('nine approved promotional images are referenced by real page sections',()=>{
+ const images=['hero-services.jpg','connected-services.jpg','campus-essentials.jpg',
+ 'connected-community.jpg','service-printing.jpg','service-gadgets.jpg',
+ 'service-data.jpg','service-housing.jpg','service-project.jpg'];
  const app=read('src/App.jsx');
- const css=read('src/editorial.css');
- for(const asset of images){
-  assert.ok(existsSync(resolve(root,'public/assets/images/'+asset)),asset);
-  assert.ok(app.includes(asset),'Rendered component does not reference '+asset);
+ for(const name of images) {
+   assert.ok(existsSync(resolve(root,'public/assets/images/'+name)),name);
+   assert.ok(app.includes(name),'Missing rendered image reference: '+name);
  }
- assert.match(app,/id="mobile-nav"/);
- assert.match(app,/className="service-media"/);
  assert.match(app,/className="community-banner"/);
- assert.match(css,/@media \(max-width:600px\)/);
- assert.match(css,/@media \(max-width:980px\)/);
- assert.match(css,/\.hero-art \{position:relative/);
- assert.match(css,/\.hero-photo-wash/);
- assert.doesNotMatch(css,/display:none;\s*\/\*\s*mobile hero artwork/i);
-});
-
-test('mobile banner content stays on its imagery panels',()=>{
- const app=read('src/App.jsx');
- const main=read('src/main.jsx');
- const styles=read('src/banner-fix.css');
- assert.match(main,/import '\.\/banner-fix\.css'/);
- // Carousel photo and live text must be siblings within the same hero-grid.
- assert.match(app,/<div className="shell hero-grid">[\s\S]*?<div className="hero-content"[\s\S]*?<HeroVisual/);
- // All five links, headings and CTA must remain within photographic service tiles.
- assert.ok(app.includes("'service-tile tile-'"));
  assert.match(app,/className="service-media"/);
- assert.match(app,/className="service-body"/);
- for(const cls of ['hero-grid','hero-art','hero-content','service-media',
-   'service-body','trust-intro','spotlight-panel','community-banner']) {
-  assert.ok(styles.includes('.'+cls),cls+' has no corrective banner styling');
- }
- // Mobile images are absolute backgrounds, while copy is positioned in front.
- assert.match(styles,/@media\(max-width:650px\)/);
- assert.match(styles,/\.hero \.hero-art \{position:absolute/);
- assert.match(styles,/\.hero \.hero-content \{width:100%/);
- assert.match(styles,/\.services \.service-media \{position:absolute/);
- assert.match(styles,/\.spotlight \.spotlight-panel>div:first-child/);
- assert.match(styles,/\.more \.community-content/);
- assert.match(styles,/background:linear-gradient/);
- assert.match(styles,/overflow-wrap:break-word/);
- assert.match(styles,/\.hero \.hero-art-picture \{position:absolute/);
- assert.match(styles,/\.hero \.hero-art \.hero-photo \{position:absolute/);
- assert.match(styles,/\.spotlight \.spotlight-panel>\.campus-figure/);
- assert.match(styles,/\.more \.community-banner \.community-image/);
+ assert.match(app,/className="campus-image"/);
 });
 
-test('mobile wording appears before photographic art inside a single banner',()=>{
- const css=read('src/banner-fix.css');
- assert.match(css,/November 8 corrective pass/);
- assert.match(css,/\.hero \.hero-art \{position:relative;inset:auto/);
- assert.match(css,/\.hero \.hero-content \{position:relative;z-index:3/);
- assert.match(css,/\.hero \.hero-content h1 \{color:#fff/);
- assert.match(css,/\.services \.service-media::after \{background:linear-gradient/);
- assert.match(css,/\.trust \.trust-title, \.spotlight \.spotlight-panel>div:first-child/);
- assert.match(css,/\.more \.community-banner \.community-image \{/);
+test('brand is tightly grouped, words are correct, and pills removed',()=>{
+ const app=read('src/App.jsx');
+ const css=read('src/refinement.css');
+ const entry=read('src/main.jsx');
+ assert.match(app,/We make everyday activities/);
+ assert.match(app,/feel a little easier/);
+ assert.doesNotMatch(app,/className="hero-kicker"|className="service-number"|className="tile-arrow"/);
+ assert.doesNotMatch(app,/className="eyebrow"/);
+ assert.match(css,/\.brand-title small/);
+ assert.match(css,/letter-spacing:\.13em/);
+ assert.match(entry,/import '\.\/refinement\.css';/);
+ assert.doesNotMatch(entry,/import '\.\/banner-fix\.css'|import '\.\/editorial\.css'/);
+});
+
+test('responsive text remains on banners with no artificial mobile padding gap',()=>{
+ const css=read('src/refinement.css');
+ const app=read('src/App.jsx');
+ assert.match(css,/\.hero \.hero-art \{position:absolute;inset:0/);
+ assert.match(css,/\.hero \.hero-photo-wash/);
+ assert.match(css,/@media \(max-width:700px\)/);
  assert.match(css,/@media \(max-width:365px\)/);
+ assert.match(css,/\.hero \.hero-content \{position:relative;z-index:3/);
+ assert.match(css,/\.services \.service-media::after/);
+ assert.match(css,/\.trust \.trust-intro::after/);
+ assert.match(css,/\.spotlight \.spotlight-panel::after/);
+ assert.match(css,/\.more \.community-banner::after/);
+ assert.doesNotMatch(css,/padding-top:calc\(var\(--mobile-hero-art\)/);
+ assert.match(app,/className="hero-description"/);
+ assert.match(app,/className="btn btn-orange"/);
 });
 
-
-test('Nov 8 mobile banner patch keeps readable headings and cards',()=>{
- const css=read('src/banner-fix.css');
- const markup=read('src/App.jsx');
- const lookFor=[
-  'NOV 8 — MOBILE BANNER FINAL',
-  '.hero .hero-content h1 .orange-text',
-  '.hero .hero-art-picture',
-  '.hero .hero-photo-wash',
-  '.services .service-body h3',
-  '.trust .trust-title h2',
-  '.spotlight .spotlight-panel h2',
-  '.more .community-content h2',
-  '@media (max-width:365px)',
-  '(min-width:651px) and (max-width:1080px)'
- ];
- for (const term of lookFor) assert.ok(css.includes(term),'Missing mobile treatment: '+term);
- assert.ok(markup.includes('<h1>{slide.heading.map('));
- assert.ok(markup.includes('className="service-body"'));
- assert.ok(markup.includes('className="community-content"'));
- assert.ok(markup.includes('className="trust-title"'));
- assert.ok(markup.includes('className="spotlight-panel school-watermark"'));
- // Hero text is not built into image files and all call-to-action links remain real anchors.
- assert.match(markup,/className="btn btn-orange"/);
- assert.match(markup,/className="hero-description"/);
+test('all six hero slides have concise useful descriptions and navigation targets',()=>{
+ const app=read('src/App.jsx');
+ const data=app.slice(app.indexOf('const slides = ['),app.indexOf('];',app.indexOf('const slides = [')));
+ assert.equal((data.match(/description:/g)||[]).length,6);
+ assert.equal((data.match(/heading:/g)||[]).length,6);
+ assert.equal((data.match(/cta:/g)||[]).length,6);
+ assert.match(data,/HOUSING & ACCOMMODATION[\s\S]*?description:/);
+ assert.match(app,/aria-controls="mobile-nav"/);
 });
