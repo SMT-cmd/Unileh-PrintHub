@@ -71,7 +71,7 @@
                     </a>
                 </div>
                 <nav id="legacy-main-nav" aria-label="Main navigation">
-                    <ul>${NAV.map(n=>`<li>${link(n)}</li>`).join('')}</ul>
+                    <ul>${NAV.map(n=>`<li>${link(n)}</li>`).join('')}<li class="legacy-mobile-order"><a href="${base}order/">Print a document &#8599;</a></li></ul>
                 </nav>
                 <div class="legacy-header-actions">
                     <a href="${base}order/" class="legacy-header-order">Print a document <span aria-hidden="true">&#8599;</span></a>
