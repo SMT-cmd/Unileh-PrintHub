@@ -405,7 +405,7 @@ async function initDashboard() {
             try {
                 adUploadButton.disabled = true;
                 adUploadButton.textContent = 'Uploading...';
-                const result = await window.storageService.uploadFile(file);
+                const result = await window.storageService.uploadFile(file, null, { kind: 'public-media' });
                 adImageUrl = result.viewURL;
                 adImageId = result.fileId;
                 adUploadFeedback.innerHTML = `
@@ -483,7 +483,7 @@ async function initDashboard() {
             try {
                 annUploadButton.disabled = true;
                 annUploadButton.textContent = 'Uploading...';
-                const result = await window.storageService.uploadFile(file);
+                const result = await window.storageService.uploadFile(file, null, { kind: 'public-media' });
                 annAttachment = {
                     url: result.viewURL,
                     fileId: result.fileId,
@@ -582,7 +582,7 @@ async function initDashboard() {
             try {
                 gadgetUploadButton.disabled = true;
                 gadgetUploadButton.textContent = 'Uploading...';
-                const result = await window.storageService.uploadFile(file);
+                const result = await window.storageService.uploadFile(file, null, { kind: 'public-media' });
                 gadgetImageUrl = result.viewURL;
                 gadgetImageId = result.fileId;
                 gadgetUploadFeedback.innerHTML = `<div class="upload-success-badge">✅ Image attached: <strong>${esc(result.originalName)}</strong></div>`;
@@ -650,7 +650,7 @@ async function initDashboard() {
             try {
                 housingUploadButton.disabled = true;
                 housingUploadButton.textContent = 'Uploading...';
-                const result = await window.storageService.uploadFile(file);
+                const result = await window.storageService.uploadFile(file, null, { kind: 'public-media' });
                 housingImageUrl = result.viewURL;
                 housingImageId = result.fileId;
                 housingUploadFeedback.innerHTML = `<div class="upload-success-badge">✅ Image attached: <strong>${esc(result.originalName)}</strong></div>`;
