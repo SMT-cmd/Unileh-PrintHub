@@ -65,7 +65,7 @@ as $$
        end
      ) f
    ),'[]'::jsonb)
- ),'[]'::jsonb)
+ )),'[]'::jsonb)
  from (
   select * from public.orders o where o.status in ('Paid','Printed','Ready','Collected')
   order by o.created_at desc limit 100
