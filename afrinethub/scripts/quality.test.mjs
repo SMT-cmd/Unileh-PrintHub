@@ -358,3 +358,54 @@ test('XML sitemap advertises only canonical public marketing URLs',()=>{
  for(const p of ['checkout','admin'])
    assert.match(read('public/'+p+'/index.html'),/name="robots" content="noindex,nofollow"/);
 });
+
+
+test('plain two-account login labels and manager-only printing invitations',()=>{
+ const login=read('public/admin/index.html');
+ assert.match(login,/>afrinetnig@gmail\.com<\/option>/);
+ assert.match(login,/>timilehintallest@gmail\.com<\/option>/);
+ assert.doesNotMatch(login,/Primary administrator|Second administrator/i);
+ assert.match(login,/staff-activate-form/);
+ assert.match(login,/auth\.updateUser\(\{password:p\}\)/);
+ assert.match(login,/role === 'print_staff'/);
+ const admin=read('public/admin/dashboard/index.html');
+ const adminScript=read('public/admin/js/dashboard.js');
+ const auth=read('public/admin/js/auth.js');
+ assert.match(admin,/data-tab="print-staff-manager"/);
+ assert.match(admin,/id="print-staff-invite-form"/);
+ assert.match(adminScript,/afrinetnig@gmail\.com/);
+ assert.match(adminScript,/apiCall\(action,body,\{bearer:await authHeader\(\)\}\)/);
+ assert.match(adminScript,/staff-revoke/);
+ assert.match(auth,/claim_print_staff/);
+ assert.match(auth,/isAuthorizedPrintStaff/);
+ assert.match(auth,/role==='print_staff'\?'print\/':'dashboard\/'/);
+});
+
+test('print operators have a separate limited workspace and zero database write privileges',()=>{
+ const html=read('public/admin/print/index.html');
+ const js=read('public/admin/js/print.js');
+ const sql=read('supabase/migrations/20261110_000007_invited_print_staff_restricted.sql');
+ const edge=read('supabase/functions/afrinethub-api/index.ts');
+ assert.match(html,/noindex,nofollow/);
+ assert.match(html,/Printing workspace/);
+ assert.match(js,/staff-orders/);
+ assert.match(js,/staff-file-url/);
+ assert.match(js,/staff-progress/);
+ assert.doesNotMatch(js,/\.from\(['"]orders['"]\)/);
+ assert.doesNotMatch(js,/totalPrice|receiptId|verifyPayment|paymentStatus/);
+ assert.match(sql,/alter table public\.print_staff enable row level security/);
+ assert.match(sql,/grant select on public\.print_staff to authenticated/);
+ assert.match(sql,/revoke all on public\.print_staff from public, anon, authenticated/);
+ assert.match(sql,/grant execute on function public\.%s to service_role/);
+ assert.match(sql,/p_next_status='Printed'/);
+ assert.match(sql,/p_next_status='Ready'/);
+ assert.match(sql,/p_next_status='Collected'/);
+ assert.doesNotMatch(sql,/p_next_status='Paid'/);
+ assert.match(edge,/inviteUserByEmail/);
+ assert.match(edge,/who\.manager/);
+ assert.match(edge,/Only the Afrinet Hub manager can invite or manage print staff/);
+ assert.match(edge,/Only printing documents can be downloaded/);
+ assert.match(edge,/afrinethub_print_file_allowed/);
+ assert.match(edge,/afrinethub_print_update/);
+ assert.match(edge,/afrinethub_print_jobs/);
+});
