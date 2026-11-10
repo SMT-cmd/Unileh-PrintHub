@@ -168,25 +168,23 @@ async function initDashboard() {
         if (order.status === 'Collected') statusClass = 'status-collected';
         if (order.status === 'Paid') statusClass = 'status-paid';
 
-        const receiptLink = order.receiptUrl
-            ? `<a href="${attrUrl(order.receiptUrl)}" target="_blank" rel="noopener noreferrer" class="download-link">Receipt</a>`
-            : `<span style="opacity:0.5; font-size:0.8em;">No Receipt</span>`;
+        const receiptLink = order.receiptId
+            ? `<button type="button" data-action="view-private-file" data-file-id="${esc(order.receiptId)}" class="download-link" title="View receipt securely">View receipt</button>`
+            : '<span style="opacity:.6;font-size:.85em">Awaiting receipt</span>';
 
         const displayId = order.orderNumber || `${String(id).substring(0, 5)}...`;
         const items = Array.isArray(order.items) && order.items.length
             ? order.items
             : [{
-                fileUrl: order.fileUrl,
                 fileId: order.fileId,
                 fileName: order.fileName,
                 pageCount: order.pageCount,
                 copies: order.copies,
                 printType: order.printType
             }];
-
         const fileLinks = items
-            .filter((it) => it && it.fileUrl)
-            .map((it, i) => `<a href="${attrUrl(it.fileUrl)}" target="_blank" rel="noopener noreferrer" class="download-link">File ${i + 1}</a>`)
+            .filter(it => it?.fileId)
+            .map((it, i) => `<button type="button" data-action="view-private-file" data-file-id="${esc(it.fileId)}" class="download-link">Document ${i + 1}</button>`)
             .join(' ');
 
         const fileIdsEncoded = encodeURIComponent(JSON.stringify(items.map((it) => it?.fileId).filter(Boolean)));
@@ -214,10 +212,13 @@ async function initDashboard() {
             <td><span class="status-badge ${statusClass}">${esc(order.status)}</span></td>
             <td>
                 <div class="action-group">
-                    <button data-action="toggle-print-ready" data-id="${esc(id)}" data-status="${esc(order.status)}" data-name="${esc(order.studentName)}" data-phone="${esc(order.phoneNumber)}" class="action-button-small btn-ready">
+                    ${order.status === 'Pending' && order.receiptId
+                    ? `<button data-action="verify-payment" data-id="${esc(id)}" class="action-button-small btn-ready">Verify transfer</button>`
+                    : ''}
+                    <button data-action="toggle-print-ready" data-id="${esc(id)}" data-status="${esc(order.status)}" data-name="${esc(order.studentName)}" data-phone="${esc(order.phoneNumber)}" class="action-button-small btn-ready" ${['Paid','Printed','Ready'].includes(order.status)?'':'disabled'}>
                         ${order.status === 'Ready' ? 'Undo Ready' : 'Print Ready'}
                     </button>
-                    <button data-action="mark-collected" data-id="${esc(id)}" class="action-button-small btn-collected" ${order.status === 'Collected' ? 'disabled' : ''}>
+                    <button data-action="mark-collected" data-id="${esc(id)}" class="action-button-small btn-collected" ${order.status !== 'Ready' ? 'disabled' : ''}>
                         Collected
                     </button>
                     <button data-action="delete-order" data-id="${esc(id)}" data-file-ids="${esc(fileIdsEncoded)}" data-receipt-id="${esc(order.receiptId ?? '')}" class="action-button-small btn-delete">
@@ -699,7 +700,29 @@ async function initDashboard() {
 
     // --- Global Action Functions ---
 
+    window.verifyPayment = async (id) => {
+        if (!confirm('Have you verified this bank transfer in the actual bank account? This cannot be determined by a receipt screenshot.')) return;
+        try {
+            const {data:order,error:readError} = await sb.from('orders').select('status,data').eq('id',id).single();
+            if(readError) throw readError;
+            if(order?.status !== 'Pending' || !order.data?.receiptId) throw new Error('No pending receipt for verification.');
+            const {error} = await sb.from('orders').update({status:'Paid',data:{...order.data,paymentStatus:'Bank transfer verified',paymentVerifiedAt:new Date().toISOString()}}).eq('id',id).eq('status','Pending');
+            if(error) throw error;
+            alert('Payment verified. The print order may now be processed.');
+        } catch(e) {alert(e.message||'Could not verify payment');}
+    };
+
+    window.viewPrivateFile = async (fileId) => {
+        try {
+            const url = await window.afriBackend.adminFileUrl(fileId);
+            window.open(url,'_blank','noopener,noreferrer');
+        } catch(error) {alert(error.message||'Could not open private file');}
+    };
+
     window.togglePrintReady = async (id, currentStatus, studentName, phoneNumber) => {
+        if (!['Paid','Printed','Ready'].includes(currentStatus)) {
+            alert('Verify the bank transfer before preparing this order.'); return;
+        }
         const newStatus = currentStatus === 'Ready' ? 'Paid' : 'Ready';
         try {
             const { error } = await sb.from('orders').update({ status: newStatus }).eq('id', id);
@@ -718,7 +741,7 @@ async function initDashboard() {
 
     window.markAsCollected = async (id) => {
         try {
-            const { error } = await sb.from('orders').update({ status: 'Collected' }).eq('id', id);
+            const { error } = await sb.from('orders').update({ status: 'Collected' }).eq('id', id).eq('status','Ready');
             if (error) throw error;
         } catch (error) {
             console.error("Error marking as collected: ", error);
@@ -813,6 +836,8 @@ async function initDashboard() {
         if (!btn) return;
         const d = btn.dataset;
         switch (d.action) {
+            case 'verify-payment': window.verifyPayment(d.id); break;
+            case 'view-private-file': window.viewPrivateFile(d.fileId); break;
             case 'toggle-print-ready': window.togglePrintReady(d.id, d.status, d.name, d.phone); break;
             case 'mark-collected':     window.markAsCollected(d.id); break;
             case 'delete-order':       window.deleteOrder(d.id, d.fileIds, d.receiptId); break;
