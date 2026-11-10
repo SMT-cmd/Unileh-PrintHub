@@ -51,7 +51,11 @@
             <form id="admin-signup-form" style="display: none;" hidden>
                 <div class="form-group">
                     <label for="admin-signup-email">Admin Email</label>
-                    <input type="email" id="admin-signup-email" value="timilehintallest@gmail.com" readonly required>
+                    <select id="admin-signup-email" required aria-label="Choose one of the two approved administrators">
+                        <option value="timilehintallest@gmail.com">Primary administrator — timilehintallest@gmail.com</option>
+                        <option value="afrinetnig@gmail.com">Second administrator — afrinetnig@gmail.com</option>
+                    </select>
+                    <p class="form-hint">Each person creates their own password and confirms their own email. Only two accounts are permitted.</p>
                 </div>
                 <div class="form-group">
                     <label for="admin-signup-password">Password</label>
@@ -109,7 +113,7 @@
                 showSignupBtn.hidden = false;
                 showSignupBtn.disabled = false;
                 signupForm.hidden = false;
-                statusDiv.textContent = "First-time owner setup: register with the approved email, confirm the message in your inbox, then sign in.";
+                statusDiv.textContent = "Administrator setup: select your own approved email, create your own password, confirm the email message, then sign in.";
                 statusDiv.className = "status-message pending";
             } else {
                 statusDiv.textContent = "Sign in with an administrator account. Contact the platform owner if you need access.";
