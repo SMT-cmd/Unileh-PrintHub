@@ -20,6 +20,79 @@ async function initDashboard() {
     }
     const sb = window.supabaseClient;
 
+    // Only the actual AfriNet Hub management mailbox can invite and disable
+    // print operators. The Edge server re-verifies the same permissions.
+    async function setupPrintingStaffManager() {
+        const {data:{user}} = await sb.auth.getUser();
+        if(String(user?.email||'').toLowerCase()!=='afrinetnig@gmail.com')return;
+        const tab=document.getElementById('print-staff-tab');
+        const form=document.getElementById('print-staff-invite-form');
+        const body=document.getElementById('print-staff-rows');
+        const feedback=document.getElementById('print-staff-feedback');
+        if(!tab||!form||!body||!feedback)return;
+        tab.hidden=false;
+        const authHeader=async()=>{
+            const {data:{session}}=await sb.auth.getSession();
+            if(!session?.access_token)throw new Error('Sign in again to manage your team.');
+            return session.access_token;
+        };
+        const request=async(action,body={})=>
+            window.afriBackend.apiCall(action,body,{bearer:await authHeader()});
+        async function loadTeam(){
+            try{
+                const {staff}=await request('staff-list');
+                body.replaceChildren();
+                if(!staff?.length){
+                    const tr=document.createElement('tr'),td=document.createElement('td');
+                    td.colSpan=4;td.textContent='No printing staff invited yet.';
+                    tr.append(td);body.append(tr);return;
+                }
+                for(const person of staff){
+                    const tr=document.createElement('tr');
+                    const cell=(text)=>{
+                        const td=document.createElement('td');
+                        td.textContent=String(text||'—');
+                        tr.append(td);
+                        return td;
+                    };
+                    cell(person.email);
+                    cell(person.active?(person.joined_at?'Active':'Invitation pending'):'Access revoked');
+                    cell(person.joined_at?new Date(person.joined_at).toLocaleDateString():'—');
+                    const td=document.createElement('td');
+                    if(person.active){
+                        const btn=document.createElement('button');
+                        btn.type='button';btn.className='action-button-small btn-delete';
+                        btn.textContent='Revoke access';
+                        btn.addEventListener('click',async()=>{
+                            if(!confirm('Remove printing access for '+person.email+'?'))return;
+                            btn.disabled=true;
+                            try{await request('staff-revoke',{email:person.email});feedback.textContent='Access revoked for '+person.email;await loadTeam();}
+                            catch(e){feedback.textContent=e.message||'Could not revoke access.';btn.disabled=false;}
+                        });
+                        td.append(btn);
+                    }else td.textContent='Disabled';
+                    tr.append(td);body.append(tr);
+                }
+            }catch(e){feedback.textContent=e.message||'Unable to load printing staff.';}
+        }
+        form.addEventListener('submit',async(e)=>{
+            e.preventDefault();
+            const btn=document.getElementById('print-staff-invite-button');
+            const email=document.getElementById('print-staff-email').value.trim().toLowerCase();
+            btn.disabled=true;feedback.textContent='Sending secure invitation…';
+            try{
+                const result=await request('staff-invite',{email});
+                feedback.textContent=result.status||'Invitation sent.';
+                form.reset();await loadTeam();
+            }catch(error){feedback.textContent=error.message||'Unable to send the invitation.';}
+            finally{btn.disabled=false;}
+        });
+        await loadTeam();
+    }
+    setupPrintingStaffManager().catch(e=>console.warn('Staff team panel:',e.message));
+
+
+
     // --- Safe output helpers ---
     // Everything a visitor can submit (names, messages, URLs...) is untrusted.
     // Always pass it through esc() before putting it into HTML, and through
