@@ -46,8 +46,8 @@
             <p class="instruction">"Use your Order ID as the payment reference"</p>
 
             <div class="confirm-payment">
-                <h4>I've Paid, Confirm Payment</h4>
-                <p>Upload your payment receipt (image/PDF) and we'll get printing immediately.</p>
+                <h4>I've Transferred, Submit Receipt</h4>
+                <p>Upload your payment receipt (image/PDF). Printing begins once the transfer is verified.</p>
                 <div id="receipt-upload-container">
                     <button type="button" id="upload-receipt-btn" class="cta-button">Upload Receipt</button>
                     <div id="receipt-feedback" class="upload-feedback" style="display: none;"></div>
@@ -70,6 +70,7 @@
     <script type="module">
         let currentOrder = null;
         let receiptData = null;
+        const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
         document.addEventListener('DOMContentLoaded', () => {
             const checkDeps = setInterval(() => {
@@ -114,7 +115,7 @@
                         ? window.printPricing.calculatePrintTotal({ printType, pagesInFile: pages, copies }).total
                         : null;
                     const totalText = Number.isFinite(lineTotal) ? ` • ₦${lineTotal.toFixed(2)}` : '';
-                    const nameText = it.fileName ? ` (${it.fileName})` : '';
+                    const nameText = it.fileName ? ` (${esc(it.fileName)})` : '';
                     return `<div style="margin: 6px 0;"><strong>Document ${i + 1}</strong>${nameText}: ${printType} • ${pages} page${pages === 1 ? '' : 's'} • ${copies} cop${copies === 1 ? 'y' : 'ies'}${totalText}</div>`;
                 }).join('');
 
@@ -122,8 +123,8 @@
 
                 document.getElementById('checkout-summary').innerHTML = `
                     <div class="summary-details">
-                        <p><strong>Student Name:</strong> ${currentOrder.studentName}</p>
-                        <p><strong>Order ID:</strong> ${orderId}</p>
+                        <p><strong>Student Name:</strong> ${esc(currentOrder.studentName)}</p>
+                        <p><strong>Order ID:</strong> ${esc(orderId)}</p>
                         <hr>
                         ${itemsHtml}
                         <hr>
@@ -174,7 +175,7 @@
 
                     const isImage = file.type.startsWith('image/');
                     const previewHtml = isImage
-                        ? `<img src="${result.viewURL}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
+                        ? `<img src="${esc(result.viewURL)}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
                         : `<span style="font-size: 20px; margin-right: 10px;">📄</span>`;
 
                     feedback.innerHTML = `
@@ -182,7 +183,7 @@
                             ${previewHtml}
                             <div style="flex: 1;">
                                 <strong style="color: #2a9d8f;">✅ Receipt Uploaded!</strong><br>
-                                <span style="font-size: 0.85em; color: var(--text-color);">${result.originalName}</span>
+                                <span style="font-size: 0.85em; color: var(--text-color);">${esc(result.originalName)}</span>
                             </div>
                             <button type="button" id="remove-receipt" title="Remove receipt" style="background: #e63946; border: none; color: white; cursor: pointer; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
                         </div>
@@ -249,38 +250,22 @@
                                 `Student: ${currentOrder.studentName}\n` +
                                 `Amount: ₦${totalAmount.toFixed(2)}\n` +
                                 `${itemsLine}\n` +
-                                `Receipt: ${receiptData.viewURL}`;
+                                `Receipt uploaded securely. Please verify the bank transfer before marking the order paid.`;
 
                 try {
-                    const { error: statusError } = await window.supabaseClient
-                        .from('orders')
-                        .update({ status: 'Paid' })
-                        .eq('id', orderId);
-                    if (statusError) throw statusError;
-
-                    const { data: row, error: fetchErr } = await window.supabaseClient
-                        .from('orders')
-                        .select('data')
-                        .eq('id', orderId)
-                        .single();
-                    if (fetchErr) throw fetchErr;
-
-                    const updatedData = {
-                        ...row.data,
-                        receiptUrl: receiptData.viewURL,
-                        receiptId: receiptData.fileId
-                    };
-                    const { error: dataErr } = await window.supabaseClient
-                        .from('orders')
-                        .update({ data: updatedData })
-                        .eq('id', orderId);
-                    if (dataErr) throw dataErr;
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = 'Submitting receipt...';
+                    const recorded = await window.afriBackend.receipt(orderId,receiptData.fileId);
+                    feedback.innerHTML = '<p role="status" style="color:#17654b;">Receipt received securely. Your transfer is awaiting manual verification. We will begin processing after payment is confirmed.</p>';
+                    confirmBtn.textContent = 'Receipt Submitted';
+                    const whatsappUrl = `https://wa.me/2348083964600?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank','noopener,noreferrer');
                 } catch (e) {
-                    console.error("Error updating order with receipt:", e);
+                    console.error('Receipt submission failed:',e);
+                    confirmBtn.disabled=false;
+                    confirmBtn.textContent='Retry Notification';
+                    feedback.textContent=e.message || 'Could not submit receipt. Please try again.';
                 }
-
-                const whatsappUrl = `https://wa.me/2348083964600?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
             });
         }
     </script>
