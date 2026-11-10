@@ -62,3 +62,19 @@ Owner action:
 - Verify actual owner-administrator login and manual bank-transfer workflow after the owner confirms the account. Automated tests do not substitute for verifying a real bank deposit.
 
 **Production site and secured customer backend are deployed and reachable; identity verification for the first administrator is the one remaining owner-controlled step.**
+
+
+## 2026-11-10 additional release — two administrators and Google branding
+
+- **New live Vercel production release:** `dpl_3asr1DHLuo2z2o8fwNVe8oeKMkin`, https://afrinethub.com.ng/. All **22/22** automated tests passed, with no failures.
+- **Two independent approved administrator identities**, not one. Database migration `exactly_two_verified_administrators` applied to dedicated Supabase project `soqjthnzyntkhthcnucj`.
+  - Primary `setup` account: `timilehintallest@gmail.com`.
+  - Second `brother` account: `afrinetnig@gmail.com`.
+  - Admin table CHECK constraint permits only `setup` and `brother`, each with a unique Supabase Auth UUID, and the restricted claim function accepts only those two specific *email-confirmed* identities.
+  - Updated private RLS role predicate, Supabase Edge function (version 3) and frontend sign-in checks to allow either registered administrator and deny everyone else.
+  - Both choose their own private password (minimum 12 characters) on https://afrinethub.com.ng/admin/ using the selected fixed email, confirm that email, then sign in. **No passwords, OTPs, or account sessions were generated or stored by the release process**. Both admin slots still start empty until the people register.
+- **Favicon and logo** generated directly from accepted original 160×160 `afrinethub-round.webp`. Added real `favicon.ico` with 16/32/48 layers, PNG 32, PNG 48, PNG 96, Apple touch PNG 180, Android PNG 192; consistent icon links and web app manifest across homepage and all interior pages.
+- **Google branding metadata:** homepage `Organization` logo is original square 160×160 WebP (Google minimum 112×112) plus `WebSite` and `WebPage` JSON-LD. The 48×48 and 96×96 PNG favicons are linked from the homepage.
+- **SEO:** robots.txt exposes the sitemap, canonical root URLs, and keeps admin/API blocked. XML sitemap includes 12 publicly indexable canonical marketing/legal pages and real image references. It omits order, checkout and administrator forms. The live sitemap, robots, favicon and all PNG files were verified HTTP 200, with appropriate MIME types. Google indexing/favicon display is **not guaranteed** and may update over several days or weeks; Search Console URL inspection/sitemap submission is recommended.
+- **Supabase Auth email delivery caveat:** newly created free projects using built-in SMTP can only email addresses on the Supabase organization team, with a low rate limit. If either administrator receives `email_address_not_authorized`, configure custom SMTP in Supabase Authentication or authorize delivery through appropriate verified SMTP setup. Do not bypass email confirmation or add broad administrator access merely to fix email.
+- **No GitHub Actions, nameserver changes, mail-routing changes, or Global Webstores changes.**
