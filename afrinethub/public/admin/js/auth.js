@@ -114,7 +114,7 @@ waitForSupabase().then(() => {
         const role=await getAdminAccess();
         if(isDashboardPath() && role!=='admin')window.location.replace('../');
         else if(isPrintPath() && !role)window.location.replace('../');
-        else if(isLoginPath() && role && !['invite','recovery'].includes(new URLSearchParams(location.hash.slice(1)).get('type'))) {
+        else if(isLoginPath() && role && !location.search.includes('staff-invite=1') && !['invite','recovery'].includes(new URLSearchParams(location.hash.slice(1)).get('type'))) {
           window.location.replace(role==='print_staff'?'print/':'dashboard/');
         }
       }catch{
