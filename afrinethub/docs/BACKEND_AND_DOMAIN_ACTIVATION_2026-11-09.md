@@ -1,46 +1,50 @@
-# AfriNet Hub — backend and domain activation ledger
-Updated 2026-11-09. **Staging only. No production domain, live data or unrelated project has been changed.**
+# Afrinet Hub — verified Supabase & Cloudflare setup
+Updated 2026-11-10. This is a **verified status ledger** and an explicit hold on unsafe production operations.
 
-## Verified connected resources
+## Dedicated database — DONE
+- User authorized the free ($0/month quote) Supabase project creation.
+- Separate Supabase organization: **MyRP**; fresh project: **Afrinet Hub**, ref `soqjthnzyntkhthcnucj`, region **eu-west-1**, status **ACTIVE_HEALTHY**.
+- The unrelated **Global Webstores**, **SLT TradeHub**, and old paused **unilesh** projects were **not modified**.
+- Two tracked migrations successfully applied:
+  1. `afrinethub_initial_secure_schema` (11 app tables, all with RLS; 47 initial policies; admin mapping; private/public storage buckets).
+  2. `harden_order_numbers_and_admin_media` (non-privileged random order-number RPC; PDF support for published admin media).
+- Verified: 11/11 app tables have RLS; all initially contain zero rows. Anonymous role has INSERT but not SELECT on orders, portal and project requests. Anonymous INSERT on project requests succeeded in a rollback-only transaction; 0 test rows remained.
+- Storage buckets: `afrinethub-private` (not publicly readable; **no anonymous upload policy**) and `afrinethub-media` (public marketing media, writes restricted to authenticated approved administrator).
+- Verified RPC `generate_order_number` returns a unique-style order reference and no longer runs SECURITY DEFINER.
+- **Security advisor still warns** about `get_order_by_id(uuid)`, the intentional guest checkout bearer-UUID lookup using SECURITY DEFINER. Before public orders launch, replace it with a rate-limited, authenticated/token-verified server endpoint and remove its public grant. This is **not fully certified**.
+- Service-role keys were **not retrieved, printed, committed or embedded** anywhere.
 
-- React/Vite staging, Vercel project \`afrinethub\`, project ID \`prj_GU7VD4gMpTe9sE6KOUDHHYkKuC77\`.
-- Staging design build: \`https://afrinethub-prapugy0c-kingsmt.vercel.app/\`, 15 automated tests passed.
-- App source: \`SMT-cmd/Unileh-PrintHub\`, feature branch \`feature/afrinethub-platform-20261106\`, directory \`afrinethub/\`.
-- Live legacy site: \`https://afrinethub.com.ng/\`; do not replace/redirect without end-to-end validation.
-- **Do not touch** Supabase \`Gwebstore\` (\`enqhdnietkphwgafnmhf\`) or any other active organization's databases.
-- Current source files \`public/assets/js/database.js\` and \`public/assets/js/storageService.js\` refer to an older project ref \`uuuoqexhuwwiwpvqgypy\` that is **not listed in the connected Supabase accounts**. This is not a verified, functioning connection. Do not silently redirect its contents.
-- Supabase account \`MyRP\`, org \`bgwmmlepgkgkggniquel\`, has the paused unrelated \`MY-RP Development\` project. New project quote: **$0/month**. Creating a dedicated \`Afrinet Hub\` project needs cost-confirmation ID; no account authorization was granted.
-- Supabase \`Smart Systems\` org has paused project \`unilesh\` (\`oxyvzcgjracrlyckhent\`). The restore request failed: *administrator/member has already reached the limit of two active free projects*. Its data was not inspected or modified.
-- Cloudflare authenticated account \`959b3bd7b4b4280b90b55e9d648a8986\` originally contained \`globalwebstores.com\` and \`slttradehub.trade\` only. We created a new **pending**, empty zone for \`afrinethub.com.ng\`, zone \`d6f5c0e55c146288256c5051901adaa4\`.
-- Cloudflare new zone nameservers are \`chip.ns.cloudflare.com\` and \`haley.ns.cloudflare.com\`, but Cloudflare reports **original nameservers** \`denver.ns.cloudflare.com\` and \`vera.ns.cloudflare.com\`. These are from a different Cloudflare configuration. **DO NOT change registrar nameservers or enable the empty zone.** First connect the account holding the active zone, verify all DNS/MX/TXT/CAA records, then plan a no-downtime migration or manage the existing zone.
+## Frontend / Vercel — CONNECTED ON STAGING
+- Existing repository: `SMT-cmd/Unileh-PrintHub`, branch `feature/afrinethub-platform-20261106`, directory `afrinethub/`.
+- `public/assets/js/database.js` and `public/assets/js/storageService.js` both use the new project's URL and **publishable** key (not secret/service-role key). All four public-media uploads in the admin JS use `{kind:'public-media'}`.
+- Vercel project `prj_GU7VD4gMpTe9sE6KOUDHHYkKuC77` has public environment variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for preview, development and production.
+- Latest staged direct deployment: **https://afrinethub-qj24wrwsl-kingsmt.vercel.app/**; deployment `dpl_9VDKoeZ1aMdqjDsVAHizEWEsd6ia`, **READY**, automated tests **16 pass / 0 fail**; homepage and sample inner pages returned HTTP 200 on direct URL verification.
+- Preview explicitly blocks form/database writes, uploads, and live admin actions. **Do not lift that guard** until secure upload, administration, and submission safeguards have been tested.
+- Customer document/receipt uploads are now *fail-closed*: they will not be misrouted to the public-media bucket. The private signed-upload flow must be implemented and tested; **customer uploads are not yet functional on the new backend**.
 
-## Proposed data model
+## Vercel domain attachment — DONE, traffic switch NOT DONE
+- Vercel project now includes `afrinethub.com.ng` and `www.afrinethub.com.ng` (www redirects to apex with 308). Vercel reports both as **verified ownership**.
+- Vercel **still reports the domain as misconfigured** because public DNS does not point to Vercel. Attaching a Vercel domain is not the same as routing public visitors.
+- The old live site at `https://afrinethub.com.ng/` has not been overwritten.
 
-The migration \`supabase/migrations/20261109_000001_afrinethub_initial_secure_schema.sql\` is **prepared only, not executed**. It creates:
-- Private orders, portal requests, projects/seminar requests, advertising requests, feedback and administrator mapping.
-- Public listings, partners, active adverts, announcements and gadget/housing catalogue.
-- RLS on every application table, allowing anonymous creation of customer requests but keeping their data visible only to a provisioned administrator.
-- Public reads of published data only; private admin functions have restricted execution privileges.
-- A publicly readable media bucket and a private documents/receipts bucket (with **no anonymous storage upload policies**).
-- Compatibility RPCs for order numbers and lookup by an opaque UUID; bearer-link privacy and rate limiting must be tested before launch.
+## Cloudflare — PREPARED, ZONE STILL PENDING
+- Connected Cloudflare account: `959b3bd7b4b4280b90b55e9d648a8986`.
+- New pending zone `d6f5c0e55c146288256c5051901adaa4`, intended domain `afrinethub.com.ng`, assigned NS **chip.ns.cloudflare.com** and **haley.ns.cloudflare.com**.
+- Current **authoritative** nameservers are still **denver.ns.cloudflare.com** and **vera.ns.cloudflare.com**, controlled from a *different Cloudflare account/zone not accessible via the connected account*.
+- In the inactive new zone, **8 records were staged**, based on authoritative public DNS inventory and Vercel's own recommended values: apex A `76.76.21.21`, www CNAME `cname.vercel-dns.com`, 3 existing Cloudflare Email Routing MX entries (priorities 39/50/80), existing SPF TXT and two existing Google verification TXT values. Apex/www records are DNS-only (no double proxy). None affects current public traffic while the zone is pending.
+- **Do not change registrar nameservers now.** Cloudflare Email Routing forwarding rules and verified destination addresses live in the *old Cloudflare account* and **will not transfer by just copying MX records**. Some less-obvious subdomain DNS records may also exist. Connect the account owning the denver/vera zone, audit routing rules and entire DNS zone, and perform an approved no-downtime cutover.
+- Do not add the new zone's assigned nameservers to registrar or activate the incomplete email-routing setup before that check.
 
-**Security-critical remaining tasks:** The current browser-only file-upload service uploads to a public bucket called \`unilesh\` and uses public file URLs. This is inappropriate for customer documents and payment receipts. Replace with short-lived server-signed upload/download URLs, MIME/size checks, UUID-safe paths, retention/deletion, rate limiting and upload authentication. Never embed Supabase secret/service keys in the browser. Do not enable public anonymous storage writes as a shortcut.
+## Unfinished launch blockers — treat as mandatory
+1. **Administrator provisioning:** the dedicated Supabase project has no approved administrator record yet. Provision an Auth user through a trusted route and insert its exact user UUID into `admin_config`; verify non-admin denial.
+2. **Private customer file uploads:** implement server-signed private uploads, short-lived admin/customer read links, ownership checks, file retention/deletion, MIME/size validation, origin controls, per-IP throttling/Turnstile and malware handling. Do not expose documents or payment receipts in the public bucket.
+3. **Public submission abuse controls:** replace open direct anonymous database inserts / order lookup with a protected rate-limited server workflow. Current RLS prevents reading other customers' orders but *does not block spam*.
+4. **Payment/checkout:** verify the new database workflow, UUID secrecy, pricing totals, receipt capture, admin statuses and WhatsApp notification end-to-end.
+5. **Domain migration:** connect the *existing* authoritative Cloudflare account, inventory email routing and all DNS records, confirm Vercel deployment is production-safe, then cut over. New pending zone's records alone do not make the domain live on Vercel.
+6. **Mobile QA:** browser emulation for 320/390/768px not completed. TinyFish account reports insufficient wallet for the fresh post-backend smoke test; Vercel direct HTTP and 16 automated source tests passed instead.
 
-## Work needed before a launch or DNS switch
-
-1. Resolve the free-project limit/cost-confirmation requirement and create a dedicated \`Afrinet Hub\` Supabase project with explicit billing acknowledgement (no nonzero charges authorized).
-2. Apply and test the migration **only on that new verified project**. Query schema, RLS policies and security advisors. Run anonymous negative tests (cannot SELECT orders, receipts, project and portal requests; cannot upload/delete media).
-3. Provision the initial administrator as a Supabase Auth user, and insert their exact auth UUID into \`admin_config\` via trusted backend setup; ensure other signed-in users are denied.
-4. Introduce a unified frontend/backend configuration using only the dedicated project's URL and publishable key; update both \`database.js\` and \`storageService.js\` together. Do not expose the service-role key.
-5. Replace direct public document uploads with authenticated/signed private storage; validate document preview, receipt upload, price calculation, reference generation, order retrieval, status updates, media creation and cleanup.
-6. Add rate limits/CAPTCHA or a protected server submission endpoint for anonymous requests; evaluate personal-data retention, abuse controls, audit logs, and authorization.
-7. On an **authorized testing domain** validate full checkout + admin flow end-to-end (without production payments), then independently verify the exact production domain is pointing at the desired application.
-8. Confirm who manages the **current** \`denver/vera\` Cloudflare zone and inventory its original DNS records (including MX, SPF, DKIM and DMARC) before *any* DNS transfer or nameserver switch. Keep the old website live until cutover is authorized.
-9. Run real-device or viewport-specific visual checks at 320, 390, 768, 1024 and 1440px. Existing automated CSS tests and TinyFish desktop QA are not a substitute.
-10. Continue to use no GitHub Actions; use Vercel direct deployment only when configuration and checks are complete.
-
-## Current protection status
-
-The \`.vercel.app\` previews explicitly disable database writes, file uploads and admin dashboard actions. **Do not remove this guard** merely to make staging appear functional. Instead use a dedicated, access-controlled test deployment environment after the backend has been secured.
-
-No database migration, secret insertion, DNS record, registrar nameserver change, checkout order, file upload, or public production deployment has been performed in this backend setup attempt.
+## Safety decisions
+- The production website, its authoritative DNS, registrar nameservers, and existing email routing **have not been changed**.
+- No paid Supabase project plan, Cloudflare upgrade, GitHub Actions, or service-role key exposure was used.
+- No actual customer payments, files, or administrative data were created.
+- **Status: backend schema deployed, frontend configured on staging, domain staged but not switched, end-to-end launch NOT complete.**
