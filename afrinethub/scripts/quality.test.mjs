@@ -264,15 +264,14 @@ test('administrator verifies transfers and uses signed private-file links',()=>{
 });
 
 
-test('all embedded page scripts parse and administrator setup is actually visible',()=>{
+test('all classic inline page scripts parse and administrator setup is visible',()=>{
  for(const page of publicRoutes){
   const html=read('public/'+page+'/index.html');
-  const re=/<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  const re=/<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   for(const match of html.matchAll(re)){
-   const script=match[1].trim();
-   // vm.Script parses classic scripts only; ES module imports need a module parser.
-   if(script && !/^\s*(import|export)\s/m.test(script))
-     assert.doesNotThrow(()=>new vm.Script(script,{filename:page+'/inline.js'}),page);
+   if(/type\s*=\s*["']module["']/i.test(match[1])) continue;
+   const script=match[2].trim();
+   if(script) assert.doesNotThrow(()=>new vm.Script(script,{filename:page+'/inline.js'}),page);
   }
  }
  const admin=read('public/admin/index.html');
