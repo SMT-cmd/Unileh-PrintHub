@@ -93,7 +93,7 @@ async function signInAdmin(email, password) {
 async function signOutAdmin() {
   await waitForSupabase();
   await window.supabaseClient.auth.signOut();
-  window.location.replace('../admin/');
+  window.location.replace('/admin/');
 }
 
 function isDashboardPath() { return /\/admin\/dashboard\/?$/.test(window.location.pathname); }
