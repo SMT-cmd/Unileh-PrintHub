@@ -53,6 +53,24 @@ async function signUpAdmin(email) {
   return {needsEmailConfirmation:true,status:result.status};
 }
 
+async function isAuthorizedPrintStaff() {
+  await waitForSupabase();
+  const client=window.supabaseClient;
+  const {data:{user},error:userError}=await client.auth.getUser();
+  if(userError||!user?.id||!user.email_confirmed_at)return false;
+  const {data:claimed,error:claimError}=await client.rpc('claim_print_staff');
+  if(claimError||!claimed)return false;
+  const {data:row,error}=await client.from('print_staff')
+    .select('uid,active').eq('uid',user.id).eq('active',true).maybeSingle();
+  return !error&&Boolean(row?.active&&row.uid===user.id);
+}
+
+async function getAdminAccess() {
+  if(await isAuthorizedAdmin())return 'admin';
+  if(await isAuthorizedPrintStaff())return 'print_staff';
+  return null;
+}
+
 async function signInAdmin(email, password) {
   await waitForSupabase();
   const client = window.supabaseClient;
