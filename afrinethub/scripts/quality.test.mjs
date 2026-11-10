@@ -43,7 +43,8 @@ test('student portal never asks for, transmits or renders a password',()=>{
  const adminHtml=read('public/admin/dashboard/index.html');
  assert.doesNotMatch(portal,/id=["']portal-pass["']|type=["']password["']|portalPassword\s*:/i);
  assert.match(portal,/never ask for your university portal password/i);
- assert.match(db,/portal_password_plain:\s*null/);
+ assert.match(db,/portalPassword:discardedPassword/);
+ assert.match(read('supabase/functions/afrinethub-api/index.ts'),/portal_password_plain/);
  assert.doesNotMatch(admin,/row\.portal_password_plain|passwordCell/);
  assert.doesNotMatch(adminHtml,/<th>Password<\/th>/i);
 });
