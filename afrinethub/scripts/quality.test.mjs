@@ -204,3 +204,23 @@ test('admin and listing pages keep authentic images and safe empty states',()=>{
  assert.match(gadgets,/No products in this category yet/);
  assert.match(housing,/No listings in this category yet/);
 });
+
+
+test('dedicated Afrinet Hub database client uses only a public publishable key',()=>{
+ const db=read('public/assets/js/database.js');
+ const storage=read('public/assets/js/storageService.js');
+ for(const file of [db,storage]){
+  assert.match(file,/https:\/\/soqjthnzyntkhthcnucj\.supabase\.co/);
+  assert.match(file,/sb_publishable_/);
+  assert.doesNotMatch(file,/uuuoqexhuwwiwpvqgypy|enqhdnietkphwgafnmhf/);
+  assert.doesNotMatch(file,/service_role|sb_secret_/);
+ }
+ const admin=read('public/admin/js/dashboard.js');
+ assert.match(admin,/kind: 'public-media'/);
+ assert.equal((admin.match(/kind: 'public-media'/g)||[]).length,4);
+ assert.match(storage,/PRIVATE_BUCKET_NAME = 'afrinethub-private'/);
+ assert.match(storage,/MEDIA_BUCKET_NAME = 'afrinethub-media'/);
+ assert.match(storage,/Private document upload is not yet enabled/);
+ assert.match(storage,/if \(kind !== 'public-media'\)/);
+ assert.doesNotMatch(storage,/\$\{Date\.now\(\)\}_\$\{file\.name\}/);
+});
