@@ -135,6 +135,11 @@ window.afriBackend = {
     if (!session?.access_token) throw new Error('Sign in as administrator to view private files');
     const res=await apiCall('admin-file-url',{fileId},{bearer:session.access_token});
     return res.url;
+  },
+  async adminDeleteFile(fileId){
+    const {data:{session}}=await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error('Sign in as administrator to manage files');
+    return apiCall('admin-file-delete',{fileId},{bearer:session.access_token});
   }
 };
 
