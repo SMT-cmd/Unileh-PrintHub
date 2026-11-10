@@ -59,16 +59,35 @@ async function signUpAdmin(email, password) {
   return {needsEmailConfirmation:!data?.session};
 }
 
+async function isAuthorizedPrintStaff() {
+  await waitForSupabase();
+  const client=window.supabaseClient;
+  const {data:{user},error:userError}=await client.auth.getUser();
+  if(userError||!user?.id||!user.email_confirmed_at)return false;
+  const {data:claimed,error:claimError}=await client.rpc('claim_print_staff');
+  if(claimError||!claimed)return false;
+  const {data:row,error}=await client.from('print_staff')
+    .select('uid,active').eq('uid',user.id).eq('active',true).maybeSingle();
+  return !error&&Boolean(row?.active&&row.uid===user.id);
+}
+
+async function getAdminAccess() {
+  if(await isAuthorizedAdmin())return 'admin';
+  if(await isAuthorizedPrintStaff())return 'print_staff';
+  return null;
+}
+
 async function signInAdmin(email, password) {
   await waitForSupabase();
   const client = window.supabaseClient;
   const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) throw error;
-  const allowed = await isAuthorizedAdmin();
-  if (!allowed) {
+  const role = await getAdminAccess();
+  if (!role) {
     await client.auth.signOut();
-    throw new Error('This account is not authorized for administration.');
+    throw new Error('This account has not been approved for the AfriNet Hub dashboard.');
   }
+  return role;
 }
 
 async function signOutAdmin() {
@@ -78,32 +97,38 @@ async function signOutAdmin() {
 }
 
 function isDashboardPath() { return /\/admin\/dashboard\/?$/.test(window.location.pathname); }
+function isPrintPath() { return /\/admin\/print\/?$/.test(window.location.pathname); }
 function isLoginPath() { return /\/admin\/?$/.test(window.location.pathname); }
 
-// Delay permission checks outside the Supabase auth callback to avoid nested auth requests.
+// Never redirect staff to the financial/admin dashboard. Auth is checked again
+// by the print-only Edge API on every request.
 waitForSupabase().then(() => {
   window.supabaseClient.auth.onAuthStateChange((_event, session) => {
-    if (!isDashboardPath() && !isLoginPath()) return;
+    if (!isDashboardPath() && !isPrintPath() && !isLoginPath()) return;
     setTimeout(async () => {
       try {
-        const allowed = Boolean(session?.user) && await isAuthorizedAdmin();
-        if (isDashboardPath() && !allowed) {
-          window.location.replace('../');
-        } else if (isLoginPath() && allowed) {
-          window.location.replace('dashboard/');
+        if(!session?.user) {
+          if(isDashboardPath()||isPrintPath())window.location.replace('../');
+          return;
         }
-      } catch (error) {
-        console.error('Administrator permission check failed:', error);
-        if (isDashboardPath()) window.location.replace('../');
+        const role=await getAdminAccess();
+        if(isDashboardPath() && role!=='admin')window.location.replace('../');
+        else if(isPrintPath() && !role)window.location.replace('../');
+        else if(isLoginPath() && role && !['invite','recovery'].includes(new URLSearchParams(location.hash.slice(1)).get('type'))) {
+          window.location.replace(role==='print_staff'?'print/':'dashboard/');
+        }
+      }catch{
+        if(isDashboardPath()||isPrintPath())window.location.replace('../');
       }
-    }, 0);
+    },0);
   });
-}).catch((error) => {
-  console.error('Administrator authentication could not initialize:', error);
-});
+}).catch((error)=>console.error('Admin authentication initialization failed:',error));
 
 window.signInAdmin = signInAdmin;
 window.signUpAdmin = signUpAdmin;
 window.isAdminRegistrationOpen = isAdminRegistrationOpen;
 window.isAuthorizedAdmin = isAuthorizedAdmin;
 window.signOutAdmin = signOutAdmin;
+
+window.isAuthorizedPrintStaff = isAuthorizedPrintStaff;
+window.getAdminAccess = getAdminAccess;
