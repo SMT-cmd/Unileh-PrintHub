@@ -23,34 +23,35 @@ async function isAuthorizedAdmin() {
   const { data: result, error: authError } = await client.auth.getUser();
   if (authError || !result?.user?.id) return false;
 
-  // Trusted DB function grants a one-time admin slot ONLY to the verified owner email.
-  // It never grants admin rights to another account or an unconfirmed signup.
+  // Only the two confirmed, individually verified administrators may claim their own slot.
+  // Access is restricted in the database, not just by this browser interface.
   const { error: claimError } = await client.rpc('claim_afrinethub_admin');
   if (claimError) { console.warn('Administrator claim check failed'); return false; }
-  // Fail closed: exact approved UUID in admin_config is still required.
+  // Fail closed: a verified member must have an exact, authorized UUID mapping.
   const { data: admin, error } = await client
     .from('admin_config')
     .select('uid')
-    .eq('id', 'setup')
+    .eq('uid', result.user.id)
     .maybeSingle();
   if (error || !admin?.uid) return false;
   return admin.uid === result.user.id;
 }
 
 async function isAdminRegistrationOpen() {
-  // The registration form is available, but the backend only ever admits
-  // a VERIFIED account with the single approved owner email.
+  // Two separate first-time accounts are permitted. Both must verify their own email.
   return true;
 }
 
 async function signUpAdmin(email, password) {
   await waitForSupabase();
-  if (String(email||'').trim().toLowerCase() !== 'timilehintallest@gmail.com')
-    throw new Error('Only the approved owner email can register for administration.');
+  const allowed = ['timilehintallest@gmail.com','afrinetnig@gmail.com'];
+  const adminEmail = String(email||'').trim().toLowerCase();
+  if (!allowed.includes(adminEmail))
+    throw new Error('Only the two approved administrator emails can register.');
   if (typeof password !== 'string' || password.length < 12)
     throw new Error('Use a strong password of at least 12 characters.');
   const {data,error} = await window.supabaseClient.auth.signUp({
-    email:'timilehintallest@gmail.com',
+    email:adminEmail,
     password,
     options:{emailRedirectTo:window.location.origin+'/admin/'}
   });
