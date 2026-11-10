@@ -23,8 +23,11 @@ async function isAuthorizedAdmin() {
   const { data: result, error: authError } = await client.auth.getUser();
   if (authError || !result?.user?.id) return false;
 
-  // Fail closed: an authenticated user is not automatically an administrator.
-  // The admin_config record must identify the exact approved user ID.
+  // Trusted DB function grants a one-time admin slot ONLY to the verified owner email.
+  // It never grants admin rights to another account or an unconfirmed signup.
+  const { error: claimError } = await client.rpc('claim_afrinethub_admin');
+  if (claimError) { console.warn('Administrator claim check failed'); return false; }
+  // Fail closed: exact approved UUID in admin_config is still required.
   const { data: admin, error } = await client
     .from('admin_config')
     .select('uid')
@@ -35,12 +38,24 @@ async function isAuthorizedAdmin() {
 }
 
 async function isAdminRegistrationOpen() {
-  // Browser-side administrator creation is disabled. Provision through trusted backend setup.
-  return false;
+  // The registration form is available, but the backend only ever admits
+  // a VERIFIED account with the single approved owner email.
+  return true;
 }
 
-async function signUpAdmin() {
-  throw new Error('Administrator registration is restricted. Contact the platform owner.');
+async function signUpAdmin(email, password) {
+  await waitForSupabase();
+  if (String(email||'').trim().toLowerCase() !== 'timilehintallest@gmail.com')
+    throw new Error('Only the approved owner email can register for administration.');
+  if (typeof password !== 'string' || password.length < 12)
+    throw new Error('Use a strong password of at least 12 characters.');
+  const {data,error} = await window.supabaseClient.auth.signUp({
+    email:'timilehintallest@gmail.com',
+    password,
+    options:{emailRedirectTo:window.location.origin+'/admin/'}
+  });
+  if(error)throw error;
+  return {needsEmailConfirmation:!data?.session};
 }
 
 async function signInAdmin(email, password) {
