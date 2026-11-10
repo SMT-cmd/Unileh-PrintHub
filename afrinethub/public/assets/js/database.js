@@ -26,8 +26,8 @@ async function loadSupabaseLibrary() {
 
 const { createClient } = await loadSupabaseLibrary();
 
-const SUPABASE_URL = 'https://uuuoqexhuwwiwpvqgypy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1dW9xZXhodXd3aXdwdnFneXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NDMyMDEsImV4cCI6MjEwNjIxOTIwMX0.ktKrFp8EuYBq9CBLGbME9PEo4GaReiKRVBtEOdR-BYI';
+const SUPABASE_URL = 'https://soqjthnzyntkhthcnucj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_YVKFznQEfolCyUaHWz791g_lbxm-Imk';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
