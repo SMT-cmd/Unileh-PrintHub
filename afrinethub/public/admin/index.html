@@ -28,18 +28,18 @@
         <div class="login-card card">
             <div class="logo">
                 <img src="../assets/images/afrinethub-round.webp" alt="AfriNet Hub Logo" style="height: 60px; margin-bottom: 20px;">
-                <h2>Admin Panel Access</h2>
+                <h2>AfriNet Hub Access</h2>
             </div>
             <div class="admin-auth-switch">
                 <button id="show-login" class="tab-button active" type="button">Sign In</button>
-                <button id="show-signup" class="tab-button" type="button" hidden disabled>One-Time Registration</button>
+                <button id="show-signup" class="tab-button" type="button" hidden disabled>Administrator Setup</button>
             </div>
 
             <div id="registration-status" class="status-message"></div>
 
             <form id="admin-login-form">
                 <div class="form-group">
-                    <label for="admin-email">Admin Email</label>
+                    <label for="admin-email">Email address</label>
                     <input type="email" id="admin-email" placeholder="Enter email" required>
                 </div>
                 <div class="form-group">
@@ -54,12 +54,12 @@
 
             <form id="admin-signup-form" style="display: none;" hidden>
                 <div class="form-group">
-                    <label for="admin-signup-email">Admin Email</label>
-                    <select id="admin-signup-email" required aria-label="Choose one of the two approved administrators">
-                        <option value="timilehintallest@gmail.com">Primary administrator — timilehintallest@gmail.com</option>
-                        <option value="afrinetnig@gmail.com">Second administrator — afrinetnig@gmail.com</option>
+                    <label for="admin-signup-email">Email address</label>
+                    <select id="admin-signup-email" required aria-label="Select your administrator email">
+                        <option value="afrinetnig@gmail.com">afrinetnig@gmail.com</option>
+                        <option value="timilehintallest@gmail.com">timilehintallest@gmail.com</option>
                     </select>
-                    <p class="form-hint">Each person creates their own password and confirms their own email. Only two accounts are permitted.</p>
+                    <p class="form-hint">Each authorized account has its own password and email confirmation. Print staff sign in with their invitation email.</p>
                 </div>
                 <div class="form-group">
                     <label for="admin-signup-password">Password</label>
@@ -71,6 +71,20 @@
                 </div>
                 <div id="signup-error" class="error-message" style="display: none;"></div>
                 <button type="submit" class="cta-button">Create Admin Account</button>
+            </form>
+            <form id="staff-activate-form" hidden style="display:none" autocomplete="off">
+                <h3>Complete your printing staff invitation</h3>
+                <p>You've opened a secure invitation. Choose your own password to access print jobs.</p>
+                <div class="form-group">
+                    <label for="staff-new-password">New password</label>
+                    <input type="password" id="staff-new-password" autocomplete="new-password" minlength="12" required>
+                </div>
+                <div class="form-group">
+                    <label for="staff-confirm-password">Confirm password</label>
+                    <input type="password" id="staff-confirm-password" autocomplete="new-password" minlength="12" required>
+                </div>
+                <p id="staff-activate-feedback" role="status"></p>
+                <button type="submit" class="cta-button">Activate printing access</button>
             </form>
             <p class="login-footer"><a href="../">Back to Site</a></p>
         </div>
@@ -111,6 +125,36 @@
                 loginForm.style.display = 'none';
             };
 
+            // Staff are invited by the AfriNet manager and set a password
+            // only after opening their email invitation.
+            const inviteType = new URLSearchParams(location.hash.slice(1)).get('type');
+            if (inviteType === 'invite') {
+                const form=document.getElementById('staff-activate-form');
+                loginForm.style.display='none';
+                signupForm.style.display='none';
+                document.querySelector('.admin-auth-switch').style.display='none';
+                form.hidden=false;
+                form.style.display='block';
+                form.addEventListener('submit',async(event)=>{
+                    event.preventDefault();
+                    const feedback=document.getElementById('staff-activate-feedback');
+                    const p=document.getElementById('staff-new-password').value;
+                    if(p.length<12||p!==document.getElementById('staff-confirm-password').value){
+                        feedback.textContent='Passwords must match and contain at least 12 characters.';return;
+                    }
+                    try{
+                        await waitForSupabase();
+                        const {data:{session}}=await window.supabaseClient.auth.getSession();
+                        if(!session?.user)throw new Error('Your invitation must be opened from the email link.');
+                        const {error}=await window.supabaseClient.auth.updateUser({password:p});
+                        if(error)throw error;
+                        if(!await isAuthorizedPrintStaff())throw new Error('The invitation is not active. Ask the site manager to check it.');
+                        window.location.replace('print/');
+                    }catch(err){feedback.textContent=err.message||'Unable to activate staff account.';}
+                });
+                return;
+            }
+
             const registrationOpen = await isAdminRegistrationOpen();
             if (registrationOpen) {
                 // Markup starts hidden to avoid a flash of registration UI before authorization checks.
@@ -139,8 +183,8 @@
                 const email = document.getElementById('admin-email').value;
                 const password = document.getElementById('admin-password').value;
                 try {
-                    await signInAdmin(email, password);
-                    window.location.href = 'dashboard/';
+                    const role = await signInAdmin(email, password);
+                    window.location.href = role === 'print_staff' ? 'print/' : 'dashboard/';
                 } catch (error) {
                     loginError.style.display = 'block';
                 }
