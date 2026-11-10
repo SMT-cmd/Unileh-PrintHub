@@ -29,10 +29,21 @@ function el(tag,cls,text){
  return e;
 }
 async function openDocument(fileId){
+ const viewer=window.open('about:blank','_blank');
+ if(viewer) viewer.opener=null;
  try{
   const {url}=await call('staff-file-url',{fileId});
-  window.open(url,'_blank','noopener,noreferrer');
- }catch(error){feedback.textContent=error.message||'Could not open the printing document.'}
+  if(viewer)viewer.location.replace(url);
+  else {
+   feedback.replaceChildren();
+   const link=el('a','print-file','Open secure printing document');
+   link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+   feedback.append(link);
+  }
+ }catch(error){
+  if(viewer)viewer.close();
+  feedback.textContent=error.message||'Could not open the printing document.';
+ }
 }
 async function changeStatus(job,next,btn){
  if(next==='Collected'&&!confirm('Confirm this finished print job has been collected?'))return;
