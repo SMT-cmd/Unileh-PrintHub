@@ -184,6 +184,52 @@ async function staffAction(req:Request,action:string,origin:string,ip:string) {
  }
  throw new Error('Unknown staff operation');
 }
+async function requestAdministratorSetup(req:Request,origin:string,ip:string){
+ const data=await getBody(req);
+ const email=String(data.email||'').trim().toLowerCase();
+ if(!['afrinetnig@gmail.com','timilehintallest@gmail.com'].includes(email))
+   throw new Error('Only the two approved administrator emails are permitted');
+ await guest(String(data.guestToken||''));
+ const ipHash=await digest(ip||'unknown');
+ await limit('admin-setup-ip',ipHash,8,3600);
+ await limit('admin-setup-email',await digest(email),3,86400);
+ // Supabase managed admin link creation bypasses restricted built-in SMTP;
+ // mail is delivered from our verified sender instead.
+ const redirectTo='https://afrinethub.com.ng/admin/?admin-setup=1';
+ let generated=await db.auth.admin.generateLink({
+    type:'invite',email,options:{redirectTo}
+ });
+ if(generated.error||!generated.data?.properties?.action_link){
+   generated=await db.auth.admin.generateLink({
+      type:'magiclink',email,options:{redirectTo}
+   });
+ }
+ if(generated.error||!generated.data?.properties?.action_link)
+    throw new Error('Could not prepare administrator verification email');
+ const actionLink=generated.data.properties.action_link;
+ const url=new URL(actionLink);
+ if(url.protocol!=='https:'||url.host!==new URL(PROJECT).host||!url.pathname.includes('/auth/v1/verify'))
+    throw new Error('Invalid administrator verification link');
+ const secret=await rpc<string|null>('afrinethub_staff_email_secret',{});
+ if(!secret)throw new Error('Email delivery service is unavailable');
+ const msg='AfriNet Hub administrator account setup\n\n'+
+   'This email address is approved to manage the website. Open the secure link below and set your private password:\n'+
+   actionLink+'\n\nIf you did not request this, ignore this message.';
+ const response=await fetch('https://api.resend.com/emails',{
+   method:'POST',
+   headers:{Authorization:'Bearer '+secret,'Content-Type':'application/json'},
+   body:JSON.stringify({
+     from:'AfriNet Hub <invites@notify.afrinethub.com.ng>',
+     to:[email],
+     subject:'Complete your AfriNet Hub administrator setup',
+     text:msg
+   })
+ });
+ const result=await response.json().catch(()=>null);
+ if(!response.ok||!result?.id)throw new Error('Could not send administrator verification email');
+ return reply({ok:true,status:'A secure setup link has been sent to your approved email address.'},200,origin);
+}
+
 async function validateTurnstile(token:string,ip:string,origin:string){
  if(!token||token.length>2048)throw new Error('Human verification is required');
  const secret=await rpc<string|null>('afrinethub_turnstile_secret',{});
@@ -349,6 +395,9 @@ Deno.serve(async(req:Request)=>{
    const ip=cleanText(req.headers.get('cf-connecting-ip')||req.headers.get('x-real-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]||'unknown',90);
    // Staff document links, from authenticated admin, intentionally bypass guest tokens.
    const action=new URL(req.url).pathname.split('/').filter(Boolean).pop();
+   if(req.method==='POST'&&action==='admin-setup') {
+     return await requestAdministratorSetup(req,origin||'',ip);
+   }
    if(req.method==='POST' && typeof action==='string' && ['staff-orders','staff-progress','staff-file-url','staff-list','staff-invite','staff-revoke'].includes(action)) {
      return await staffAction(req,action,origin||'',ip);
    }
