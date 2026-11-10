@@ -262,3 +262,20 @@ test('administrator verifies transfers and uses signed private-file links',()=>{
  assert.match(admin,/if \(!\['Paid','Printed','Ready'\]\.includes\(currentStatus\)\)/);
  assert.match(read('api/health.js'),/backendReady/);
 });
+
+
+test('all embedded page scripts parse and administrator setup is actually visible',()=>{
+ for(const page of publicRoutes){
+  const html=read('public/'+page+'/index.html');
+  const re=/<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  for(const match of html.matchAll(re)){
+   const script=match[1].trim();
+   if(script) assert.doesNotThrow(()=>new vm.Script(script,{filename:page+'/inline.js'}),page);
+  }
+ }
+ const admin=read('public/admin/index.html');
+ assert.match(admin,/showSignupBtn\.hidden = false/);
+ assert.match(admin,/showSignupBtn\.disabled = false/);
+ assert.match(admin,/signupForm\.hidden = false/);
+ assert.match(admin,/admin-signup-password"[^>]*minlength="12"/);
+});
