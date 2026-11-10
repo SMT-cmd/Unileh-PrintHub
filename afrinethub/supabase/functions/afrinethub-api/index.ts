@@ -76,6 +76,78 @@ async function isAdmin(req:Request){
  const {data:row}=await db.from('admin_config').select('uid').eq('uid',user.id).maybeSingle();
  return Boolean(row?.uid===user.id);
 }
+
+async function actor(req:Request) {
+ const bearer=req.headers.get('authorization')?.replace(/^Bearer\s+/i,'').trim()||'';
+ if(!bearer||bearer.length>4096)throw new Error('Staff sign-in required');
+ const {data:{user},error}=await db.auth.getUser(bearer);
+ if(error||!user?.id||!user.email_confirmed_at)throw new Error('Confirmed staff sign-in required');
+ const {data:admin}=await db.from('admin_config').select('uid').eq('uid',user.id).maybeSingle();
+ const {data:operator}=await db.from('print_staff').select('email,active').eq('uid',user.id).eq('active',true).maybeSingle();
+ if(!admin&&!operator)throw new Error('Your staff access is not active');
+ return {uid:user.id,email:String(user.email||'').toLowerCase(),admin:!!admin,manager:!!admin&&String(user.email||'').toLowerCase()==='afrinetnig@gmail.com',printer:!!operator};
+}
+async function staffAction(req:Request,action:string,origin:string,ip:string) {
+ const who=await actor(req);
+ const body=await getBody(req);
+ if(action==='staff-orders'){
+   const {data,error}=await db.rpc('afrinethub_print_jobs',{p_actor:who.uid});
+   if(error)throw new Error('Could not load print queue');
+   return reply({ok:true,jobs:data||[]},200,origin);
+ }
+ if(action==='staff-progress'){
+   const id=String(body.orderId||'');
+   const next=String(body.status||'');
+   if(!UUID.test(id)||!['Printed','Ready','Collected'].includes(next))
+     throw new Error('Invalid print update');
+   const {data,error}=await db.rpc('afrinethub_print_update',{p_actor:who.uid,p_order:id,p_next_status:next});
+   if(error||!data)throw new Error('Print status cannot be changed from its current state');
+   return reply({ok:true,status:next},200,origin);
+ }
+ if(action==='staff-file-url'){
+   const path=cleanText(body.fileId,180);
+   // No staff member is permitted to view receipts or unrelated private documents.
+   if(!/^[a-f0-9-]{36}\/document\/[a-f0-9-]{36}\.(pdf|jpg|png|webp|docx)$/.test(path))
+     throw new Error('Only printing documents can be downloaded');
+   const {data, error}=await db.rpc('afrinethub_print_file_allowed',{p_actor:who.uid,p_path:path});
+   if(error||!data)throw new Error('Document is not available for this print job');
+   return reply({ok:true,url:await signedUrl(path,120)},200,origin);
+ }
+ if(!who.manager)throw new Error('Only the Afrinet Hub manager can invite or manage print staff');
+ if(action==='staff-list'){
+   const {data,error}=await db.from('print_staff').select('email,active,created_at,joined_at').order('created_at',{ascending:false});
+   if(error)throw new Error('Unable to load invited staff');
+   return reply({ok:true,staff:data||[]},200,origin);
+ }
+ if(action==='staff-invite'){
+   await limit('staff-manager',who.uid,10,3600);
+   const email=String(body.email||'').trim().toLowerCase();
+   if(email.length>254||!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email))
+     throw new Error('Enter a valid staff email address');
+   if(['afrinetnig@gmail.com','timilehintallest@gmail.com'].includes(email))
+     throw new Error('That email already has administrator access');
+   const {data:existing}=await db.from('print_staff').select('email').eq('email',email).maybeSingle();
+   if(existing)throw new Error('This staff email is already on the invitation list');
+   const {data:invited,error:inviteError}=await db.auth.admin.inviteUserByEmail(email,{
+     redirectTo:'https://afrinethub.com.ng/admin/'
+   });
+   if(inviteError||!invited?.user?.id)
+     throw new Error('Unable to email the invitation. Check the Supabase Auth SMTP configuration');
+   const {error:storeError}=await db.from('print_staff').insert({
+     email,uid:invited.user.email_confirmed_at?invited.user.id:null,invited_by:who.uid,active:true
+   });
+   if(storeError)throw new Error('Invitation sent but access record could not be saved. Contact the site manager');
+   return reply({ok:true,email,status:'Invitation sent. Staff must accept the email invitation and set a password.'},200,origin);
+ }
+ if(action==='staff-revoke'){
+   const email=String(body.email||'').trim().toLowerCase();
+   if(!email||email.length>254)throw new Error('Invalid staff email');
+   const {data,error}=await db.from('print_staff').update({active:false}).eq('email',email).eq('active',true).select('email').maybeSingle();
+   if(error||!data)throw new Error('Staff access is already inactive or missing');
+   return reply({ok:true,email,status:'Print staff access revoked'},200,origin);
+ }
+ throw new Error('Unknown staff operation');
+}
 async function validateTurnstile(token:string,ip:string,origin:string){
  if(!token||token.length>2048)throw new Error('Human verification is required');
  const secret=await rpc<string|null>('afrinethub_turnstile_secret',{});
@@ -241,6 +313,9 @@ Deno.serve(async(req:Request)=>{
    const ip=cleanText(req.headers.get('cf-connecting-ip')||req.headers.get('x-real-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]||'unknown',90);
    // Staff document links, from authenticated admin, intentionally bypass guest tokens.
    const action=new URL(req.url).pathname.split('/').filter(Boolean).pop();
+   if(req.method==='POST' && typeof action==='string' && ['staff-orders','staff-progress','staff-file-url','staff-list','staff-invite','staff-revoke'].includes(action)) {
+     return await staffAction(req,action,origin||'',ip);
+   }
    if(req.method==='POST'&&(action==='admin-file-url'||action==='admin-file-delete')){
      if(!await isAdmin(req))return reply({ok:false,error:'Admin login required'},403,origin);
      const body=await getBody(req);
