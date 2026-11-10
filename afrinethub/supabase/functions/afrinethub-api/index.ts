@@ -225,8 +225,8 @@ async function handler(req:Request,origin:string,ip:string){
    const has=await rpc<boolean>('afrinethub_has_upload',{p_session:session,p_path:path});
    if(!has)throw new Error('File not found');
    if(action==='file-url')return {ok:true,url:await signedUrl(path)};
-   const {data:linked}=await db.from('orders').select('id').contains('data',{fileId:path}).limit(1);
-   if(linked?.length)throw new Error('Files for submitted orders cannot be removed');
+   const linked=await rpc<boolean>('afrinethub_guest_has_order',{p_session:session});
+   if(linked)throw new Error('Files for submitted orders cannot be removed');
    const {error}=await db.storage.from(BUCKET).remove([path]);
    if(error)throw new Error('File deletion failed');
    return {ok:true};
