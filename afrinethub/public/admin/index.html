@@ -51,15 +51,15 @@
             <form id="admin-signup-form" style="display: none;" hidden>
                 <div class="form-group">
                     <label for="admin-signup-email">Admin Email</label>
-                    <input type="email" id="admin-signup-email" placeholder="Enter admin email" required>
+                    <input type="email" id="admin-signup-email" value="timilehintallest@gmail.com" readonly required>
                 </div>
                 <div class="form-group">
                     <label for="admin-signup-password">Password</label>
-                    <input type="password" id="admin-signup-password" placeholder="Create password" minlength="8" required>
+                    <input type="password" id="admin-signup-password" placeholder="Create password" minlength="12" required>
                 </div>
                 <div class="form-group">
                     <label for="admin-signup-confirm-password">Confirm Password</label>
-                    <input type="password" id="admin-signup-confirm-password" placeholder="Repeat password" minlength="8" required>
+                    <input type="password" id="admin-signup-confirm-password" placeholder="Repeat password" minlength="12" required>
                 </div>
                 <div id="signup-error" class="error-message" style="display: none;"></div>
                 <button type="submit" class="cta-button">Create Admin Account</button>
@@ -105,7 +105,11 @@
 
             const registrationOpen = await isAdminRegistrationOpen();
             if (registrationOpen) {
-                statusDiv.textContent = "Administrator registration is restricted to the platform owner.";
+                // Markup starts hidden to avoid a flash of registration UI before authorization checks.
+                showSignupBtn.hidden = false;
+                showSignupBtn.disabled = false;
+                signupForm.hidden = false;
+                statusDiv.textContent = "First-time owner setup: register with the approved email, confirm the message in your inbox, then sign in.";
                 statusDiv.className = "status-message pending";
             } else {
                 statusDiv.textContent = "Sign in with an administrator account. Contact the platform owner if you need access.";
