@@ -42,39 +42,15 @@ async function isAdminRegistrationOpen() {
   return true;
 }
 
-async function signUpAdmin(email, password) {
+async function signUpAdmin(email) {
   await waitForSupabase();
-  const allowed = ['timilehintallest@gmail.com','afrinetnig@gmail.com'];
-  const adminEmail = String(email||'').trim().toLowerCase();
-  if (!allowed.includes(adminEmail))
-    throw new Error('Only the two approved administrator emails can register.');
-  if (typeof password !== 'string' || password.length < 12)
-    throw new Error('Use a strong password of at least 12 characters.');
-  const {data,error} = await window.supabaseClient.auth.signUp({
-    email:adminEmail,
-    password,
-    options:{emailRedirectTo:window.location.origin+'/admin/'}
-  });
-  if(error)throw error;
-  return {needsEmailConfirmation:!data?.session};
-}
-
-async function isAuthorizedPrintStaff() {
-  await waitForSupabase();
-  const client=window.supabaseClient;
-  const {data:{user},error:userError}=await client.auth.getUser();
-  if(userError||!user?.id||!user.email_confirmed_at)return false;
-  const {data:claimed,error:claimError}=await client.rpc('claim_print_staff');
-  if(claimError||!claimed)return false;
-  const {data:row,error}=await client.from('print_staff')
-    .select('uid,active').eq('uid',user.id).eq('active',true).maybeSingle();
-  return !error&&Boolean(row?.active&&row.uid===user.id);
-}
-
-async function getAdminAccess() {
-  if(await isAuthorizedAdmin())return 'admin';
-  if(await isAuthorizedPrintStaff())return 'print_staff';
-  return null;
+  const allowed=['timilehintallest@gmail.com','afrinetnig@gmail.com'];
+  const adminEmail=String(email||'').trim().toLowerCase();
+  if(!allowed.includes(adminEmail))throw new Error('Only approved administrator emails can register.');
+  if(!window.afriBackend)throw new Error('Account setup service unavailable.');
+  const guestToken=await window.afriBackend.ensureGuestSession();
+  const result=await window.afriBackend.apiCall('admin-setup',{email:adminEmail,guestToken});
+  return {needsEmailConfirmation:true,status:result.status};
 }
 
 async function signInAdmin(email, password) {
@@ -114,7 +90,7 @@ waitForSupabase().then(() => {
         const role=await getAdminAccess();
         if(isDashboardPath() && role!=='admin')window.location.replace('../');
         else if(isPrintPath() && !role)window.location.replace('../');
-        else if(isLoginPath() && role && !location.search.includes('staff-invite=1') && !['invite','recovery'].includes(new URLSearchParams(location.hash.slice(1)).get('type'))) {
+        else if(isLoginPath() && role && !location.search.includes('staff-invite=1') && !location.search.includes('admin-setup=1') && !['invite','recovery'].includes(new URLSearchParams(location.hash.slice(1)).get('type'))) {
           window.location.replace(role==='print_staff'?'print/':'dashboard/');
         }
       }catch{
