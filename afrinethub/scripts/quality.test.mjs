@@ -280,3 +280,81 @@ test('all classic inline page scripts parse and administrator setup is visible',
  assert.match(admin,/signupForm\.hidden = false/);
  assert.match(admin,/admin-signup-password"[^>]*minlength="12"/);
 });
+
+
+test('exactly two independently verified admin identities are allowed',()=>{
+ const sql=read('supabase/migrations/20261110_000006_exactly_two_verified_administrators.sql');
+ const auth=read('public/admin/js/auth.js');
+ const login=read('public/admin/index.html');
+ const api=read('supabase/functions/afrinethub-api/index.ts');
+ for(const email of ['timilehintallest@gmail.com','afrinetnig@gmail.com']){
+   assert.match(sql,new RegExp(email.replaceAll('.','\\.')));
+   assert.match(auth,new RegExp(email.replaceAll('.','\\.')));
+   assert.match(login,new RegExp(email.replaceAll('.','\\.')));
+ }
+ assert.match(sql,/check \(id in \('setup', 'brother'\)\)/);
+ assert.match(sql,/email_confirmed_at is not null/);
+ assert.match(sql,/on conflict \(id\) do nothing/);
+ assert.match(sql,/where a.uid = \(select auth.uid\(\)\)/);
+ assert.match(auth,/\.eq\('uid', result\.user\.id\)/);
+ assert.match(api,/\.eq\('uid',user\.id\)\.maybeSingle\(\)/);
+ assert.match(login,/admin-signup-email/);
+ assert.match(login,/minlength="12"/);
+ assert.doesNotMatch(login,/admin-signup-email"[^>]*readonly/);
+});
+
+test('real generated favicons and Google-ready square icons are included',()=>{
+ const pngs=[
+  'public/favicon-32x32.png','public/favicon-48x48.png',
+  'public/icon-96x96.png','public/apple-touch-icon.png',
+  'public/android-chrome-192x192.png'
+ ];
+ for(const path of pngs){
+   const png=readFileSync(resolve(root,path));
+   assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a',path);
+   assert.ok(png.length>500,path);
+ }
+ const ico=readFileSync(resolve(root,'public/favicon.ico'));
+ assert.equal(ico.subarray(0,4).toString('hex'),'00000100');
+ assert.equal(ico.readUInt16LE(4),3);
+ const main=read('index.html');
+ assert.match(main,/href="\/favicon.ico"/);
+ assert.match(main,/href="\/favicon-48x48.png"/);
+ assert.match(main,/href="\/icon-96x96.png"/);
+ assert.match(main,/href="\/apple-touch-icon.png"/);
+ assert.match(main,/href="\/manifest.json"/);
+ for(const page of publicRoutes){
+   const html=read('public/'+page+'/index.html');
+   for(const path of ['/favicon.ico','/favicon-48x48.png','/apple-touch-icon.png'])
+    assert.ok(html.includes('href="'+path+'"'),page+':'+path);
+ }
+ const manifest=JSON.parse(read('public/manifest.json'));
+ assert.equal(manifest.start_url,'/');
+ assert.ok(manifest.icons.some(i=>i.src==='/android-chrome-192x192.png'));
+ const schema=main.match(/<script type="application\/ld\+json">([^<]+)<\/script>/);
+ assert.ok(schema,'structured data');
+ const graph=JSON.parse(schema[1])['@graph'];
+ assert.ok(graph.some(x=>x['@type']==='Organization'&&x.logo?.width>=112));
+ assert.ok(graph.some(x=>x['@type']==='WebSite'&&x.name==='AfriNet Hub'));
+});
+
+test('XML sitemap advertises only canonical public marketing URLs',()=>{
+ const site=read('public/sitemap.xml');
+ const locs=[...site.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
+ const pages=locs.filter(u=>!u.includes('/assets/images/'));
+ assert.equal(pages.length,12);
+ assert.equal(new Set(pages).size,pages.length);
+ assert.ok(pages.includes('https://afrinethub.com.ng/'));
+ assert.ok(pages.includes('https://afrinethub.com.ng/news/'));
+ for(const u of pages){
+   const path=new URL(u).pathname;
+   assert.equal(u,'https://afrinethub.com.ng'+path);
+   assert.ok(!/\/(order|checkout|admin|api)\//.test(path));
+ }
+ const robots=read('public/robots.txt');
+ assert.match(robots,/Sitemap: https:\/\/afrinethub.com.ng\/sitemap.xml/);
+ assert.match(robots,/Disallow: \/admin\//);
+ assert.match(read('public/order/index.html'),/name="robots" content="noindex,follow"/);
+ for(const p of ['checkout','admin'])
+   assert.match(read('public/'+p+'/index.html'),/name="robots" content="noindex,nofollow"/);
+});
