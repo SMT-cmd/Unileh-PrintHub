@@ -128,15 +128,51 @@ async function staffAction(req:Request,action:string,origin:string,ip:string) {
      throw new Error('That email already has administrator access');
    const {data:existing}=await db.from('print_staff').select('email').eq('email',email).maybeSingle();
    if(existing)throw new Error('This staff email is already on the invitation list');
-   const {data:invited,error:inviteError}=await db.auth.admin.inviteUserByEmail(email,{
-     redirectTo:'https://afrinethub.com.ng/admin/'
-   });
-   if(inviteError||!invited?.user?.id)
-     throw new Error('Unable to email the invitation. Check the Supabase Auth SMTP configuration');
+   // A short-lived Supabase Auth invitation link is generated server-side, then
+   // sent using a verified domain sender; the one-time link is never returned
+   // to the administrator browser or written into our database.
    const {error:storeError}=await db.from('print_staff').insert({
-     email,uid:invited.user.email_confirmed_at?invited.user.id:null,invited_by:who.uid,active:true
+     email,invited_by:who.uid,active:true
    });
-   if(storeError)throw new Error('Invitation sent but access record could not be saved. Contact the site manager');
+   if(storeError)throw new Error('Could not reserve this staff invitation');
+   let mailed=false;
+   try{
+     const {data:invited,error:inviteError}=await db.auth.admin.generateLink({
+       type:'invite',email,
+       options:{redirectTo:'https://afrinethub.com.ng/admin/?staff-invite=1'}
+     });
+     if(inviteError||!invited?.properties?.action_link)
+       throw new Error('Could not generate a secure invitation link');
+
+     const sender=await rpc<string|null>('afrinethub_staff_email_secret',{});
+     if(!sender)throw new Error('Invitation email sender is unavailable');
+     const actionLink=invited.properties.action_link;
+     // Only an approved Supabase auth.verify URL is permitted in outbound invites.
+     const target=new URL(actionLink);
+     if(target.protocol!=='https:'||target.host!==new URL(PROJECT).host||
+        !target.pathname.includes('/auth/v1/verify'))
+       throw new Error('Invitation service returned an invalid confirmation link');
+
+     const textBody='You have been invited to the AfriNet Hub Printing Team.\n\n'+
+       'Accept this private invitation and set a password to see paid print jobs:\n'+
+       actionLink+'\n\nIf you did not expect this invitation, ignore this email.';
+     const response=await fetch('https://api.resend.com/emails',{
+       method:'POST',
+       headers:{Authorization:'Bearer '+sender,'Content-Type':'application/json'},
+       body:JSON.stringify({
+         from:'AfriNet Hub <invites@notify.afrinethub.com.ng>',
+         to:[email],
+         subject:'Your AfriNet Hub printing staff invitation',
+         text:textBody
+       })
+     });
+     const result=await response.json().catch(()=>null);
+     if(!response.ok||!result?.id)
+       throw new Error('The invitation email could not be delivered to the sending provider');
+     mailed=true;
+   }finally{
+     if(!mailed)await db.from('print_staff').delete().eq('email',email).is('uid',null);
+   }
    return reply({ok:true,email,status:'Invitation sent. Staff must accept the email invitation and set a password.'},200,origin);
  }
  if(action==='staff-revoke'){
