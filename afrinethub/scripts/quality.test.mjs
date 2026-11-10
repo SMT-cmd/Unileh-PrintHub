@@ -278,7 +278,8 @@ test('all classic inline page scripts parse and administrator setup is visible',
  assert.match(admin,/showSignupBtn\.hidden = false/);
  assert.match(admin,/showSignupBtn\.disabled = false/);
  assert.match(admin,/signupForm\.hidden = false/);
- assert.match(admin,/admin-signup-password"[^>]*minlength="12"/);
+ assert.match(admin,/admin-signup-email/);
+ assert.match(admin,/apiCall\('admin-setup'/);
 });
 
 
@@ -431,4 +432,25 @@ test('staff invitation sender is private, domain-verified, and uses account-spec
  assert.match(auth,/!location\.search\.includes\('staff-invite=1'\)/);
  assert.match(sql,/grant execute on function public\.afrinethub_staff_email_secret\(\) to service_role/);
  assert.match(sql,/revoke all on function public\.afrinethub_staff_email_secret\(\) from public,anon,authenticated/);
+});
+
+
+test('two full administrators can securely activate accounts without restricted Supabase SMTP',()=>{
+ const html=read('public/admin/index.html');
+ const edge=read('supabase/functions/afrinethub-api/index.ts');
+ const auth=read('public/admin/js/auth.js');
+ assert.match(html,/apiCall\('admin-setup'/);
+ assert.match(html,/admin-setup'\) === '1'/);
+ assert.match(html,/auth\.updateUser\(\{password:p\}\)/);
+ assert.doesNotMatch(html,/id="admin-signup-password"/);
+ assert.match(html,/admin-signup-email/);
+ assert.match(edge,/async function requestAdministratorSetup/);
+ assert.match(edge,/await guest\(String\(data\.guestToken\|\|''\)\)/);
+ assert.match(edge,/admin-setup-email/);
+ assert.match(edge,/api\.resend\.com\/emails/);
+ assert.match(edge,/type:'invite'/);
+ assert.match(edge,/type:'magiclink'/);
+ assert.match(edge,/https:\/\/afrinethub\.com\.ng\/admin\/\?admin-setup=1/);
+ assert.match(auth,/!location\.search\.includes\('admin-setup=1'\)/);
+ assert.match(auth,/window\.afriBackend\.ensureGuestSession\(\)/);
 });
