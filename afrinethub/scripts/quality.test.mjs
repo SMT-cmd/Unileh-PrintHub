@@ -270,7 +270,9 @@ test('all embedded page scripts parse and administrator setup is actually visibl
   const re=/<script\b[^>]*>([\s\S]*?)<\/script>/gi;
   for(const match of html.matchAll(re)){
    const script=match[1].trim();
-   if(script) assert.doesNotThrow(()=>new vm.Script(script,{filename:page+'/inline.js'}),page);
+   // vm.Script parses classic scripts only; ES module imports need a module parser.
+   if(script && !/^\s*(import|export)\s/m.test(script))
+     assert.doesNotThrow(()=>new vm.Script(script,{filename:page+'/inline.js'}),page);
   }
  }
  const admin=read('public/admin/index.html');
