@@ -1,6 +1,6 @@
 /**
  * Supabase Storage Service - AfriNet Hub
- * Version: 3.3.0 (Consolidated onto shared project)
+ * Version: 4.0.0 (Dedicated Afrinet Hub: private Edge uploads and admin-only media)
  */
 
 const SUPABASE_URL = 'https://soqjthnzyntkhthcnucj.supabase.co';
@@ -35,7 +35,8 @@ async function uploadFile(file, onProgress = null, options = {}) {
     const kind = options?.kind || 'private';
     // Private student documents and receipts MUST go through a server-signed upload flow.
     if (kind !== 'public-media') {
-        throw new Error('Private document upload is not yet enabled. Your file was not sent.');
+        if (!window.afriBackend) throw new Error('Secure upload service is unavailable. Refresh this page.');
+        return window.afriBackend.uploadFile(file,kind);
     }
     if (!/^(image\/jpeg|image\/png|image\/webp|application\/pdf)$/.test(file.type))
         throw new Error('Only JPG, PNG, WebP or PDF public media can be uploaded.');
@@ -79,7 +80,10 @@ async function deleteFile(fileId) {
     if (!fileId) return;
     try {
         if (!supabaseClient) initSupabase();
-        if (!String(fileId).startsWith('media/')) throw new Error('Private file deletion is restricted to the secure upload service.');
+        if (!String(fileId).startsWith('media/')) {
+            if (!window.afriBackend) throw new Error('Secure deletion service is unavailable.');
+            return await window.afriBackend.deleteFile(fileId);
+        }
         const { data, error } = await supabaseClient.storage.from(MEDIA_BUCKET_NAME).remove([fileId]);
         if (error) throw error;
         console.log(`Supabase: File ${fileId} deleted successfully.`);
