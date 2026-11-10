@@ -3,9 +3,10 @@
  * Version: 3.3.0 (Consolidated onto shared project)
  */
 
-const SUPABASE_URL = 'https://uuuoqexhuwwiwpvqgypy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1dW9xZXhodXd3aXdwdnFneXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NDMyMDEsImV4cCI6MjEwNjIxOTIwMX0.ktKrFp8EuYBq9CBLGbME9PEo4GaReiKRVBtEOdR-BYI';
-const BUCKET_NAME = 'unilesh';
+const SUPABASE_URL = 'https://soqjthnzyntkhthcnucj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_YVKFznQEfolCyUaHWz791g_lbxm-Imk';
+const PRIVATE_BUCKET_NAME = 'afrinethub-private';
+const MEDIA_BUCKET_NAME = 'afrinethub-media';
 
 let supabaseClient = null;
 
@@ -28,22 +29,32 @@ function initSupabase() {
 
 initSupabase();
 
-async function uploadFile(file, onProgress = null) {
+async function uploadFile(file, onProgress = null, options = {}) {
     if (location.hostname.endsWith(".vercel.app")) throw new Error("Uploads are disabled in this design preview. Please use the main AfriNet Hub website.");
     if (!file) throw new Error("No file selected for upload.");
+    const kind = options?.kind || 'private';
+    // Private student documents and receipts MUST go through a server-signed upload flow.
+    if (kind !== 'public-media') {
+        throw new Error('Private document upload is not yet enabled. Your file was not sent.');
+    }
+    if (!/^(image\/jpeg|image\/png|image\/webp|application\/pdf)$/.test(file.type))
+        throw new Error('Only JPG, PNG, WebP or PDF public media can be uploaded.');
+    if (file.size <= 0 || file.size > 10*1024*1024)
+        throw new Error('Media files must not exceed 10MB.');
     try {
         if (!supabaseClient) initSupabase();
-        const filePath = `${Date.now()}_${file.name}`;
+        const ext = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','application/pdf':'pdf'})[file.type];
+        const filePath = `media/${crypto.randomUUID()}.${ext}`;
         console.log(`Supabase: Starting upload for ${file.name}...`);
 
         const { data, error } = await supabaseClient.storage
-            .from(BUCKET_NAME)
+            .from(MEDIA_BUCKET_NAME)
             .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
         if (error) throw error;
 
         const { data: publicUrlData } = supabaseClient.storage
-            .from(BUCKET_NAME)
+            .from(MEDIA_BUCKET_NAME)
             .getPublicUrl(filePath);
 
         console.log('✅ Upload successful:', file.name);
@@ -59,7 +70,7 @@ async function uploadFile(file, onProgress = null) {
         if (error.statusCode === '413') {
             throw new Error("File too large. Please select a smaller file.");
         }
-        throw new Error(`Storage Service Error: ${error.message || "Upload failed. Please try again."} (Bucket: ${BUCKET_NAME})`);
+        throw new Error(`Storage Service Error: ${error.message || "Upload failed. Please try again."} (Bucket: ${MEDIA_BUCKET_NAME})`);
     }
 }
 
@@ -68,7 +79,8 @@ async function deleteFile(fileId) {
     if (!fileId) return;
     try {
         if (!supabaseClient) initSupabase();
-        const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).remove([fileId]);
+        if (!String(fileId).startsWith('media/')) throw new Error('Private file deletion is restricted to the secure upload service.');
+        const { data, error } = await supabaseClient.storage.from(MEDIA_BUCKET_NAME).remove([fileId]);
         if (error) throw error;
         console.log(`Supabase: File ${fileId} deleted successfully.`);
     } catch (error) {
@@ -79,7 +91,8 @@ async function deleteFile(fileId) {
 
 function getFileView(fileId) {
     if (!supabaseClient) initSupabase();
-    const { data } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(fileId);
+    if (!String(fileId).startsWith('media/')) return '';
+    const { data } = supabaseClient.storage.from(MEDIA_BUCKET_NAME).getPublicUrl(fileId);
     return data.publicUrl;
 }
 
