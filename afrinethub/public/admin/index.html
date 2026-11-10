@@ -52,29 +52,21 @@
                 <button type="submit" class="cta-button">Sign In</button>
             </form>
 
-            <form id="admin-signup-form" style="display: none;" hidden>
+            <form id="admin-signup-form" style="display:none" hidden>
                 <div class="form-group">
-                    <label for="admin-signup-email">Email address</label>
-                    <select id="admin-signup-email" required aria-label="Select your administrator email">
+                    <label for="admin-signup-email">Administrator email address</label>
+                    <select id="admin-signup-email" required>
                         <option value="afrinetnig@gmail.com">afrinetnig@gmail.com</option>
                         <option value="timilehintallest@gmail.com">timilehintallest@gmail.com</option>
                     </select>
-                    <p class="form-hint">Each authorized account has its own password and email confirmation. Print staff sign in with their invitation email.</p>
+                    <p class="form-hint">Both accounts are independent. We'll email you a secure, one-time link so you can confirm your address and create your own password.</p>
                 </div>
-                <div class="form-group">
-                    <label for="admin-signup-password">Password</label>
-                    <input type="password" id="admin-signup-password" placeholder="Create password" minlength="12" required>
-                </div>
-                <div class="form-group">
-                    <label for="admin-signup-confirm-password">Confirm Password</label>
-                    <input type="password" id="admin-signup-confirm-password" placeholder="Repeat password" minlength="12" required>
-                </div>
-                <div id="signup-error" class="error-message" style="display: none;"></div>
-                <button type="submit" class="cta-button">Create Admin Account</button>
+                <div id="signup-error" class="error-message" style="display:none"></div>
+                <button type="submit" class="cta-button">Email my account setup link</button>
             </form>
             <form id="staff-activate-form" hidden style="display:none" autocomplete="off">
-                <h3>Complete your printing staff invitation</h3>
-                <p>You've opened a secure invitation. Choose your own password to access print jobs.</p>
+                <h3 id="activation-heading">Complete your invitation</h3>
+                <p id="activation-explanation">Use the secure link sent to your email to create your own password.</p>
                 <div class="form-group">
                     <label for="staff-new-password">New password</label>
                     <input type="password" id="staff-new-password" autocomplete="new-password" minlength="12" required>
@@ -128,13 +120,17 @@
             // Staff are invited by the AfriNet manager and set a password
             // only after opening their email invitation.
             const inviteType = new URLSearchParams(location.hash.slice(1)).get('type');
-            if (inviteType === 'invite' || new URLSearchParams(location.search).get('staff-invite') === '1') {
+            if (inviteType === 'invite' || new URLSearchParams(location.search).get('staff-invite') === '1' || new URLSearchParams(location.search).get('admin-setup') === '1') {
                 const form=document.getElementById('staff-activate-form');
                 loginForm.style.display='none';
                 signupForm.style.display='none';
                 document.querySelector('.admin-auth-switch').style.display='none';
                 form.hidden=false;
                 form.style.display='block';
+                if(new URLSearchParams(location.search).get('admin-setup') === '1'){
+                    document.getElementById('activation-heading').textContent='Complete administrator setup';
+                    document.getElementById('activation-explanation').textContent='Confirm your email invitation and choose a private password to manage AfriNet Hub.';
+                }
                 form.addEventListener('submit',async(event)=>{
                     event.preventDefault();
                     const feedback=document.getElementById('staff-activate-feedback');
@@ -148,8 +144,9 @@
                         if(!session?.user)throw new Error('Please reopen the link in your invitation email, then set your password.');
                         const {error}=await window.supabaseClient.auth.updateUser({password:p});
                         if(error)throw error;
-                        if(!await isAuthorizedPrintStaff())throw new Error('The invitation is not active. Ask the site manager to check it.');
-                        window.location.replace('print/');
+                        const role=await getAdminAccess();
+                        if(!role)throw new Error('This email has no active access. Ask the site manager to confirm the invitation.');
+                        window.location.replace(role==='print_staff'?'print/':'dashboard/');
                     }catch(err){feedback.textContent=err.message||'Unable to activate staff account.';}
                 });
                 return;
@@ -161,7 +158,7 @@
                 showSignupBtn.hidden = false;
                 showSignupBtn.disabled = false;
                 signupForm.hidden = false;
-                statusDiv.textContent = "Administrator setup: select your own approved email, create your own password, confirm the email message, then sign in.";
+                statusDiv.textContent = "Administrator setup: select your approved email and receive a private link to confirm it and set your password.";
                 statusDiv.className = "status-message pending";
             } else {
                 statusDiv.textContent = "Sign in with an administrator account. Contact the platform owner if you need access.";
@@ -194,26 +191,13 @@
                 e.preventDefault();
                 signupError.style.display = 'none';
                 const email = document.getElementById('admin-signup-email').value;
-                const password = document.getElementById('admin-signup-password').value;
-                const confirmPassword = document.getElementById('admin-signup-confirm-password').value;
-                if (password !== confirmPassword) {
-                    signupError.textContent = "Passwords do not match.";
-                    signupError.style.display = 'block';
-                    return;
-                }
                 try {
-                    const result = await signUpAdmin(email, password);
-                    signupForm.reset();
-                    if (result.needsEmailConfirmation) {
-                        statusDiv.textContent = "Check your email and click the confirmation link, then sign in below to complete setup.";
-                        statusDiv.className = "status-message pending";
-                        openLogin();
-                    } else {
-                        statusDiv.textContent = "Admin registration completed. You can now sign in.";
-                        statusDiv.className = "status-message success";
-                        showSignupBtn.disabled = true;
-                        openLogin();
-                    }
+                    if(!window.afriBackend)throw new Error('The account setup service has not loaded. Refresh and try again.');
+                    const guestToken=await window.afriBackend.ensureGuestSession();
+                    const result=await window.afriBackend.apiCall('admin-setup',{email,guestToken});
+                    statusDiv.textContent=result.status||'Check your email for a secure account setup link.';
+                    statusDiv.className='status-message success';
+                    openLogin();
                 } catch (error) {
                     signupError.textContent = error.message || "Registration failed.";
                     signupError.style.display = 'block';
