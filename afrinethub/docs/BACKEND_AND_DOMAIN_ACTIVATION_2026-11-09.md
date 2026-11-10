@@ -44,15 +44,14 @@ This restricted QA harness exists only on a staging deployment (not in the produ
 - Cloudflare's actual rendered browser check recorded **no horizontal overflow at 320px** on the homepage and **no horizontal overflow at 390px** on the order page.
 - Other device-size rendering checks were rate limited by Cloudflare HTTP 429; do not claim all screen widths were browser-verified. Responsive CSS and 19 automated regression tests passed.
 
-## ONLY USER-SIDE IDENTITY STEP STILL REQUIRED
-**There is currently no registered Supabase Auth user and no populated `admin_config` record.** The site cannot administratively manage live orders until the owner completes first-time registration and email confirmation.
+## REQUIRED FIRST-TIME ACCOUNT ACTIVATION — UPDATED 2026-11-10
+Two independent, approved full-administrator email addresses are supported. Nobody may become a full administrator except the holders of those two verified addresses.
 
-Owner action:
-1. Visit **https://afrinethub.com.ng/admin/**.
-2. Choose **One-Time Registration**.
-3. The approved owner email is fixed as `timilehintallest@gmail.com`. Enter a **new private password of at least 12 characters**.
-4. Confirm the email message from Supabase, then sign in. Successful verified sign-in calls the restricted admin-claim RPC and makes the admin dashboard accessible.
-5. Verify admin listing/receipt review and bank-transfer verification with an actual authorized account. **Do not paste passwords, login codes or confirmation links into a public chat.**
+Visit **https://afrinethub.com.ng/admin/**, choose **Administrator Setup**, select the appropriate address, and request a secure one-time email link. AfriNet Hub uses Cloudflare Turnstile and the separately verified Resend sender to email a Supabase Auth link; the recipient follows the link to set their own private password of at least 12 characters and signs in.
+
+The `afrinetnig@gmail.com` account manages Print Staff invitations via the full dashboard's **Print Staff** tab; `timilehintallest@gmail.com` remains a separate full administrator. No primary/secondary labels are shown in the UI. No third full administrator is allowed, but the manager may invite and revoke restricted print operators.
+
+**Activation is not completed by the release itself:** account owners must open their own confirmation emails and set passwords. Do not share passwords or invitation links in public conversations. Signed-in administrator workflows require a real account and a verified payment for full operational testing.
 
 ## RECOMMENDED OPERATIONS BEFORE GROWTH
 - Set email template and redirect URLs in Supabase Auth settings to `https://afrinethub.com.ng/admin/` if the default signup confirmation redirect does not return to the site.
@@ -68,13 +67,25 @@ Owner action:
 
 - **New live Vercel production release:** `dpl_3asr1DHLuo2z2o8fwNVe8oeKMkin`, https://afrinethub.com.ng/. All **22/22** automated tests passed, with no failures.
 - **Two independent approved administrator identities**, not one. Database migration `exactly_two_verified_administrators` applied to dedicated Supabase project `soqjthnzyntkhthcnucj`.
-  - Primary `setup` account: `timilehintallest@gmail.com`.
-  - Second `brother` account: `afrinetnig@gmail.com`.
+  - Approved full administration accounts: `timilehintallest@gmail.com` and `afrinetnig@gmail.com` (no rank labels in the site UI).
   - Admin table CHECK constraint permits only `setup` and `brother`, each with a unique Supabase Auth UUID, and the restricted claim function accepts only those two specific *email-confirmed* identities.
   - Updated private RLS role predicate, Supabase Edge function (version 3) and frontend sign-in checks to allow either registered administrator and deny everyone else.
-  - Both choose their own private password (minimum 12 characters) on https://afrinethub.com.ng/admin/ using the selected fixed email, confirm that email, then sign in. **No passwords, OTPs, or account sessions were generated or stored by the release process**. Both admin slots still start empty until the people register.
+  - Both receive verified secure email links and choose their own private password (minimum 12 characters) through AfriNet Hub. Both account slots remain empty until verified activation.
 - **Favicon and logo** generated directly from accepted original 160×160 `afrinethub-round.webp`. Added real `favicon.ico` with 16/32/48 layers, PNG 32, PNG 48, PNG 96, Apple touch PNG 180, Android PNG 192; consistent icon links and web app manifest across homepage and all interior pages.
 - **Google branding metadata:** homepage `Organization` logo is original square 160×160 WebP (Google minimum 112×112) plus `WebSite` and `WebPage` JSON-LD. The 48×48 and 96×96 PNG favicons are linked from the homepage.
 - **SEO:** robots.txt exposes the sitemap, canonical root URLs, and keeps admin/API blocked. XML sitemap includes 12 publicly indexable canonical marketing/legal pages and real image references. It omits order, checkout and administrator forms. The live sitemap, robots, favicon and all PNG files were verified HTTP 200, with appropriate MIME types. Google indexing/favicon display is **not guaranteed** and may update over several days or weeks; Search Console URL inspection/sitemap submission is recommended.
-- **Supabase Auth email delivery caveat:** newly created free projects using built-in SMTP can only email addresses on the Supabase organization team, with a low rate limit. If either administrator receives `email_address_not_authorized`, configure custom SMTP in Supabase Authentication or authorize delivery through appropriate verified SMTP setup. Do not bypass email confirmation or add broad administrator access merely to fix email.
+- **Email delivery update:** the site now uses Resend and Supabase-generated secure verification links for account setup and staff invitations rather than restricted built-in SMTP. The sender domain is verified; real invitation delivery to a specific person must still be exercised after the manager activates their account.
 - **No GitHub Actions, nameserver changes, mail-routing changes, or Global Webstores changes.**
+
+## Staff workflow release — 2026-11-10
+
+**Production Vercel deployment:** `dpl_BWCBPg4YcZMGX2MRGCRoFDcXshLE` on https://afrinethub.com.ng/, **26/26** automated tests passed. Supabase Edge function `afrinethub-api` version 6 ACTIVE. Public home, /admin/, /admin/dashboard/, /admin/print/, /favicon.ico, /sitemap.xml, /api/health verified HTTP 200; temporary /api/qa-denials returns 404 in production.
+
+- Only confirmed `afrinetnig@gmail.com` full-administrator identity may send and revoke **Print Staff** invitations.
+- Manager opens **/admin/dashboard/** → **Print Staff** → enters a recipient's email. Each invitee receives a Resend email to set their own password and accesses **/admin/print/**. Invitation links are never sent to the browser of the inviting manager.
+- Print Staff can list **Paid / Printed / Ready / Collected** print orders without financial amounts or receipt details, download only order-specific printing documents through short-lived private signed URLs, and advance permitted statuses **Paid → Printed → Ready → Collected**.
+- Print Staff cannot view other customer requests, receipts, bank-transfer verification, revenues, adverts, products, housing or invite/manage staff. RLS blocks raw order queries, privileged print RPCs are service-role only, and each staff Edge request rechecks verified user identity + active invitation membership.
+- Revocation immediately disables subsequent staff API requests. Two full-admin accounts are unchanged.
+- Outgoing sender: `notify.afrinethub.com.ng` verified with Resend, sending-only, using a domain-scoped API key held in Supabase Vault. Four distinct DKIM, SPF and return-path records are added to the active Cloudflare zone; existing MX/email forwarding and the separate `unilesh` site unchanged.
+- Controlled negative API test confirmed all six unauthenticated routes returned HTTP 400; no customer records or invitations created by that test.
+- **Next real-person check:** the manager activates the brother's account from their own email, invites one actual employee, and confirms employee's password setup, print download and statuses. No staff email was provided for immediate invitation, so no invitations were sent.
