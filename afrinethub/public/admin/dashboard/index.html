@@ -59,6 +59,7 @@
                 <button class="tab-button" data-tab="partners-manager">Partners</button>
                 <button class="tab-button" data-tab="gadgets-manager">Gadgets</button>
                 <button class="tab-button" data-tab="housing-manager">Housing</button>
+                <button id="print-staff-tab" class="tab-button" data-tab="print-staff-manager" hidden>Print Staff</button>
             </div>
 
             <!-- Print Orders Tab -->
@@ -487,6 +488,23 @@
                         <tbody id="housing-body"></tbody>
                     </table>
                 </div>
+            </section>
+            <section id="print-staff-manager" class="tab-content">
+                <h2>Printing team</h2>
+                <p style="color:#536680;max-width:720px">Invite staff to receive and download cleared print jobs. Their dashboard does not show receipts, earnings, payment verification, products or financial controls. Only this AfriNet Hub manager account can invite or remove printing staff.</p>
+                <form id="print-staff-invite-form" class="card" style="max-width:580px;padding:20px">
+                    <div class="form-group">
+                        <label for="print-staff-email">New printing staff email</label>
+                        <input type="email" id="print-staff-email" placeholder="staff@example.com" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="cta-button" id="print-staff-invite-button">Send secure invitation</button>
+                </form>
+                <p id="print-staff-feedback" aria-live="polite" role="status" style="margin:16px 0"></p>
+                <h3>Invited team members</h3>
+                <div class="table-responsive"><table>
+                  <thead><tr><th>Email</th><th>Access</th><th>Joined</th><th>Action</th></tr></thead>
+                  <tbody id="print-staff-rows"><tr><td colspan="4">Loading team…</td></tr></tbody>
+                </table></div>
             </section>
         </div>
     </main>
