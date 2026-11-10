@@ -82,7 +82,10 @@ async function deleteFile(fileId) {
         if (!supabaseClient) initSupabase();
         if (!String(fileId).startsWith('media/')) {
             if (!window.afriBackend) throw new Error('Secure deletion service is unavailable.');
-            return await window.afriBackend.deleteFile(fileId);
+            const allowedAdmin = await window.isAuthorizedAdmin?.().catch(() => false);
+            return allowedAdmin
+              ? await window.afriBackend.adminDeleteFile(fileId)
+              : await window.afriBackend.deleteFile(fileId);
         }
         const { data, error } = await supabaseClient.storage.from(MEDIA_BUCKET_NAME).remove([fileId]);
         if (error) throw error;
