@@ -73,7 +73,7 @@ async function isAdmin(req:Request){
  if(!bearer||bearer.length>4096)return false;
  const {data:{user},error}=await db.auth.getUser(bearer);
  if(error||!user?.id||!user.email_confirmed_at)return false;
- const {data:row}=await db.from('admin_config').select('uid').eq('id','setup').maybeSingle();
+ const {data:row}=await db.from('admin_config').select('uid').eq('uid',user.id).maybeSingle();
  return Boolean(row?.uid===user.id);
 }
 async function validateTurnstile(token:string,ip:string,origin:string){
