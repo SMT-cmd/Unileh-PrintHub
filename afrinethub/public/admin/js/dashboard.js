@@ -31,6 +31,7 @@ async function initDashboard() {
         const feedback=document.getElementById('print-staff-feedback');
         if(!tab||!form||!body||!feedback)return;
         tab.hidden=false;
+        tab.style.display='';
         const authHeader=async()=>{
             const {data:{session}}=await sb.auth.getSession();
             if(!session?.access_token)throw new Error('Sign in again to manage your team.');
