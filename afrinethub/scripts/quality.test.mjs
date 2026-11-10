@@ -91,7 +91,9 @@ test('staging blocks real orders, uploads and admin edits',()=>{
  assert.match(db,/function assertNoPreviewWrites/);
  assert.match(db,/location\.hostname\.endsWith\('\.vercel\.app'\)/);
  assert.match(storage,/Uploads are disabled in this design preview/);
- assert.doesNotMatch(auth,/claimAdminSlot\(|\.auth\.signUp\(/);
+ assert.doesNotMatch(auth,/claimAdminSlot\(/);
+ assert.match(auth,/timilehintallest@gmail.com/);
+ assert.match(auth,/claim_afrinethub_admin/);
  assert.match(auth,/async function isAuthorizedAdmin/);
  assert.match(dashboard,/Live administration is disabled on this preview link/);
 });
@@ -220,7 +222,42 @@ test('dedicated Afrinet Hub database client uses only a public publishable key',
  assert.equal((admin.match(/kind: 'public-media'/g)||[]).length,4);
  assert.match(storage,/PRIVATE_BUCKET_NAME = 'afrinethub-private'/);
  assert.match(storage,/MEDIA_BUCKET_NAME = 'afrinethub-media'/);
- assert.match(storage,/Private document upload is not yet enabled/);
+ assert.match(storage,/return window.afriBackend.uploadFile\(file,kind\)/);
  assert.match(storage,/if \(kind !== 'public-media'\)/);
  assert.doesNotMatch(storage,/\$\{Date\.now\(\)\}_\$\{file\.name\}/);
+});
+
+
+test('secure customer API requires Turnstile and rate limits before accepting private uploads',()=>{
+ const edge=read('supabase/functions/afrinethub-api/index.ts');
+ const db=read('public/assets/js/database.js');
+ const storage=read('public/assets/js/storageService.js');
+ const checkout=read('public/checkout/index.html');
+ assert.match(edge,/siteverify/);
+ assert.match(edge,/afrinethub_throttle/);
+ assert.match(edge,/afrinethub_check_session/);
+ assert.match(edge,/afrinethub-private/);
+ assert.match(edge,/magicOK/);
+ assert.match(edge,/await signedUrl/);
+ assert.match(edge,/paymentStatus:'Receipt submitted — awaiting manual verification'/);
+ assert.match(db,/humanChallenge\(\)/);
+ assert.match(db,/ensureGuestSession/);
+ assert.match(db,/apiCall\('order'/);
+ assert.match(db,/apiCall\('request'/);
+ assert.match(storage,/window.afriBackend.uploadFile/);
+ assert.match(checkout,/window.afriBackend.receipt/);
+ assert.doesNotMatch(checkout,/supabaseClient\s*\.from\('orders'\)/);
+ assert.doesNotMatch(checkout,/\.update\(\{\s*status:\s*'Paid'/);
+});
+test('administrator verifies transfers and uses signed private-file links',()=>{
+ const auth=read('public/admin/js/auth.js');
+ const admin=read('public/admin/js/dashboard.js');
+ assert.match(auth,/claim_afrinethub_admin/);
+ assert.match(auth,/timilehintallest@gmail.com/);
+ assert.match(admin,/window.verifyPayment/);
+ assert.match(admin,/adminFileUrl/);
+ assert.match(admin,/view-private-file/);
+ assert.match(admin,/Verify transfer/);
+ assert.match(admin,/if \(!\['Paid','Printed','Ready'\]\.includes\(currentStatus\)\)/);
+ assert.match(read('api/health.js'),/backendReady/);
 });
