@@ -401,11 +401,34 @@ test('print operators have a separate limited workspace and zero database write 
  assert.match(sql,/p_next_status='Ready'/);
  assert.match(sql,/p_next_status='Collected'/);
  assert.doesNotMatch(sql,/p_next_status='Paid'/);
- assert.match(edge,/inviteUserByEmail/);
+ assert.match(edge,/generateLink\(\{/);
+ assert.match(edge,/api\.resend\.com\/emails/);
+ assert.match(edge,/afrinethub_staff_email_secret/);
  assert.match(edge,/who\.manager/);
  assert.match(edge,/Only the Afrinet Hub manager can invite or manage print staff/);
  assert.match(edge,/Only printing documents can be downloaded/);
  assert.match(edge,/afrinethub_print_file_allowed/);
  assert.match(edge,/afrinethub_print_update/);
  assert.match(edge,/afrinethub_print_jobs/);
+});
+
+
+test('staff invitation sender is private, domain-verified, and uses account-specific confirmation links',()=>{
+ const edge=read('supabase/functions/afrinethub-api/index.ts');
+ const db=read('public/admin/index.html');
+ const auth=read('public/admin/js/auth.js');
+ const sql=read('supabase/migrations/20261110_000008_staff_email_secret_access.sql');
+ assert.match(edge,/generateLink\(\{/);
+ assert.match(edge,/type:'invite'/);
+ assert.match(edge,/redirectTo:'https:\/\/afrinethub\.com\.ng\/admin\/\?staff-invite=1'/);
+ assert.match(edge,/api\.resend\.com\/emails/);
+ assert.match(edge,/invites@notify\.afrinethub\.com\.ng/);
+ assert.match(edge,/afrinethub_staff_email_secret/);
+ assert.match(edge,/!mailed/);
+ assert.doesNotMatch(edge,/inviteUserByEmail/);
+ assert.match(db,/staff-invite'\) === '1'/);
+ assert.match(db,/auth\.updateUser\(\{password:p\}\)/);
+ assert.match(auth,/!location\.search\.includes\('staff-invite=1'\)/);
+ assert.match(sql,/grant execute on function public\.afrinethub_staff_email_secret\(\) to service_role/);
+ assert.match(sql,/revoke all on function public\.afrinethub_staff_email_secret\(\) from public,anon,authenticated/);
 });
