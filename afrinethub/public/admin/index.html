@@ -128,7 +128,7 @@
             // Staff are invited by the AfriNet manager and set a password
             // only after opening their email invitation.
             const inviteType = new URLSearchParams(location.hash.slice(1)).get('type');
-            if (inviteType === 'invite') {
+            if (inviteType === 'invite' || new URLSearchParams(location.search).get('staff-invite') === '1') {
                 const form=document.getElementById('staff-activate-form');
                 loginForm.style.display='none';
                 signupForm.style.display='none';
@@ -145,7 +145,7 @@
                     try{
                         await waitForSupabase();
                         const {data:{session}}=await window.supabaseClient.auth.getSession();
-                        if(!session?.user)throw new Error('Your invitation must be opened from the email link.');
+                        if(!session?.user)throw new Error('Please reopen the link in your invitation email, then set your password.');
                         const {error}=await window.supabaseClient.auth.updateUser({password:p});
                         if(error)throw error;
                         if(!await isAuthorizedPrintStaff())throw new Error('The invitation is not active. Ask the site manager to check it.');
