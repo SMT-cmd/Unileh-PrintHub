@@ -80,7 +80,8 @@ async function validateTurnstile(token:string,ip:string,origin:string){
  if(!token||token.length>2048)throw new Error('Human verification is required');
  const secret=await rpc<string|null>('afrinethub_turnstile_secret',{});
  if(!secret)throw new Error('Verification server not configured');
- const values=new URLSearchParams({secret,response:token,remoteip:ip});
+ const values=new URLSearchParams({secret,response:token});
+ if(/^[0-9a-f:.]+$/i.test(ip))values.set('remoteip',ip);
  const response=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:values,headers:{'Content-Type':'application/x-www-form-urlencoded'}});
  if(!response.ok)throw new Error('Verification service unavailable');
  const result=await response.json();
@@ -240,12 +241,17 @@ Deno.serve(async(req:Request)=>{
    const ip=cleanText(req.headers.get('cf-connecting-ip')||req.headers.get('x-real-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]||'unknown',90);
    // Staff document links, from authenticated admin, intentionally bypass guest tokens.
    const action=new URL(req.url).pathname.split('/').filter(Boolean).pop();
-   if(req.method==='POST'&&action==='admin-file-url'){
+   if(req.method==='POST'&&(action==='admin-file-url'||action==='admin-file-delete')){
      if(!await isAdmin(req))return reply({ok:false,error:'Admin login required'},403,origin);
      const body=await getBody(req);
      const path=cleanText(body.fileId,180);
      if(!/^[a-f0-9-]{36}\/(document|receipt)\/[a-f0-9-]{36}\.(pdf|jpg|png|webp|docx)$/.test(path))
        return reply({ok:false,error:'Invalid file ID'},400,origin);
+     if(action==='admin-file-delete'){
+       const {error}=await db.storage.from(BUCKET).remove([path]);
+       if(error)throw new Error('File deletion failed');
+       return reply({ok:true},200,origin);
+     }
      return reply({ok:true,url:await signedUrl(path,180)},200,origin);
    }
    const result=await handler(req,origin||'',ip);
