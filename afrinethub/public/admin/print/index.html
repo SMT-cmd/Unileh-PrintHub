@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="robots" content="noindex,nofollow">
+ <title>Printing Workspace — AfriNet Hub</title>
+ <link rel="icon" href="/favicon.ico" sizes="any" type="image/x-icon">
+ <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+ <link rel="stylesheet" href="../../assets/css/style.css">
+ <link rel="stylesheet" href="../../assets/css/modern.css">
+ <link rel="stylesheet" href="../../assets/css/admin.css">
+ <link rel="stylesheet" href="../../assets/css/interior.css">
+ <style>
+   .print-workspace{max-width:1100px;margin:0 auto;padding:24px 16px 72px}
+   .print-workspace h1{margin:0;font-size:clamp(1.5rem,4vw,2.3rem);color:#0a1f44}
+   .print-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin:20px 0}
+   .print-job{background:#fff;border:1px solid #e1e8f1;border-radius:12px;padding:20px;margin:12px 0;box-shadow:0 6px 25px rgba(16,40,75,.06)}
+   .print-job-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+   .print-job h3{margin:0 0 5px;font-size:1.08rem}
+   .print-meta{color:#4d6078;font-size:.89rem}
+   .print-files{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+   .print-file{background:#eef4fd;color:#143b72;border:1px solid #c8d7eb;padding:9px 12px;border-radius:7px;cursor:pointer}
+   .print-advance{margin-top:14px;border:0;border-radius:7px;padding:11px 16px;background:#102f5a;color:white;cursor:pointer}
+   .print-advance:disabled{opacity:.5;cursor:default}
+   .print-note{color:#52627a;font-size:.9rem;line-height:1.6}
+   #print-feedback[role=status]{min-height:25px}
+   .print-pill{display:inline-flex;padding:5px 9px;background:#e7f4ec;color:#245f40;border-radius:6px;font-size:.8rem}
+   @media(max-width:500px){.print-job{padding:15px}.print-toolbar{align-items:stretch}.print-toolbar button{width:100%}}
+ </style>
+</head>
+<body class="admin-dashboard-body">
+ <header class="admin-header"><div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+  <div class="logo"><img src="../../assets/images/afrinethub-round.webp" width="42" height="42" alt="AfriNet Hub"><strong>AfriNet Hub · Printing</strong></div>
+  <button id="print-logout" class="cta-button-secondary">Sign out</button>
+ </div></header>
+ <main class="print-workspace">
+  <h1>Printing workspace</h1>
+  <p class="print-note">View paid print jobs, download printing documents and update progress. Payment verification, receipts, pricing and financial management are restricted to administrators.</p>
+  <div class="print-toolbar"><div><strong id="print-summary">Loading print jobs…</strong><p class="print-meta">Only orders cleared for printing appear here.</p></div><button type="button" id="print-refresh" class="cta-button-secondary">Refresh orders</button></div>
+  <p id="print-feedback" role="status" aria-live="polite"></p>
+  <div id="print-orders-list" aria-live="polite"></div>
+ </main>
+ <script type="module" src="../../assets/js/database.js"></script>
+ <script src="../js/auth.js"></script>
+ <script type="module" src="../js/print.js"></script>
+</body></html>

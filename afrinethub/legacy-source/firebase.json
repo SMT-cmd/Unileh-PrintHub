@@ -1,0 +1,33 @@
+{
+  "hosting": {
+    "site": "unilesh-4285c-ce948",
+    "public": ".",
+    "cleanUrls": true,
+    "trailingSlash": true,
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "README.md",
+      "firestore.rules",
+      ".gitignore",
+      ".nojekyll"
+    ],
+    "rewrites": [
+      { "source": "/order", "destination": "/order/index.html" },
+      { "source": "/checkout", "destination": "/checkout/index.html" },
+      { "source": "/portal", "destination": "/portal/index.html" },
+      { "source": "/news", "destination": "/news/index.html" },
+      { "source": "/partners", "destination": "/partners/index.html" },
+      { "source": "/about", "destination": "/about/index.html" },
+      { "source": "/privacy", "destination": "/privacy/index.html" },
+      { "source": "/terms", "destination": "/terms/index.html" },
+      { "source": "/refund", "destination": "/refund/index.html" },
+      { "source": "/admin", "destination": "/admin/index.html" },
+      { "source": "/admin/dashboard", "destination": "/admin/dashboard/index.html" }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

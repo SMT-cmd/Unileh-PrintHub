@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://afrinethub.com.ng/checkout/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Checkout - AfriNet Hub</title>
+    <meta name="description" content="Complete your print order payment for AfriNet Hub. Safe and secure payment options for Unilesa students.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/modern.css">
+    <meta name="theme-color" content="#0a1f44">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AfriNet Hub">
+<link rel="apple-touch-icon" href="../assets/images/afrinethub-round.webp">
+
+    <script src="../assets/vendor/supabase-2.117.2.js"></script>
+    <link rel="stylesheet" href="../assets/css/checkout.css">
+    <link rel="stylesheet" href="../assets/css/interior.css">
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="icon" href="/favicon.ico" sizes="any" type="image/x-icon">
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/favicon-48x48.png" sizes="48x48" type="image/png">
+    <link rel="icon" href="/icon-96x96.png" sizes="96x96" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body class="watermark-bg">
+
+    <header></header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Complete Your Order</h1>
+            <p>Review your order and make payment.</p>
+        </section>
+
+        <div id="checkout-summary" class="card">
+            <div class="loading">Fetching order details...</div>
+        </div>
+
+        <section id="payment-details" class="card payment-card" style="display: none;">
+            <h3>Bank Transfer Details</h3>
+            <div class="bank-info">
+                <p><strong>Bank:</strong> Moniepoint</p>
+                <p><strong>Account Number:</strong> 5243188147</p>
+                <p><strong>Account Name:</strong> AfriNet NG and Company</p>
+                <p><strong>Payment Reference:</strong> <span id="payment-ref-id" class="highlight">Order ID</span></p>
+            </div>
+            <p class="instruction">"Use your Order ID as the payment reference"</p>
+
+            <div class="confirm-payment">
+                <h4>I've Transferred, Submit Receipt</h4>
+                <p>Upload your payment receipt (image/PDF). Printing begins once the transfer is verified.</p>
+                <div id="receipt-upload-container">
+                    <button type="button" id="upload-receipt-btn" class="cta-button">Upload Receipt</button>
+                    <div id="receipt-feedback" class="upload-feedback" style="display: none;"></div>
+                </div>
+                <button id="confirm-payment-btn" class="cta-button-whatsapp" disabled>
+                    Notify Admin via WhatsApp
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer></footer>
+
+    <script src="../assets/js/storageService.js?v=supabase_final"></script>
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    <script src="../assets/js/app.js?v=supabase_final"></script>
+    <script src="../assets/js/pricing.js?v=pricing_v1"></script>
+
+    <script type="module">
+        let currentOrder = null;
+        let receiptData = null;
+        const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.getOrder && window.storageService && window.supabaseClient) {
+                    clearInterval(checkDeps);
+                    initCheckout();
+                }
+            }, 100);
+        });
+
+        async function initCheckout() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
+
+            if (!orderId) {
+                document.getElementById('checkout-summary').innerHTML = '<p class="error">No Order ID found. Please go back and try again.</p>';
+                return;
+            }
+
+            try {
+                currentOrder = await window.getOrder(orderId);
+                if (!currentOrder) {
+                    document.getElementById('checkout-summary').innerHTML = '<p class="error">Order not found.</p>';
+                    return;
+                }
+
+                const items = Array.isArray(currentOrder.items) && currentOrder.items.length
+                    ? currentOrder.items
+                    : [{
+                        fileName: currentOrder.fileName,
+                        fileUrl: currentOrder.fileUrl,
+                        pageCount: currentOrder.pageCount,
+                        copies: currentOrder.copies,
+                        printType: currentOrder.printType
+                    }];
+
+                const itemsHtml = items.map((it, i) => {
+                    const pages = parseInt(it.pageCount) || 1;
+                    const copies = parseInt(it.copies) || 1;
+                    const printType = it.printType || 'B&W';
+                    const lineTotal = window.printPricing
+                        ? window.printPricing.calculatePrintTotal({ printType, pagesInFile: pages, copies }).total
+                        : null;
+                    const totalText = Number.isFinite(lineTotal) ? ` • ₦${lineTotal.toFixed(2)}` : '';
+                    const nameText = it.fileName ? ` (${esc(it.fileName)})` : '';
+                    return `<div style="margin: 6px 0;"><strong>Document ${i + 1}</strong>${nameText}: ${printType} • ${pages} page${pages === 1 ? '' : 's'} • ${copies} cop${copies === 1 ? 'y' : 'ies'}${totalText}</div>`;
+                }).join('');
+
+                const totalAmount = Number(currentOrder.totalPrice) || 0;
+
+                document.getElementById('checkout-summary').innerHTML = `
+                    <div class="summary-details">
+                        <p><strong>Student Name:</strong> ${esc(currentOrder.studentName)}</p>
+                        <p><strong>Order ID:</strong> ${esc(orderId)}</p>
+                        <hr>
+                        ${itemsHtml}
+                        <hr>
+                        <h3>Total Amount: ₦${totalAmount.toFixed(2)}</h3>
+                    </div>
+                `;
+                document.getElementById('payment-ref-id').textContent = orderId;
+                document.getElementById('payment-details').style.display = 'block';
+
+                setupReceiptUpload(orderId);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('checkout-summary').innerHTML = '<p class="error">Error loading order summary.</p>';
+            }
+        }
+
+        function setupReceiptUpload(orderId) {
+            const uploadBtn = document.getElementById('upload-receipt-btn');
+            const feedback = document.getElementById('receipt-feedback');
+            const confirmBtn = document.getElementById('confirm-payment-btn');
+
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*,.pdf';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    uploadBtn.disabled = true;
+                    uploadBtn.textContent = 'Preparing Upload...';
+
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = '<p style="color: var(--text-color); font-size: 0.85em;">Uploading to secure storage...</p>';
+
+                    const result = await window.storageService.uploadFile(file, (progress) => {
+                        uploadBtn.textContent = `Uploading ${Math.round(progress)}%`;
+                    });
+
+                    receiptData = result;
+
+                    const isImage = file.type.startsWith('image/');
+                    const previewHtml = isImage
+                        ? `<img src="${esc(result.viewURL)}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px;">`
+                        : `<span style="font-size: 20px; margin-right: 10px;">📄</span>`;
+
+                    feedback.innerHTML = `
+                        <div style="display: flex; align-items: center; background: rgba(42, 157, 143, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #2a9d8f; margin-top: 10px; color: #2a9d8f; font-size: 0.9em;">
+                            ${previewHtml}
+                            <div style="flex: 1;">
+                                <strong style="color: #2a9d8f;">✅ Receipt Uploaded!</strong><br>
+                                <span style="font-size: 0.85em; color: var(--text-color);">${esc(result.originalName)}</span>
+                            </div>
+                            <button type="button" id="remove-receipt" title="Remove receipt" style="background: #e63946; border: none; color: white; cursor: pointer; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
+                        </div>
+                    `;
+                    uploadBtn.style.display = 'none';
+                    confirmBtn.disabled = false;
+
+                    document.getElementById('remove-receipt').addEventListener('click', async () => {
+                        const confirmDelete = confirm("Remove this receipt?");
+                        if (!confirmDelete) return;
+
+                        try {
+                            feedback.innerHTML = '<p style="color: #e63946; font-size: 0.85em;">Removing receipt...</p>';
+                            await window.storageService.deleteFile(receiptData.fileId);
+                            receiptData = null;
+                            feedback.style.display = 'none';
+                            uploadBtn.style.display = 'inline-block';
+                            uploadBtn.disabled = false;
+                            uploadBtn.textContent = 'Upload Receipt';
+                            confirmBtn.disabled = true;
+                            fileInput.value = '';
+                        } catch (err) {
+                            console.error(err);
+                            alert("Error removing receipt from server.");
+                        }
+                    });
+
+                } catch (err) {
+                    console.error("Receipt Upload Debug:", err);
+                    feedback.style.display = 'block';
+                    feedback.innerHTML = `
+                        <div style="background: rgba(230, 57, 70, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #e63946; margin-top: 10px;">
+                            <p style="margin: 0; color: #e63946; font-weight: bold; font-size: 0.9em;">❌ Upload Failed</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.8em; color: var(--text-color);">${err.message}</p>
+                        </div>
+                    `;
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = 'Try Upload Again';
+                }
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                if (!receiptData || !currentOrder) return;
+
+                const items = Array.isArray(currentOrder.items) && currentOrder.items.length
+                    ? currentOrder.items
+                    : [{
+                        fileName: currentOrder.fileName,
+                        pageCount: currentOrder.pageCount,
+                        copies: currentOrder.copies,
+                        printType: currentOrder.printType
+                    }];
+                const itemsLine = items.map((it, i) => {
+                    const pages = parseInt(it.pageCount) || 1;
+                    const copies = parseInt(it.copies) || 1;
+                    const printType = it.printType || 'B&W';
+                    const name = it.fileName ? ` - ${it.fileName}` : '';
+                    return `Doc ${i + 1}${name}: ${printType}, ${pages}pg, ${copies}cps`;
+                }).join('\n');
+
+                const totalAmount = Number(currentOrder.totalPrice) || 0;
+                const message = `Order Payment Confirmation!\n\n` +
+                                `Order ID: ${orderId}\n` +
+                                `Student: ${currentOrder.studentName}\n` +
+                                `Amount: ₦${totalAmount.toFixed(2)}\n` +
+                                `${itemsLine}\n` +
+                                `Receipt uploaded securely. Please verify the bank transfer before marking the order paid.`;
+
+                try {
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = 'Submitting receipt...';
+                    const recorded = await window.afriBackend.receipt(orderId,receiptData.fileId);
+                    feedback.innerHTML = '<p role="status" style="color:#17654b;">Receipt received securely. Your transfer is awaiting manual verification. We will begin processing after payment is confirmed.</p>';
+                    confirmBtn.textContent = 'Receipt Submitted';
+                    const whatsappUrl = `https://wa.me/2348083964600?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank','noopener,noreferrer');
+                } catch (e) {
+                    console.error('Receipt submission failed:',e);
+                    confirmBtn.disabled=false;
+                    confirmBtn.textContent='Retry Notification';
+                    feedback.textContent=e.message || 'Could not submit receipt. Please try again.';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

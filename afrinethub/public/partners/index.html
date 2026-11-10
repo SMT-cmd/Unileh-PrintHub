@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="canonical" href="https://afrinethub.com.ng/partners/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Partners - AfriNet Hub</title>
+    <meta name="description" content="Meet our trusted partners. AfriNet Hub collaborates with student organizations and local businesses to serve you better.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/modern.css">
+<meta name="theme-color" content="#0a1f44">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AfriNet Hub">
+<link rel="apple-touch-icon" href="../assets/images/afrinethub-round.webp">
+    <link rel="stylesheet" href="../assets/css/interior.css">
+    <link rel="icon" href="/favicon.ico" sizes="any" type="image/x-icon">
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/favicon-48x48.png" sizes="48x48" type="image/png">
+    <link rel="icon" href="/icon-96x96.png" sizes="96x96" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body class="watermark-bg">
+
+    <header></header>
+
+    <main class="container">
+        <section class="page-header">
+            <h1>Our Trusted Partners</h1>
+            <p>Meet the businesses and people helping us serve the community.</p>
+        </section>
+
+        <div id="partners-container" class="partners-grid">
+            <div class="loading">Loading our partners...</div>
+        </div>
+    </main>
+
+    <footer></footer>
+
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    <script src="../assets/js/app.js"></script>
+
+    <script type="module">
+        // --- Safe output helpers ---
+        // Anything that comes from the database is untrusted.
+        // esc() before putting text in HTML, attrUrl() before putting an address in href/src.
+        const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        const safeUrl = (v) => {
+            if (!v) return '';
+            try {
+                const u = new URL(String(v), window.location.href);
+                return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+            } catch (e) {
+                return '#';
+            }
+        };
+        const attrUrl = (v) => esc(safeUrl(v));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkDeps = setInterval(() => {
+                if (window.listenToPartners) {
+                    clearInterval(checkDeps);
+                    initPartnersPage();
+                }
+            }, 100);
+        });
+
+        function initPartnersPage() {
+            const container = document.getElementById('partners-container');
+            window.listenToPartners((list) => {
+                if (list.length > 0) {
+                    container.innerHTML = list.map(item => `
+                        <div class="partner-card card">
+                            <img src="${attrUrl(item.logoUrl || '../assets/images/icons/partner-placeholder.svg')}" alt="${esc(item.name)}" class="partner-logo" loading="lazy" decoding="async">
+                            <h3>${esc(item.name)}</h3>
+                            <p>${esc(item.description || '')}</p>
+                            ${item.contactUrl ? `<a href="${attrUrl(item.contactUrl)}" class="cta-button-small" target="_blank" rel="noopener noreferrer">Contact / Visit</a>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <p>We are currently building our partner network. Interested in partnering? Reach out!</p>
+                        </div>
+                    `;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

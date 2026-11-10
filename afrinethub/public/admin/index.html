@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://afrinethub.com.ng/admin/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - AfriNet Hub</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/modern.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+<!-- iOS Mobile Features -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AfriNet Hub">
+<link rel="apple-touch-icon" href="../assets/images/afrinethub-round.webp">
+    <link rel="stylesheet" href="../assets/css/interior.css">
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="icon" href="/favicon.ico" sizes="any" type="image/x-icon">
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/favicon-48x48.png" sizes="48x48" type="image/png">
+    <link rel="icon" href="/icon-96x96.png" sizes="96x96" type="image/png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body class="admin-login-body watermark-bg">
+
+    <main class="container">
+        <div class="login-card card">
+            <div class="logo">
+                <img src="../assets/images/afrinethub-round.webp" alt="AfriNet Hub Logo" style="height: 60px; margin-bottom: 20px;">
+                <h2>AfriNet Hub Access</h2>
+            </div>
+            <div class="admin-auth-switch">
+                <button id="show-login" class="tab-button active" type="button">Sign In</button>
+                <button id="show-signup" class="tab-button" type="button" hidden disabled>Administrator Setup</button>
+            </div>
+
+            <div id="registration-status" class="status-message"></div>
+
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label for="admin-email">Email address</label>
+                    <input type="email" id="admin-email" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" placeholder="Enter password" required>
+                </div>
+                <div id="login-error" class="error-message" style="display: none;">
+                    Invalid email or password. Please try again.
+                </div>
+                <button type="submit" class="cta-button">Sign In</button>
+            </form>
+
+            <form id="admin-signup-form" style="display:none" hidden>
+                <div class="form-group">
+                    <label for="admin-signup-email">Administrator email address</label>
+                    <select id="admin-signup-email" required>
+                        <option value="afrinetnig@gmail.com">afrinetnig@gmail.com</option>
+                        <option value="timilehintallest@gmail.com">timilehintallest@gmail.com</option>
+                    </select>
+                    <p class="form-hint">Both accounts are independent. We'll email you a secure, one-time link so you can confirm your address and create your own password.</p>
+                </div>
+                <div id="signup-error" class="error-message" style="display:none"></div>
+                <button type="submit" class="cta-button">Email my account setup link</button>
+            </form>
+            <form id="staff-activate-form" hidden style="display:none" autocomplete="off">
+                <h3 id="activation-heading">Complete your invitation</h3>
+                <p id="activation-explanation">Use the secure link sent to your email to create your own password.</p>
+                <div class="form-group">
+                    <label for="staff-new-password">New password</label>
+                    <input type="password" id="staff-new-password" autocomplete="new-password" minlength="12" required>
+                </div>
+                <div class="form-group">
+                    <label for="staff-confirm-password">Confirm password</label>
+                    <input type="password" id="staff-confirm-password" autocomplete="new-password" minlength="12" required>
+                </div>
+                <p id="staff-activate-feedback" role="status"></p>
+                <button type="submit" class="cta-button">Activate printing access</button>
+            </form>
+            <p class="login-footer"><a href="../">Back to Site</a></p>
+        </div>
+    </main>
+
+    <!-- Supabase administration client -->
+    <script type="module" src="../assets/js/database.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        const authPageDeps = setInterval(() => {
+            if (typeof signInAdmin === 'function' && typeof signUpAdmin === 'function' && typeof isAdminRegistrationOpen === 'function') {
+                clearInterval(authPageDeps);
+                initAdminAuthPage();
+            }
+        }, 100);
+
+        async function initAdminAuthPage() {
+            const loginForm = document.getElementById('admin-login-form');
+            const signupForm = document.getElementById('admin-signup-form');
+            const loginError = document.getElementById('login-error');
+            const signupError = document.getElementById('signup-error');
+            const statusDiv = document.getElementById('registration-status');
+            const showLoginBtn = document.getElementById('show-login');
+            const showSignupBtn = document.getElementById('show-signup');
+
+            const openLogin = () => {
+                showLoginBtn.classList.add('active');
+                showSignupBtn.classList.remove('active');
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+            };
+
+            const openSignup = () => {
+                showSignupBtn.classList.add('active');
+                showLoginBtn.classList.remove('active');
+                signupForm.style.display = 'block';
+                loginForm.style.display = 'none';
+            };
+
+            // Staff are invited by the AfriNet manager and set a password
+            // only after opening their email invitation.
+            const inviteType = new URLSearchParams(location.hash.slice(1)).get('type');
+            if (inviteType === 'invite' || new URLSearchParams(location.search).get('staff-invite') === '1' || new URLSearchParams(location.search).get('admin-setup') === '1') {
+                const form=document.getElementById('staff-activate-form');
+                loginForm.style.display='none';
+                signupForm.style.display='none';
+                document.querySelector('.admin-auth-switch').style.display='none';
+                form.hidden=false;
+                form.style.display='block';
+                if(new URLSearchParams(location.search).get('admin-setup') === '1'){
+                    document.getElementById('activation-heading').textContent='Complete administrator setup';
+                    document.getElementById('activation-explanation').textContent='Confirm your email invitation and choose a private password to manage AfriNet Hub.';
+                }
+                form.addEventListener('submit',async(event)=>{
+                    event.preventDefault();
+                    const feedback=document.getElementById('staff-activate-feedback');
+                    const p=document.getElementById('staff-new-password').value;
+                    if(p.length<12||p!==document.getElementById('staff-confirm-password').value){
+                        feedback.textContent='Passwords must match and contain at least 12 characters.';return;
+                    }
+                    try{
+                        await waitForSupabase();
+                        const {data:{session}}=await window.supabaseClient.auth.getSession();
+                        if(!session?.user)throw new Error('Please reopen the link in your invitation email, then set your password.');
+                        const {error}=await window.supabaseClient.auth.updateUser({password:p});
+                        if(error)throw error;
+                        const role=await getAdminAccess();
+                        if(!role)throw new Error('This email has no active access. Ask the site manager to confirm the invitation.');
+                        window.location.replace(role==='print_staff'?'print/':'dashboard/');
+                    }catch(err){feedback.textContent=err.message||'Unable to activate staff account.';}
+                });
+                return;
+            }
+
+            const registrationOpen = await isAdminRegistrationOpen();
+            if (registrationOpen) {
+                // Markup starts hidden to avoid a flash of registration UI before authorization checks.
+                showSignupBtn.hidden = false;
+                showSignupBtn.disabled = false;
+                signupForm.hidden = false;
+                statusDiv.textContent = "Administrator setup: select your approved email and receive a private link to confirm it and set your password.";
+                statusDiv.className = "status-message pending";
+            } else {
+                statusDiv.textContent = "Sign in with an administrator account. Contact the platform owner if you need access.";
+                statusDiv.className = "status-message success";
+                showSignupBtn.disabled = true;
+                openLogin();
+            }
+
+            showLoginBtn.addEventListener('click', openLogin);
+            showSignupBtn.addEventListener('click', () => {
+                if (!showSignupBtn.disabled) {
+                    openSignup();
+                }
+            });
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                loginError.style.display = 'none';
+                const email = document.getElementById('admin-email').value;
+                const password = document.getElementById('admin-password').value;
+                try {
+                    const role = await signInAdmin(email, password);
+                    window.location.href = role === 'print_staff' ? 'print/' : 'dashboard/';
+                } catch (error) {
+                    loginError.style.display = 'block';
+                }
+            });
+
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                signupError.style.display = 'none';
+                const email = document.getElementById('admin-signup-email').value;
+                try {
+                    if(!window.afriBackend)throw new Error('The account setup service has not loaded. Refresh and try again.');
+                    const guestToken=await window.afriBackend.ensureGuestSession();
+                    const result=await window.afriBackend.apiCall('admin-setup',{email,guestToken});
+                    statusDiv.textContent=result.status||'Check your email for a secure account setup link.';
+                    statusDiv.className='status-message success';
+                    openLogin();
+                } catch (error) {
+                    signupError.textContent = error.message || "Registration failed.";
+                    signupError.style.display = 'block';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

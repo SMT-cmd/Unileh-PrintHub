@@ -1,0 +1,92 @@
+{
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "trailingSlash": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/printing/",
+      "destination": "/printing/index.html"
+    },
+    {
+      "source": "/order/",
+      "destination": "/order/index.html"
+    },
+    {
+      "source": "/checkout/",
+      "destination": "/checkout/index.html"
+    },
+    {
+      "source": "/gadgets/",
+      "destination": "/gadgets/index.html"
+    },
+    {
+      "source": "/housing/",
+      "destination": "/housing/index.html"
+    },
+    {
+      "source": "/project/",
+      "destination": "/project/index.html"
+    },
+    {
+      "source": "/portal/",
+      "destination": "/portal/index.html"
+    },
+    {
+      "source": "/news/",
+      "destination": "/news/index.html"
+    },
+    {
+      "source": "/partners/",
+      "destination": "/partners/index.html"
+    },
+    {
+      "source": "/about/",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/privacy/",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/terms/",
+      "destination": "/terms/index.html"
+    },
+    {
+      "source": "/refund/",
+      "destination": "/refund/index.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/dashboard/",
+      "destination": "/admin/dashboard/index.html"
+    }
+  ]
+}
